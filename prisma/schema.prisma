@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  guestName       String
+  guestEmail      String
+  guestPhone      String
+  numberOfGuests  Int           @default(2)
+  notes           String?       @db.Text
+  checkIn         DateTime
+  checkOut        DateTime
+  nights          Int
+  basePrice       Float
+  guestSurcharge  Float         @default(0)
+  cleaningFee     Float         @default(8000)
+  touristTax      Float         @default(0)
+  totalPrice      Float
+  status          BookingStatus @default(PENDING)
+  paymentIntentId String?       @unique
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([checkIn, checkOut])
+  @@index([guestEmail])
+  @@index([status])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PAID
+  CANCELLED
+  BLOCKED
+}
+
+model PricingRule {
+  id             String    @id @default(cuid())
+  name           String
+  pricePerNight  Float
+  dateFrom       DateTime?
+  dateTo         DateTime?
+  minNights      Int       @default(2)
+  extraGuestFee  Float     @default(3000)
+  extraGuestFrom Int       @default(3)
+  isActive       Boolean   @default(true)
+  priority       Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([dateFrom, dateTo])
+}
+
+model Admin {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model BlockedPeriod {
+  id        String   @id @default(cuid())
+  dateFrom  DateTime
+  dateTo    DateTime
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

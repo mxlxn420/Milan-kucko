@@ -1,0 +1,90 @@
+export type BookingStatus = "PENDING" | "CONFIRMED" | "PAID" | "CANCELLED" | "BLOCKED";
+
+export interface Booking {
+  id: string;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  numberOfGuests: number;
+  notes?: string | null;
+  checkIn: Date | string;
+  checkOut: Date | string;
+  nights: number;
+  basePrice: number;
+  guestSurcharge: number;
+  cleaningFee: number;
+  touristTax: number;
+  totalPrice: number;
+  status: BookingStatus;
+  paymentIntentId?: string | null;
+  paidAt?: Date | string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface CreateBookingPayload {
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  numberOfGuests: number;
+  notes?: string;
+  checkIn: string;
+  checkOut: string;
+}
+
+export interface PricingRule {
+  id: string;
+  name: string;
+  pricePerNight: number;
+  dateFrom?: Date | string | null;
+  dateTo?: Date | string | null;
+  minNights: number;
+  extraGuestFee: number;
+  extraGuestFrom: number;
+  isActive: boolean;
+  priority: number;
+}
+
+export interface PriceBreakdown {
+  nights: number;
+  pricePerNight: number;
+  baseTotal: number;
+  guestSurcharge: number;
+  cleaningFee: number;
+  touristTax: number;
+  total: number;
+  minNights: number;
+  isValid: boolean;
+  validationError?: string;
+}
+
+export interface BookedDateRange {
+  checkIn: string;
+  checkOut: string;
+  status: BookingStatus;
+}
+
+export interface BookingState {
+  checkIn: Date | null;
+  checkOut: Date | null;
+  guests: number;
+  priceBreakdown: PriceBreakdown | null;
+  isCalculating: boolean;
+  step: "dates" | "details" | "confirm" | "success";
+  isSubmitting: boolean;
+  bookingId: string | null;
+  setCheckIn: (date: Date | null) => void;
+  setCheckOut: (date: Date | null) => void;
+  setGuests: (n: number) => void;
+  setStep: (step: BookingState["step"]) => void;
+  setPriceBreakdown: (b: PriceBreakdown | null) => void;
+  setBookingId: (id: string) => void;
+  reset: () => void;
+}
+
+export interface ContactFormData {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+}
