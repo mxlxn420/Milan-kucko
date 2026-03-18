@@ -1,0 +1,122 @@
+"use client";
+
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { MapPin, Phone, Mail, Send } from "lucide-react";
+import AnimatedSection from "@/components/ui/AnimatedSection";
+
+export default function ContactSection() {
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await new Promise((r) => setTimeout(r, 800));
+    setSent(true);
+  };
+
+  return (
+    <section id="kapcsolat" className="section-py bg-cream">
+      <div className="container-custom">
+
+        <AnimatedSection className="text-center mb-16">
+          <div className="section-badge">Kapcsolat</div>
+          <h2 className="font-serif text-display-lg font-light text-forest-900">
+            Vegye fel velünk a kapcsolatot
+          </h2>
+        </AnimatedSection>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+
+          <AnimatedSection direction="left" className="space-y-8">
+            <div className="space-y-5">
+              {[
+                { icon: MapPin, label: "Cím",     value: "3519 Miskolctapolca, Bencések útja 117/A" },
+                { icon: Phone,  label: "Telefon", value: "+36 30 123 4567"                          },
+                { icon: Mail,   label: "E-mail",  value: "info@milankucko.hu"                        },
+              ].map(({ icon: Icon, label, value }) => (
+                <div key={label} className="flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-forest-900/8 flex items-center justify-center shrink-0">
+                    <Icon size={18} className="text-forest-700" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-stone-400 uppercase tracking-wider mb-0.5">{label}</p>
+                    <p className="text-stone-800 font-medium">{value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bejelentkezési infó */}
+            <div className="bg-forest-900 rounded-2xl p-6 text-cream">
+              <p className="text-xs tracking-[0.2em] uppercase text-cream/50 mb-4">Tudnivalók</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-cream/60">Bejelentkezés</span><span>14:00 – 20:00</span></div>
+                <div className="flex justify-between"><span className="text-cream/60">Kijelentkezés</span><span>10:00-ig</span></div>
+                <div className="flex justify-between"><span className="text-cream/60">Max. vendég</span><span>4 fő</span></div>
+                <div className="flex justify-between"><span className="text-cream/60">NTAK</span><span>MA25112258</span></div>
+                <div className="flex justify-between"><span className="text-cream/60">Háziállat</span><span>Nem hozható</span></div>
+              </div>
+            </div>
+
+            {/* Google Maps */}
+            <div className="rounded-2xl overflow-hidden shadow-card h-56">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2681.5!2d20.7431!3d48.0673!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDjCsDA0JzAyLjMiTiAyMMKwNDQnMzUuMiJF!5e0!3m2!1shu!2shu!4v1234567890"
+                width="100%" height="100%" style={{ border: 0 }}
+                allowFullScreen loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Milán Kuckó – Bencések útja 117/A"
+              />
+            </div>
+          </AnimatedSection>
+
+          <AnimatedSection direction="right" delay={0.1}>
+            {sent ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-forest-900 rounded-3xl p-10 text-center text-cream"
+              >
+                <div className="w-16 h-16 rounded-full bg-terra-400/20 flex items-center justify-center mx-auto mb-5">
+                  <Send size={28} className="text-terra-300" />
+                </div>
+                <h3 className="font-serif text-2xl mb-3">Üzenet elküldve!</h3>
+                <p className="text-cream/60">Hamarosan felvesszük Önnel a kapcsolatot.</p>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-8 shadow-card space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">Név *</label>
+                    <input className="input-base" placeholder="Kovács Anna" required
+                      value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">Telefon</label>
+                    <input className="input-base" placeholder="+36 30 ..."
+                      value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">E-mail *</label>
+                  <input className="input-base" type="email" placeholder="email@example.com" required
+                    value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">Üzenet *</label>
+                  <textarea className="input-base resize-none" rows={5} placeholder="Írjon nekünk..." required
+                    value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
+                </div>
+                <button type="submit" className="btn-primary w-full justify-center">
+                  <Send size={15} /> Üzenet küldése
+                </button>
+              </form>
+            )}
+          </AnimatedSection>
+
+        </div>
+      </div>
+    </section>
+  );
+}

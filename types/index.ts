@@ -12,7 +12,6 @@ export interface Booking {
   nights: number;
   basePrice: number;
   guestSurcharge: number;
-  cleaningFee: number;
   touristTax: number;
   totalPrice: number;
   status: BookingStatus;
