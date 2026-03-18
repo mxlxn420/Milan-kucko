@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
       checkOut,
       basePrice,
       guestSurcharge,
+      cleaningFee,
       touristTax,
       totalPrice,
     } = body;
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
         nights,
         basePrice:      Number(basePrice),
         guestSurcharge: Number(guestSurcharge) || 0,
-        cleaningFee:    Number(cleaningFee)    || 8000,
+        cleaningFee: 0,
         touristTax:     Number(touristTax)     || 0,
         totalPrice:     Number(totalPrice),
         status:         "PENDING",

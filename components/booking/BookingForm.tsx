@@ -1,26 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion }   from "framer-motion";
 import { ArrowLeft, ArrowRight, User, Mail, Phone, MessageSquare } from "lucide-react";
 import { formatDateHu, formatCurrency } from "@/lib/utils";
 import type { BookingData } from "./BookingPage";
 
 interface Props {
   bookingData: BookingData;
-  onBack: () => void;
-  onSuccess: (bookingId: string) => void;
+  onBack:      () => void;
+  onSuccess:   (bookingId: string) => void;
 }
 
 export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
   const [form, setForm] = useState({
-    name: "",
+    name:  "",
     email: "",
     phone: "",
     notes: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,21 +29,21 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
 
     try {
       const res = await fetch("/api/bookings", {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          guestName: form.name,
-          guestEmail: form.email,
-          guestPhone: form.phone,
+          guestName:      form.name,
+          guestEmail:     form.email,
+          guestPhone:     form.phone,
           numberOfGuests: bookingData.guests,
-          notes: form.notes || null,
-          checkIn: bookingData.checkIn.toISOString(),
-          checkOut: bookingData.checkOut.toISOString(),
-          basePrice: bookingData.basePrice,
+          notes:          form.notes || null,
+          checkIn:        bookingData.checkIn.toISOString(),
+          checkOut:       bookingData.checkOut.toISOString(),
+          basePrice:      bookingData.basePrice,
           guestSurcharge: bookingData.guestSurcharge,
-          cleaningFee: bookingData.cleaningFee,
-          touristTax: bookingData.touristTax,
-          totalPrice: bookingData.totalPrice,
+          cleaningFee:    0,
+          touristTax:     bookingData.touristTax,
+          totalPrice:     bookingData.totalPrice,
         }),
       });
 
@@ -122,9 +122,13 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
           />
         </div>
 
-        {/* ÁSZF */}
         <div className="flex items-start gap-3 pt-2">
-          <input type="checkbox" id="aszf" required className="mt-1 accent-forest-900" />
+          <input
+            type="checkbox"
+            id="aszf"
+            required
+            className="mt-1 accent-forest-900"
+          />
           <label htmlFor="aszf" className="text-sm text-stone-500 leading-relaxed">
             Elfogadom az{" "}
             <a href="/aszf" target="_blank" className="text-forest-700 underline hover:text-forest-900">
@@ -143,7 +147,6 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
           </p>
         )}
 
-        {/* Gombok */}
         <div className="flex gap-3 pt-2">
           <button
             type="button"
@@ -175,7 +178,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
         </div>
       </form>
 
-      {/* Összefoglaló oldalpanel */}
+      {/* Összefoglaló */}
       <div className="bg-forest-900 rounded-3xl shadow-card p-6 text-cream h-fit">
         <h3 className="font-serif text-xl mb-6 text-cream">Foglalás összefoglalója</h3>
 
@@ -217,7 +220,9 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
 
         <div className="border-t border-white/10 pt-4 flex justify-between items-center">
           <span className="text-cream/80 font-medium">Végösszeg</span>
-          <span className="font-serif text-2xl text-cream">{formatCurrency(bookingData.totalPrice)}</span>
+          <span className="font-serif text-2xl text-cream">
+            {formatCurrency(bookingData.totalPrice)}
+          </span>
         </div>
 
         <p className="text-xs text-cream/40 mt-4 leading-relaxed">

@@ -9,13 +9,13 @@ import BookingSuccess  from "@/components/booking/BookingSuccess";
 export type BookingStep = "calendar" | "form" | "success";
 
 export interface BookingData {
-  checkIn:  Date;
-  checkOut: Date;
-  guests:   number;
-  nights:   number;
-  totalPrice:    number;
-  basePrice:     number;
-  touristTax:    number;
+  checkIn:        Date;
+  checkOut:       Date;
+  guests:         number;
+  nights:         number;
+  totalPrice:     number;
+  basePrice:      number;
+  touristTax:     number;
   guestSurcharge: number;
 }
 
