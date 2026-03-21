@@ -13,7 +13,6 @@ const SLIDES = [
 ];
 
 const BADGES = [
-  { icon: Star,  label: "10/10 – Tökéletes értékelés" },
   { icon: Waves, label: "Privát jacuzzi"               },
   { icon: Home,  label: "Csak ti vagytok"              },
 ];

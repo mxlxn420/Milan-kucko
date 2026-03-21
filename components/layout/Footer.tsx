@@ -64,19 +64,19 @@ export default function Footer() {
                   className="flex items-start gap-3 text-sm text-cream/60 hover:text-cream transition-colors group"
                 >
                   <MapPin size={16} className="mt-0.5 shrink-0 text-terra-400" />
-                  3519 Miskolctapolca, Miskolc
+                  3519 Miskolctapolca, Bencések útja 117/C
                 </a>
               </li>
               <li>
-                <a href="tel:+36301234567" className="flex items-center gap-3 text-sm text-cream/60 hover:text-cream transition-colors">
+                <a href="tel:+36308454923" className="flex items-center gap-3 text-sm text-cream/60 hover:text-cream transition-colors">
                   <Phone size={16} className="shrink-0 text-terra-400" />
                   +36 30 123 4567
                 </a>
               </li>
               <li>
-                <a href="mailto:info@milankucko.hu" className="flex items-center gap-3 text-sm text-cream/60 hover:text-cream transition-colors">
+                <a href="mailto:milan.kucko117@gmail.com" className="flex items-center gap-3 text-sm text-cream/60 hover:text-cream transition-colors">
                   <Mail size={16} className="shrink-0 text-terra-400" />
-                  info@milankucko.hu
+                  milan.kucko117@gmail.com
                 </a>
               </li>
             </ul>
