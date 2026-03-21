@@ -10,7 +10,7 @@ async function getPrisma() {
 // ─── GET ────────────────────────────────────────────────────
 export async function GET() {
   try {
-    const prisma   = await getPrisma();
+    const prisma = await getPrisma();
     const bookings = await prisma.booking.findMany({
       orderBy: { createdAt: "desc" },
     });
@@ -52,9 +52,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const checkInDate  = new Date(checkIn);
+    const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
-    const nights       = differenceInCalendarDays(checkOutDate, checkInDate);
+    const nights = differenceInCalendarDays(checkOutDate, checkInDate);
 
     if (nights <= 0) {
       return NextResponse.json(
@@ -70,8 +70,8 @@ export async function POST(req: NextRequest) {
       where: {
         status: { in: ["PENDING", "CONFIRMED", "PAID"] },
         AND: [
-          { checkIn:  { lt: checkOutDate } },
-          { checkOut: { gt: checkInDate  } },
+          { checkIn: { lt: checkOutDate } },
+          { checkOut: { gt: checkInDate } },
         ],
       },
     });
@@ -89,21 +89,27 @@ export async function POST(req: NextRequest) {
     // Mentés
     const booking = await prisma.booking.create({
       data: {
-        id:             bookingRef,
+        id: bookingRef,
         guestName,
         guestEmail,
         guestPhone,
         numberOfGuests: Number(numberOfGuests) || 2,
-        notes:          notes || null,
-        checkIn:        checkInDate,
-        checkOut:       checkOutDate,
+        numberOfAdults: Number(body.numberOfAdults) || 2,
+        numberOfBabies: Number(body.numberOfBabies) || 0,
+        numberOfChildren2to6: Number(body.numberOfChildren2to6) || 0,
+        numberOfChildren6to12: Number(body.numberOfChildren6to12) || 0,
+        notes: notes || null,
+        checkIn: checkInDate,
+        checkOut: checkOutDate,
         nights,
-        basePrice:      Number(basePrice),
-        guestSurcharge: Number(guestSurcharge) || 0,
+        basePrice: Number(basePrice),
+        childPrice2to6: Number(body.childPrice2to6) || 0,
+        childPrice6to12: Number(body.childPrice6to12) || 0,
+        guestSurcharge: 0,
         cleaningFee: 0,
-        touristTax:     Number(touristTax)     || 0,
-        totalPrice:     Number(totalPrice),
-        status:         "PENDING",
+        touristTax: 0,
+        totalPrice: Number(totalPrice),
+        status: "PENDING",
       },
     });
 
@@ -116,9 +122,9 @@ export async function POST(req: NextRequest) {
         checkIn,
         checkOut,
         nights,
-        guests:     Number(numberOfGuests),
+        guests: Number(numberOfGuests),
         totalPrice: Number(totalPrice),
-        bookingId:  bookingRef,
+        bookingId: bookingRef,
         notes,
       });
     } catch (emailErr) {

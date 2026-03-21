@@ -7,18 +7,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Calendar } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: "Kezdőlap",      href: "/#hero"         },
-  { label: "Rólunk",        href: "/#rolunk"        },
+  { label: "Kezdőlap", href: "/#hero" },
+  { label: "Rólunk", href: "/#rolunk" },
   { label: "Felszereltség", href: "/#felszereltseg" },
-  { label: "Galéria",       href: "/#galeria"       },
-  { label: "Árak",          href: "/#arak"          },
-  { label: "Kapcsolat",     href: "/#kapcsolat"     },
+  { label: "Galéria", href: "/#galeria" },
+  { label: "Árak", href: "/#arak" },
+  { label: "Kapcsolat", href: "/#kapcsolat" },
+  { label: "Értékelések", href: "/#ertekelesek" },
 ];
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const isHeroPage = pathname === "/" || pathname === "";
 
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 60);
@@ -40,9 +42,9 @@ export default function Navbar() {
     <>
       <motion.header
         className="fixed top-0 left-0 right-0 z-50 border-b"
-        animate={isScrolled
+        animate={isScrolled || !isHeroPage
           ? { backgroundColor: "rgba(26,58,42,0.97)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }
-          : { backgroundColor: "rgba(0,0,0,0)",       backdropFilter: "blur(0px)",  borderColor: "rgba(255,255,255,0)" }
+          : { backgroundColor: "rgba(0,0,0,0)", backdropFilter: "blur(0px)", borderColor: "rgba(255,255,255,0)" }
         }
         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
         style={{ height: "var(--navbar-h)" }}

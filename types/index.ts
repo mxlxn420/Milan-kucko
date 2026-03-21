@@ -6,12 +6,16 @@ export interface Booking {
   guestEmail: string;
   guestPhone: string;
   numberOfGuests: number;
+  numberOfAdults: number;
+  numberOfChildren2to6: number;
+  numberOfChildren6to12: number;
   notes?: string | null;
   checkIn: Date | string;
   checkOut: Date | string;
   nights: number;
   basePrice: number;
   guestSurcharge: number;
+  cleaningFee: number;
   touristTax: number;
   totalPrice: number;
   status: BookingStatus;
@@ -26,6 +30,9 @@ export interface CreateBookingPayload {
   guestEmail: string;
   guestPhone: string;
   numberOfGuests: number;
+  numberOfAdults: number;
+  numberOfChildren2to6: number;
+  numberOfChildren6to12: number;
   notes?: string;
   checkIn: string;
   checkOut: string;
@@ -35,9 +42,12 @@ export interface PricingRule {
   id: string;
   name: string;
   pricePerNight: number;
+  weekendPrice: number;
   dateFrom?: Date | string | null;
   dateTo?: Date | string | null;
   minNights: number;
+  childPrice2to6: number;
+  childPrice6to12: number;
   extraGuestFee: number;
   extraGuestFrom: number;
   isActive: boolean;
@@ -48,6 +58,8 @@ export interface PriceBreakdown {
   nights: number;
   pricePerNight: number;
   baseTotal: number;
+  childTotal2to6: number;
+  childTotal6to12: number;
   guestSurcharge: number;
   cleaningFee: number;
   touristTax: number;
@@ -66,7 +78,9 @@ export interface BookedDateRange {
 export interface BookingState {
   checkIn: Date | null;
   checkOut: Date | null;
-  guests: number;
+  adults: number;
+  children2to6: number;
+  children6to12: number;
   priceBreakdown: PriceBreakdown | null;
   isCalculating: boolean;
   step: "dates" | "details" | "confirm" | "success";
@@ -74,7 +88,9 @@ export interface BookingState {
   bookingId: string | null;
   setCheckIn: (date: Date | null) => void;
   setCheckOut: (date: Date | null) => void;
-  setGuests: (n: number) => void;
+  setAdults: (n: number) => void;
+  setChildren2to6: (n: number) => void;
+  setChildren6to12: (n: number) => void;
   setStep: (step: BookingState["step"]) => void;
   setPriceBreakdown: (b: PriceBreakdown | null) => void;
   setBookingId: (id: string) => void;

@@ -1,42 +1,96 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion }    from "framer-motion";
 import { DayPicker, DateRange } from "react-day-picker";
-import { differenceInCalendarDays } from "date-fns";
-import { hu } from "date-fns/locale";
-import { Users, ArrowRight, AlertCircle } from "lucide-react";
+import { differenceInCalendarDays, isWeekend } from "date-fns";
+import { hu }        from "date-fns/locale";
+import {
+  Users, Baby, ArrowRight, AlertCircle,
+  ChevronDown, ChevronUp, Loader2,
+} from "lucide-react";
 import { formatDateHu, formatCurrency } from "@/lib/utils";
+import { useBookingStore } from "@/store/bookingStore";
 import type { BookingData } from "./BookingPage";
 import "react-day-picker/dist/style.css";
 
-// ─── ÁRKÉPZÉS ────────────────────────────────────────────────
-// Ide írd be a valódi árakat!
-const TOURIST_TAX  = 500; // per fő / éj
-
-function getPricePerNight(checkIn: Date): number {
-  const month = checkIn.getMonth() + 1;
-  if ([7, 8].includes(month))           return 65_000; // Főszezon
-  if ([3, 4, 5, 6].includes(month))     return 52_000; // Tavasz
-  if ([9, 10, 11].includes(month))      return 50_000; // Ősz
-  return 45_000;                                        // Tél/alap
+interface PricingRule {
+  id:              string;
+  name:            string;
+  pricePerNight:   number;
+  weekendPrice:    number;
+  childPrice2to6:  number;
+  childPrice6to12: number;
+  dateFrom:        string | null;
+  dateTo:          string | null;
+  minNights:       number;
+  isActive:        boolean;
+  priority:        number;
 }
 
-function getMinNights(checkIn: Date): number {
-  const month = checkIn.getMonth() + 1;
-  if ([7, 8, 12].includes(month)) return 3;
-  return 2;
+interface BookedRange {
+  from: Date;
+  to:   Date;
 }
 
-// ─── FOGLALT NAPOK (később API-ból jön) ─────────────────────
-const BOOKED_RANGES: { from: Date; to: Date }[] = [
-  // Példa – töröld ki és az API tölti fel majd
-  // { from: new Date("2025-04-10"), to: new Date("2025-04-13") },
-];
+function getApplicableRule(checkIn: Date, rules: PricingRule[]): PricingRule | null {
+  if (!rules.length) return null;
+  const sorted = [...rules].sort((a, b) => b.priority - a.priority);
+  for (const rule of sorted) {
+    if (rule.dateFrom && rule.dateTo) {
+      const from = new Date(rule.dateFrom);
+      const to   = new Date(rule.dateTo);
+      if (checkIn >= from && checkIn <= to) return rule;
+    }
+  }
+  return sorted.find((r) => !r.dateFrom && !r.dateTo) ?? null;
+}
 
-function isBooked(date: Date): boolean {
-  return BOOKED_RANGES.some(
-    ({ from, to }) => date >= from && date <= to
+function getPriceForNight(date: Date, rule: PricingRule): number {
+  if (rule.weekendPrice > 0 && isWeekend(date)) return rule.weekendPrice;
+  return rule.pricePerNight;
+}
+
+function calcBaseTotal(checkIn: Date, checkOut: Date, rule: PricingRule, personCount: number): number {
+  let nightlyTotal = 0;
+  const cur = new Date(checkIn);
+  while (cur < checkOut) {
+    nightlyTotal += getPriceForNight(cur, rule);
+    cur.setDate(cur.getDate() + 1);
+  }
+  return nightlyTotal * personCount;
+}
+
+function isRangeOverlapping(from: Date, to: Date, bookedRanges: BookedRange[]): boolean {
+  return bookedRanges.some((r) => from < r.to && to > r.from);
+}
+
+function GuestCounter({
+  label, sublabel, value, min = 0, max = 10, onChange,
+}: {
+  label: string; sublabel: string; value: number;
+  min?: number; max?: number; onChange: (n: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between py-3 border-b border-stone-100 last:border-0">
+      <div className="flex-1 pr-4">
+        <p className="text-sm font-medium text-stone-800">{label}</p>
+        <p className="text-xs text-stone-400 mt-0.5">{sublabel}</p>
+      </div>
+      <div className="flex items-center gap-3 shrink-0">
+        <button type="button"
+          onClick={() => onChange(Math.max(min, value - 1))}
+          disabled={value <= min}
+          className="w-8 h-8 rounded-full border border-stone-200 text-stone-600 hover:bg-stone-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-lg leading-none"
+        >−</button>
+        <span className="w-6 text-center font-medium text-stone-800 text-sm">{value}</span>
+        <button type="button"
+          onClick={() => onChange(Math.min(max, value + 1))}
+          disabled={value >= max}
+          className="w-8 h-8 rounded-full border border-stone-200 text-stone-600 hover:bg-stone-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-lg leading-none"
+        >+</button>
+      </div>
+    </div>
   );
 }
 
@@ -45,24 +99,94 @@ interface Props {
 }
 
 export default function BookingCalendar({ onNext }: Props) {
-  const [range, setRange]   = useState<DateRange | undefined>();
-  const [guests, setGuests] = useState(2);
-  const [error, setError]   = useState<string | null>(null);
+  const store = useBookingStore();
+
+  const storeCheckIn  = store.checkIn  ? new Date(store.checkIn)  : null;
+  const storeCheckOut = store.checkOut ? new Date(store.checkOut) : null;
+
+  const [range, setRange] = useState<DateRange | undefined>(
+    storeCheckIn && storeCheckOut && !isNaN(storeCheckIn.getTime())
+      ? { from: storeCheckIn, to: storeCheckOut }
+      : undefined
+  );
+  const [adults, setAdults]               = useState(store.adults        > 0 ? store.adults        : 2);
+  const [teens, setTeens]                 = useState(store.teens         ?? 0);
+  const [babies, setBabies]               = useState(store.babies        ?? 0);
+  const [children2to6, setChildren2to6]   = useState(store.children2to6  ?? 0);
+  const [children6to12, setChildren6to12] = useState(store.children6to12 ?? 0);
+  const [error, setError]                 = useState<string | null>(null);
+  const [showChildren, setShowChildren]   = useState(
+    (store.teens + store.babies + store.children2to6 + store.children6to12) > 0
+  );
+  const [rules, setRules]                 = useState<PricingRule[]>([]);
+  const [loadingRules, setLoadingRules]   = useState(true);
+  const [bookedRanges, setBookedRanges]   = useState<BookedRange[]>([]);
+
+  useEffect(() => {
+    const loadPricing = async () => {
+      try {
+        const res  = await fetch("/api/pricing");
+        const data = await res.json();
+        if (data.success && data.data.length > 0) {
+          setRules(data.data);
+        }
+      } catch (err) {
+        console.error("Pricing betöltési hiba:", err);
+      } finally {
+        setLoadingRules(false);
+      }
+    };
+    loadPricing();
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/availability")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          const ranges = [
+            ...data.data.bookings,
+            ...data.data.blocked,
+          ].map((b: any) => ({
+            from: new Date(b.checkIn),
+            to:   new Date(b.checkOut),
+          }));
+          setBookedRanges(ranges);
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const checkIn  = range?.from ?? null;
   const checkOut = range?.to   ?? null;
-  const nights   = checkIn && checkOut
-    ? differenceInCalendarDays(checkOut, checkIn)
-    : 0;
+  const nights   = checkIn && checkOut ? differenceInCalendarDays(checkOut, checkIn) : 0;
 
-  // Árkalkuláció
-  const pricePerNight  = checkIn ? getPricePerNight(checkIn) : 45_000;
-  const minNights      = checkIn ? getMinNights(checkIn) : 2;
-  const baseTotal      = pricePerNight * nights;
-  const extraGuests    = Math.max(0, guests - 2);
-  const guestSurcharge = extraGuests * 3_000 * nights;
-  const touristTax     = guests * TOURIST_TAX * nights;
-  const total          = baseTotal + guestSurcharge + touristTax;
+  const totalGuests = adults + teens + babies + children2to6 + children6to12;
+  const hasChildren = teens + babies + children2to6 + children6to12 > 0;
+  const currentRule = checkIn ? getApplicableRule(checkIn, rules) : null;
+  const minNights   = currentRule?.minNights ?? 2;
+
+  const baseTotal       = checkIn && checkOut && nights > 0 && currentRule
+    ? calcBaseTotal(checkIn, checkOut, currentRule, adults + teens)
+    : 0;
+  const child2to6Price  = currentRule?.childPrice2to6  ?? 0;
+  const child6to12Price = currentRule?.childPrice6to12 ?? 0;
+  const childTotal2to6  = child2to6Price  * children2to6  * nights;
+  const childTotal6to12 = child6to12Price * children6to12 * nights;
+  const touristTax      = 450 * adults * nights;
+  const total           = baseTotal + childTotal2to6 + childTotal6to12 + touristTax;
+
+  const handleSelect = (r: DateRange | undefined) => {
+    setError(null);
+    if (r?.from && r?.to) {
+      if (isRangeOverlapping(r.from, r.to, bookedRanges)) {
+        setError("Ez az időszak már foglalt! Kérjük válasszon másik dátumot.");
+        setRange(undefined);
+        return;
+      }
+    }
+    setRange(r);
+  };
 
   const handleNext = () => {
     setError(null);
@@ -71,18 +195,33 @@ export default function BookingCalendar({ onNext }: Props) {
       return;
     }
     if (nights < minNights) {
-      setError(`Ebben az időszakban minimum ${minNights} éjszaka foglalható!`);
+      setError("Ebben az időszakban minimum " + minNights + " éjszakára lehet foglalni!");
+      return;
+    }
+    if (adults < 1) {
+      setError("Legalább 1 felnőtt (18+) szükséges!");
+      return;
+    }
+    if (isRangeOverlapping(checkIn, checkOut, bookedRanges)) {
+      setError("Ez az időszak már foglalt! Kérjük válasszon másik dátumot.");
       return;
     }
     onNext({
       checkIn,
       checkOut,
-      guests,
+      guests:          totalGuests,
+      adults,
+      teens,
+      babies,
+      children2to6,
+      children6to12,
       nights,
-      totalPrice:     total,
-      basePrice:      pricePerNight,
+      totalPrice:      total,
+      basePrice:       currentRule?.pricePerNight ?? 0,
+      childPrice2to6:  child2to6Price,
+      childPrice6to12: child6to12Price,
+      guestSurcharge:  0,
       touristTax,
-      guestSurcharge,
     });
   };
 
@@ -91,122 +230,278 @@ export default function BookingCalendar({ onNext }: Props) {
 
       {/* Naptár */}
       <div className="lg:col-span-2 bg-white rounded-3xl shadow-card p-6">
-        <h2 className="font-serif text-xl text-forest-900 mb-5">
-          Válasszon dátumot
-        </h2>
+        <h2 className="font-serif text-xl text-forest-900 mb-1">Válasszon dátumot</h2>
+        {currentRule && (
+          <p className="text-xs text-terra-500 mb-4">
+            Aktív szezon: <strong>{currentRule.name}</strong> –{" "}
+            {formatCurrency(currentRule.pricePerNight)}/éj
+            {currentRule.weekendPrice > 0 &&
+              " (hétvége: " + formatCurrency(currentRule.weekendPrice) + "/éj)"}
+          </p>
+        )}
         <DayPicker
           mode="range"
           selected={range}
-          onSelect={(r) => {
-            setRange(r);
-            setError(null);
-          }}
+          onSelect={handleSelect}
           fromDate={new Date()}
           numberOfMonths={2}
           locale={hu}
-          disabled={isBooked}
-          modifiers={{ booked: BOOKED_RANGES.map((r) => ({ from: r.from, to: r.to })) }}
-          modifiersClassNames={{ booked: "rdp-day_booked" }}
-          styles={{
-            months: { gap: "1rem" },
+          disabled={bookedRanges}
+          modifiers={{ booked: bookedRanges }}
+          modifiersStyles={{
+            booked: {
+              backgroundColor: "#f5e6d8",
+              color: "#a86435",
+              textDecoration: "line-through",
+              cursor: "not-allowed",
+              opacity: 0.7,
+            },
           }}
+          styles={{ months: { gap: "1rem" } }}
         />
-
-        {/* Jelmagyarázat */}
         <div className="flex items-center gap-6 mt-4 pt-4 border-t border-stone-100">
           <div className="flex items-center gap-2 text-xs text-stone-500">
-            <span className="w-4 h-4 rounded-full bg-forest-900 inline-block" />
+            <span className="w-3.5 h-3.5 rounded-full bg-forest-900 inline-block" />
             Kiválasztva
           </div>
           <div className="flex items-center gap-2 text-xs text-stone-500">
-            <span className="w-4 h-4 rounded-full bg-stone-200 inline-block" />
+            <span className="w-3.5 h-3.5 rounded-full bg-stone-200 inline-block" />
             Szabad
           </div>
           <div className="flex items-center gap-2 text-xs text-stone-500">
-            <span className="w-4 h-4 rounded-full bg-terra-200 inline-block" />
+            <span className="w-3.5 h-3.5 rounded-full bg-terra-200 inline-block" />
             Foglalt
           </div>
         </div>
       </div>
 
-      {/* Összesítő oldalpanel */}
+      {/* Jobb panel */}
       <div className="flex flex-col gap-4">
 
-        {/* Vendégszám */}
+        {/* Vendégek */}
         <div className="bg-white rounded-3xl shadow-card p-6">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3">
             <Users size={16} className="text-forest-700" />
             <h3 className="font-medium text-stone-800">Vendégek</h3>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-stone-600">Fők száma</span>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setGuests(Math.max(1, guests - 1))}
-                className="w-8 h-8 rounded-full border border-stone-200 text-stone-600 hover:bg-stone-100 transition-colors"
-              >−</button>
-              <span className="w-5 text-center font-medium">{guests}</span>
-              <button
-                onClick={() => setGuests(Math.min(4, guests + 1))}
-                className="w-8 h-8 rounded-full border border-stone-200 text-stone-600 hover:bg-stone-100 transition-colors"
-              >+</button>
+
+          <GuestCounter
+            label="Felnőtt (18+ év)"
+            sublabel="Szobadíj/fő + IFA (450 Ft/éj)"
+            value={adults}
+            min={1}
+            max={6}
+            onChange={setAdults}
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowChildren((v) => !v)}
+            className="w-full flex items-center justify-between py-3 text-sm text-forest-700 hover:text-forest-900 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Baby size={15} />
+              <span>Fiatal / Gyerek hozzáadása</span>
+              {hasChildren && (
+                <span className="bg-forest-100 text-forest-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                  {teens + babies + children2to6 + children6to12} fő
+                </span>
+              )}
+            </div>
+            {showChildren ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+          </button>
+
+          {showChildren && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="border-t border-stone-100 pt-2 overflow-hidden"
+            >
+              <div className="bg-forest-50 rounded-xl p-3 mb-3 text-xs text-forest-700 space-y-0.5">
+                <p className="font-semibold mb-1.5">Díjszabás:</p>
+                <p>• 0–2 éves: <strong>ingyenes</strong></p>
+                <p>• 2–6 éves: <strong>{child2to6Price > 0 ? formatCurrency(child2to6Price) : "–"}/éj</strong></p>
+                <p>• 6–12 éves: <strong>{child6to12Price > 0 ? formatCurrency(child6to12Price) : "–"}/éj</strong></p>
+                <p>• 12–18 éves: <strong>szobadíj/fő, IFA nélkül</strong></p>
+                <p>• IFA: <strong>450 Ft/felnőtt/éj</strong></p>
+              </div>
+
+              <GuestCounter
+                label="Baba (0–2 év)"
+                sublabel="Ingyenes – csak jelzés"
+                value={babies}
+                max={4}
+                onChange={setBabies}
+              />
+              <GuestCounter
+                label="Kisgyerek (2–6 év)"
+                sublabel={child2to6Price > 0 ? formatCurrency(child2to6Price) + "/éj" : "Ár nincs megadva"}
+                value={children2to6}
+                max={4}
+                onChange={setChildren2to6}
+              />
+              <GuestCounter
+                label="Gyerek (6–12 év)"
+                sublabel={child6to12Price > 0 ? formatCurrency(child6to12Price) + "/éj" : "Ár nincs megadva"}
+                value={children6to12}
+                max={4}
+                onChange={setChildren6to12}
+              />
+              <GuestCounter
+                label="Fiatal (12–18 év)"
+                sublabel="Szobadíj/fő – IFA nélkül"
+                value={teens}
+                max={6}
+                onChange={setTeens}
+              />
+            </motion.div>
+          )}
+
+          <div className="mt-3 pt-3 border-t border-stone-100 space-y-1">
+            <div className="flex justify-between text-xs text-stone-500">
+              <span>Felnőtt (18+)</span>
+              <span className="font-medium text-stone-700">{adults} fő</span>
+            </div>
+            {teens > 0 && (
+              <div className="flex justify-between text-xs text-stone-500">
+                <span>Fiatal (12–18)</span>
+                <span className="font-medium text-stone-700">{teens} fő</span>
+              </div>
+            )}
+            {babies > 0 && (
+              <div className="flex justify-between text-xs text-stone-500">
+                <span>Baba (0–2)</span>
+                <span className="font-medium text-forest-600">{babies} fő – ingyenes</span>
+              </div>
+            )}
+            {children2to6 > 0 && (
+              <div className="flex justify-between text-xs text-stone-500">
+                <span>Kisgyerek (2–6)</span>
+                <span className="font-medium text-stone-700">{children2to6} fő</span>
+              </div>
+            )}
+            {children6to12 > 0 && (
+              <div className="flex justify-between text-xs text-stone-500">
+                <span>Gyerek (6–12)</span>
+                <span className="font-medium text-stone-700">{children6to12} fő</span>
+              </div>
+            )}
+            <div className="flex justify-between text-xs font-semibold text-stone-700 pt-1.5 border-t border-stone-100 mt-1">
+              <span>Összesen</span>
+              <span>{totalGuests} fő</span>
             </div>
           </div>
-          <p className="text-xs text-stone-400 mt-3">Max. 4 fő. 3-4. főtől +3 000 Ft/fő/éj.</p>
         </div>
 
         {/* Árösszesítő */}
         <div className="bg-white rounded-3xl shadow-card p-6 flex-1">
           <h3 className="font-medium text-stone-800 mb-4">Árösszesítő</h3>
 
-          {nights > 0 ? (
+          {loadingRules ? (
+            <div className="flex items-center justify-center py-6 text-stone-400">
+              <Loader2 size={18} className="animate-spin mr-2" />
+              <span className="text-sm">Betöltés...</span>
+            </div>
+          ) : nights > 0 && currentRule ? (
             <>
-              <div className="space-y-2.5 text-sm mb-4">
-                <div className="flex justify-between">
-                  <span className="text-stone-500">{formatCurrency(pricePerNight)} × {nights} éj</span>
-                  <span className="text-stone-800">{formatCurrency(baseTotal)}</span>
+              <div className="flex items-center gap-2 bg-forest-50 text-forest-700 text-xs px-3 py-2 rounded-lg mb-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-forest-500 shrink-0" />
+                <span className="font-medium">{currentRule.name}</span>
+                {currentRule.dateFrom && currentRule.dateTo && (
+                  <span className="text-forest-500 ml-auto">
+                    {new Date(currentRule.dateFrom).toLocaleDateString("hu-HU", { month: "short", day: "numeric" })}
+                    {" – "}
+                    {new Date(currentRule.dateTo).toLocaleDateString("hu-HU", { month: "short", day: "numeric" })}
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-stone-700 font-medium">Szállás</p>
+                    <p className="text-xs text-stone-400 mt-0.5">
+                      {adults + teens} fő × {formatCurrency(currentRule.pricePerNight)}/éj × {nights} éj
+                    </p>
+                  </div>
+                  <span className="text-stone-800 font-medium">{formatCurrency(baseTotal)}</span>
                 </div>
-                {guestSurcharge > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-stone-500">Extra vendég felár</span>
-                    <span className="text-stone-800">{formatCurrency(guestSurcharge)}</span>
+
+                {childTotal2to6 > 0 && (
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-stone-700 font-medium">Kisgyerek (2–6 év)</p>
+                      <p className="text-xs text-stone-400 mt-0.5">
+                        {children2to6} fő × {formatCurrency(child2to6Price)}/éj × {nights} éj
+                      </p>
+                    </div>
+                    <span className="text-stone-800 font-medium">{formatCurrency(childTotal2to6)}</span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-stone-500">IFA ({guests} fő)</span>
-                  <span className="text-stone-800">{formatCurrency(touristTax)}</span>
+
+                {childTotal6to12 > 0 && (
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-stone-700 font-medium">Gyerek (6–12 év)</p>
+                      <p className="text-xs text-stone-400 mt-0.5">
+                        {children6to12} fő × {formatCurrency(child6to12Price)}/éj × {nights} éj
+                      </p>
+                    </div>
+                    <span className="text-stone-800 font-medium">{formatCurrency(childTotal6to12)}</span>
+                  </div>
+                )}
+
+                {babies > 0 && (
+                  <div className="flex justify-between items-center">
+                    <p className="text-stone-700 font-medium">Baba ({babies} fő)</p>
+                    <span className="text-forest-600 font-medium">Ingyenes</span>
+                  </div>
+                )}
+
+                {touristTax > 0 && (
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-stone-700 font-medium">IFA</p>
+                      <p className="text-xs text-stone-400 mt-0.5">
+                        {adults} felnőtt × 450 Ft × {nights} éj
+                      </p>
+                    </div>
+                    <span className="text-stone-800 font-medium">{formatCurrency(touristTax)}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-stone-100 mt-4 pt-4 flex justify-between items-center">
+                <div>
+                  <p className="font-semibold text-stone-800">Összesen</p>
+                  <p className="text-xs text-stone-400">{nights} éjszaka</p>
                 </div>
+                <span className="font-serif text-2xl text-forest-900">{formatCurrency(total)}</span>
               </div>
 
-              <div className="border-t border-stone-100 pt-3 flex justify-between font-semibold">
-                <span className="text-stone-800">Összesen</span>
-                <span className="text-forest-900 text-lg">{formatCurrency(total)}</span>
-              </div>
-
-              {/* Dátumok */}
-              <div className="mt-4 pt-4 border-t border-stone-100 space-y-1 text-xs text-stone-500">
-                <div className="flex justify-between">
+              <div className="mt-4 pt-4 border-t border-stone-100 space-y-1.5 text-xs">
+                <div className="flex justify-between text-stone-500">
                   <span>Érkezés</span>
-                  <span className="text-stone-700">{formatDateHu(checkIn!)}</span>
+                  <span className="text-stone-700 font-medium">{formatDateHu(checkIn!)}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-stone-500">
                   <span>Távozás</span>
-                  <span className="text-stone-700">{formatDateHu(checkOut!)}</span>
+                  <span className="text-stone-700 font-medium">{formatDateHu(checkOut!)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Min. éjszaka</span>
-                  <span className="text-stone-700">{minNights} éj</span>
+                <div className="flex justify-between text-stone-500">
+                  <span>Min. foglalás</span>
+                  <span className="text-stone-700 font-medium">{minNights} éj</span>
                 </div>
               </div>
             </>
           ) : (
-            <p className="text-sm text-stone-400 text-center py-4">
-              Válasszon dátumot az ár megtekintéséhez
-            </p>
+            <div className="text-center py-8">
+              <p className="text-stone-400 text-sm mb-1">Válasszon dátumot</p>
+              <p className="text-stone-300 text-xs">az ár megtekintéséhez</p>
+            </div>
           )}
         </div>
 
-        {/* Hiba */}
         {error && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
@@ -218,11 +513,7 @@ export default function BookingCalendar({ onNext }: Props) {
           </motion.div>
         )}
 
-        {/* Tovább gomb */}
-        <button
-          onClick={handleNext}
-          className="btn-primary w-full justify-center"
-        >
+        <button onClick={handleNext} className="btn-primary w-full justify-center">
           Tovább az adatokhoz <ArrowRight size={16} />
         </button>
 

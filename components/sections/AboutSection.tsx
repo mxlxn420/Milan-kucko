@@ -6,13 +6,12 @@ import { MapPin, Users, Star } from "lucide-react";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
 const VALUES = [
-  { icon: MapPin, title: "Zsákutcai csend",    text: "Miskolctapolca csendes sarkában, zsákutcában – mégis mindenhez közel. Az Ellipsum Barlangfürdő csak 1 km-re!" },
+  { icon: MapPin, title: "Zsákutcai csend",    text: "Miskolctapolca csendes sarkában, zsákutcában – mégis mindenhez közel. Az Ellipsum, Barlangfürdő csak 1 km-re!" },
   { icon: Users,  title: "Csak ti vagytok",    text: "Az egész kuckót kizárólag nektek tartjuk fenn. Nincs más vendég – teljes privát szféra, igazi intimszféra." },
-  { icon: Star,   title: "10/10 értékelés",    text: "Vendégeink minden alkalommal tökéletes értékelést adnak – ez a mi legnagyobb büszkeségünk." },
 ];
 
 const NEARBY = [
-  "Ellipsum Barlangfürdő – 1 km",
+  "Ellipsum, Barlangfürdő – 1 km",
   "Avalon Park / Maya Játszópark – 2,5 km",
   "Miskolctapolcai Bobpálya",
   "Erdei kisvasút – Lillafüred",

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useBookingStore } from "@/store/bookingStore";
 import BookingCalendar from "@/components/booking/BookingCalendar";
 import BookingForm     from "@/components/booking/BookingForm";
 import BookingSuccess  from "@/components/booking/BookingSuccess";
@@ -9,17 +10,25 @@ import BookingSuccess  from "@/components/booking/BookingSuccess";
 export type BookingStep = "calendar" | "form" | "success";
 
 export interface BookingData {
-  checkIn:        Date;
-  checkOut:       Date;
-  guests:         number;
-  nights:         number;
-  totalPrice:     number;
-  basePrice:      number;
-  touristTax:     number;
-  guestSurcharge: number;
+  checkIn:         Date;
+  checkOut:        Date;
+  guests:          number;
+  adults:          number;
+  teens:           number;
+  babies:          number;
+  children2to6:    number;
+  children6to12:   number;
+  nights:          number;
+  totalPrice:      number;
+  basePrice:       number;
+  childPrice2to6:  number;
+  childPrice6to12: number;
+  guestSurcharge:  number;
+  touristTax:      number;
 }
 
 export default function BookingPage() {
+  const store = useBookingStore();
   const [step, setStep]               = useState<BookingStep>("calendar");
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [bookingId, setBookingId]     = useState<string | null>(null);
@@ -94,6 +103,7 @@ export default function BookingPage() {
                 onSuccess={(id) => {
                   setBookingId(id);
                   setStep("success");
+                  store.reset(); // ← store törlése sikeres foglalás után
                 }}
               />
             </motion.div>

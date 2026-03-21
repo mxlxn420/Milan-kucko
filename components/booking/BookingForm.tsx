@@ -1,26 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { motion }   from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, User, Mail, Phone, MessageSquare } from "lucide-react";
 import { formatDateHu, formatCurrency } from "@/lib/utils";
 import type { BookingData } from "./BookingPage";
 
 interface Props {
   bookingData: BookingData;
-  onBack:      () => void;
-  onSuccess:   (bookingId: string) => void;
+  onBack: () => void;
+  onSuccess: (bookingId: string) => void;
 }
 
 export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
   const [form, setForm] = useState({
-    name:  "",
+    name: "",
     email: "",
     phone: "",
     notes: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,30 +29,31 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
 
     try {
       const res = await fetch("/api/bookings", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          guestName:      form.name,
-          guestEmail:     form.email,
-          guestPhone:     form.phone,
+          guestName: form.name,
+          guestEmail: form.email,
+          guestPhone: form.phone,
           numberOfGuests: bookingData.guests,
-          notes:          form.notes || null,
-          checkIn:        bookingData.checkIn.toISOString(),
-          checkOut:       bookingData.checkOut.toISOString(),
-          basePrice:      bookingData.basePrice,
-          guestSurcharge: bookingData.guestSurcharge,
-          cleaningFee:    0,
-          touristTax:     bookingData.touristTax,
-          totalPrice:     bookingData.totalPrice,
+          numberOfAdults: bookingData.adults,
+          numberOfChildren2to6: bookingData.children2to6,
+          numberOfChildren6to12: bookingData.children6to12,
+          notes: form.notes || null,
+          checkIn: bookingData.checkIn.toISOString(),
+          checkOut: bookingData.checkOut.toISOString(),
+          basePrice: bookingData.basePrice,
+          childPrice2to6: bookingData.childPrice2to6,
+          childPrice6to12: bookingData.childPrice6to12,
+          guestSurcharge: 0,
+          cleaningFee: 0,
+          touristTax: 0,
+          totalPrice: bookingData.totalPrice,
         }),
       });
 
       const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Ismeretlen hiba");
-      }
-
+      if (!res.ok || !data.success) throw new Error(data.error || "Ismeretlen hiba");
       onSuccess(data.data.id);
     } catch (err: any) {
       setError(err.message || "Hiba történt. Kérjük próbálja újra!");
@@ -197,7 +198,13 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
           </div>
           <div className="flex justify-between">
             <span className="text-cream/60">Vendégek</span>
-            <span>{bookingData.guests} fő</span>
+            <span className="text-right text-sm">
+              {bookingData.adults} felnőtt (18+)
+              {bookingData.teens > 0 && `, ${bookingData.teens} fiatal (12–18)`}
+              {bookingData.children6to12 > 0 && `, ${bookingData.children6to12} gyerek (6–12)`}
+              {bookingData.children2to6 > 0 && `, ${bookingData.children2to6} kisgyerek (2–6)`}
+              {bookingData.babies > 0 && `, ${bookingData.babies} baba`}
+            </span>
           </div>
         </div>
 

@@ -8,11 +8,38 @@ import AnimatedSection from "@/components/ui/AnimatedSection";
 export default function ContactSection() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await new Promise((r) => setTimeout(r, 800));
-    setSent(true);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.phone || null,
+          message: form.message,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Hiba történt");
+      }
+
+      setSent(true);
+    } catch (err: any) {
+      setError(err.message || "Hiba történt. Kérjük próbálja újra!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,9 +58,9 @@ export default function ContactSection() {
           <AnimatedSection direction="left" className="space-y-8">
             <div className="space-y-5">
               {[
-                { icon: MapPin, label: "Cím",     value: "3519 Miskolctapolca, Bencések útja 117/A" },
-                { icon: Phone,  label: "Telefon", value: "+36 30 123 4567"                          },
-                { icon: Mail,   label: "E-mail",  value: "info@milankucko.hu"                        },
+                { icon: MapPin, label: "Cím", value: "3519 Miskolctapolca, Bencések útja 117/A" },
+                { icon: Phone, label: "Telefon", value: "+36 30 845 4923" },
+                { icon: Mail, label: "E-mail", value: "milan.kucko117@gmail.com" },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-center gap-4">
                   <div className="w-11 h-11 rounded-xl bg-forest-900/8 flex items-center justify-center shrink-0">
@@ -108,8 +135,25 @@ export default function ContactSection() {
                   <textarea className="input-base resize-none" rows={5} placeholder="Írjon nekünk..." required
                     value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
                 </div>
-                <button type="submit" className="btn-primary w-full justify-center">
-                  <Send size={15} /> Üzenet küldése
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary w-full justify-center"
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <motion.span
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+                        className="block w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                      />
+                      Küldés...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Send size={15} /> Üzenet küldése
+                    </span>
+                  )}
                 </button>
               </form>
             )}

@@ -8,25 +8,32 @@ datasource db {
 }
 
 model Booking {
-  id              String        @id @default(cuid())
-  guestName       String
-  guestEmail      String
-  guestPhone      String
-  numberOfGuests  Int           @default(2)
-  notes           String?       @db.Text
-  checkIn         DateTime
-  checkOut        DateTime
-  nights          Int
-  basePrice       Float
-  guestSurcharge  Float         @default(0)
-  cleaningFee     Float         @default(8000)
-  touristTax      Float         @default(0)
-  totalPrice      Float
-  status          BookingStatus @default(PENDING)
-  paymentIntentId String?       @unique
-  paidAt          DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id                    String        @id @default(cuid())
+  guestName             String
+  guestEmail            String
+  guestPhone            String
+  numberOfGuests        Int           @default(2)
+  numberOfAdults        Int  @default(2)
+  numberOfTeens         Int  @default(0)   
+  numberOfBabies        Int  @default(0)
+  numberOfChildren2to6  Int  @default(0)
+  numberOfChildren6to12 Int  @default(0)
+  notes                 String?       @db.Text
+  checkIn               DateTime
+  checkOut              DateTime
+  nights                Int
+  basePrice             Float
+  childPrice2to6        Float         @default(0)
+  childPrice6to12       Float         @default(0)
+  guestSurcharge        Float         @default(0)
+  cleaningFee           Float         @default(0)
+  touristTax            Float         @default(0)
+  totalPrice            Float
+  status                BookingStatus @default(PENDING)
+  paymentIntentId       String?       @unique
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 
   @@index([checkIn, checkOut])
   @@index([status])
@@ -41,18 +48,21 @@ enum BookingStatus {
 }
 
 model PricingRule {
-  id             String    @id @default(cuid())
-  name           String
-  pricePerNight  Float
-  dateFrom       DateTime?
-  dateTo         DateTime?
-  minNights      Int       @default(2)
-  extraGuestFee  Float     @default(3000)
-  extraGuestFrom Int       @default(3)
-  isActive       Boolean   @default(true)
-  priority       Int       @default(0)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  name            String
+  pricePerNight   Float
+  weekendPrice    Float     @default(0)
+  childPrice2to6  Float     @default(0)
+  childPrice6to12 Float     @default(0)
+  dateFrom        DateTime?
+  dateTo          DateTime?
+  minNights       Int       @default(2)
+  extraGuestFee   Float     @default(0)
+  extraGuestFrom  Int       @default(3)
+  isActive        Boolean   @default(true)
+  priority        Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Admin {

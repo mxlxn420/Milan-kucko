@@ -7,10 +7,10 @@ import AnimatedSection from "@/components/ui/AnimatedSection";
 
 const FAQS = [
   { q: "Mikor van bejelentkezés és kijelentkezés?",          a: "Bejelentkezés: 14:00–20:00 között. Kijelentkezés: 10:00-ig. Eltérő időpont előzetesen egyeztethető." },
-  { q: "Hány fő tud elszállásolni a kuckóban?",              a: "A Milán Kuckó alapvetően 2 fő részére ideális, de maximum 4 fő számára biztosítható elhelyezés (extra pótágyakkal). 3+ fő esetén extra felár kerül felszámolásra." },
+  { q: "Hány fő tud elszállásolni a kuckóban?",              a: "A Milán Kuckó alapvetően 2 fő részére ideális, de maximum 4 fő számára biztosítható elhelyezés (extra pótágyakkal)." },
   { q: "Szabad-e kisállatot hozni?",                         a: "Sajnos kisállatokat nem tudunk fogadni, hogy minden vendégünk számára allergiamentes és tiszta környezetet biztosíthassunk." },
-  { q: "Hogyan működik a dézsafürdő és a szauna?",           a: "Érkezés előtt a dézsafürdőt a kívánt hőfokra (kb. 38-40°C) előkészítjük. A szauna fa tüzelésű, felfűtési ideje kb. 1 óra – az instrukciók a helyszínen megtalálhatók." },
-  { q: "Van-e lehetőség korai érkezésre vagy késői távozásra?", a: "Előzetes egyeztetés alapján igen, amennyiben a nyaraló szabad. Kérjük, jelezze igényét foglaláskor a megjegyzés rovatban." },
+  { q: "Hogyan működik a jacuzzi?",                          a: "Érkezés előtt a jacuzzit a kívánt hőfokra (kb. 38-40°C) előkészítjük." },
+  { q: "Van-e lehetőség korai érkezésre vagy késői távozásra?", a: "Előzetes egyeztetés alapján igen, amennyiben a vemdégház szabad, felár ellenében. Kérjük, jelezze igényét foglaláskor a megjegyzés rovatban." },
   { q: "Hogyan lehet lemondani a foglalást?",                 a: "A foglalás lemondása az érkezés előtt 7 napig ingyenes. 7 napon belüli lemondás esetén az előleg nem visszatérítendő. Részletek az ÁSZF-ben." },
   { q: "Van-e a közelben étterem vagy bevásárlási lehetőség?",a: "Miskolctapolca és Miskolc belvárosa 5-10 percre található, ahol számos étterem és áruház elérhető. A kuckóban teljes felszereltségű konyha áll rendelkezésre." },
 ];

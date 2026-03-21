@@ -88,10 +88,104 @@
   }
 }
 
-/* React Day Picker */
-.rdp { --rdp-accent-color: #1a3a2a; margin: 0; }
-.rdp-day_selected { background-color: #1a3a2a !important; color: #f5f0e8 !important; }
-.rdp-day_range_middle { background-color: rgba(26,58,42,0.1) !important; }
+/* ─── React Day Picker ──────────────────────────────────────── */
+.rdp {
+  --rdp-accent-color: #1a3a2a;
+  --rdp-background-color: #f0f5f1;
+  margin: 0;
+}
+
+/* Napok */
+.rdp-day {
+  color: #2a2a2a !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+}
+
+/* Hover */
+.rdp-day:hover:not([disabled]) {
+  background-color: #dceade !important;
+  color: #1a3a2a !important;
+  border-radius: 8px !important;
+}
+
+/* Kiválasztott nap */
+.rdp-day_selected,
+.rdp-day_selected:hover {
+  background-color: #1a3a2a !important;
+  color: #f5f0e8 !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+/* Range közép */
+.rdp-day_range_middle {
+  background-color: #dceade !important;
+  color: #1a3a2a !important;
+  border-radius: 0 !important;
+}
+
+/* Range start/end */
+.rdp-day_range_start,
+.rdp-day_range_end {
+  background-color: #1a3a2a !important;
+  color: #f5f0e8 !important;
+  border-radius: 8px !important;
+}
+
+/* Mai nap */
+.rdp-day_today {
+  color: #c17f4e !important;
+  font-weight: 700 !important;
+}
+
+/* Letiltott napok */
+.rdp-day_disabled {
+  color: #d4d4d4 !important;
+  opacity: 0.5 !important;
+}
+
+/* Fejléc (hónapnév, évszám) */
+.rdp-caption_label {
+  color: #1a3a2a !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+}
+
+/* Hétköznapok fejléce (H K Sz Cs P Szo V) */
+.rdp-head_cell span {
+  color: #2a2a2a !important;
+  opacity: 1 !important;
+}
+
+.rdp-weekday {
+  color: #2a2a2a !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+}
+
+/* Navigációs gombok */
+.rdp-nav_button {
+  color: #1a3a2a !important;
+}
+.rdp-nav_button:hover {
+  background-color: #dceade !important;
+  border-radius: 8px !important;
+}
+
+/* Külső hónap napjai */
+.rdp-day_outside {
+  color: #a8a8a8 !important;
+  opacity: 0.4 !important;
+}
+
+/* Foglalt napok */
+.rdp-day_booked {
+  background-color: #f5e6d8 !important;
+  color: #a86435 !important;
+  text-decoration: line-through !important;
+  cursor: not-allowed !important;
+}
 
 /* Lightbox */
 .yarl__container { background: rgba(15, 25, 20, 0.97) !important; }
