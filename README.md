@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Milán Kuckó — Vendégház Webapp
 
-## Getting Started
+Foglalási és adminisztrációs rendszer a Milán Kuckó vendégházhoz (Miskolctapolca).
 
-First, run the development server:
+## Technológiák
+
+- **Next.js 14** (App Router)
+- **Prisma 7** + **PostgreSQL** (Supabase)
+- **Tailwind CSS** egyedi color rendszerrel
+- **Framer Motion** animációkhoz
+- **Zustand** foglalási state kezeléshez
+
+## Fejlesztői indítás
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Az alkalmazás a [http://localhost:3000](http://localhost:3000) címen érhető el.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Környezeti változók
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Hozz létre egy `.env.local` fájlt a gyökérkönyvtárban:
 
-## Learn More
+```env
+DIRECT_URL=postgresql://...
+ADMIN_PASSWORD=...
+ADMIN_JWT_SECRET=...
+RESEND_API_KEY=...
+```
 
-To learn more about Next.js, take a look at the following resources:
+A Prisma CLI-hez szükséges egy `prisma.config.ts` a gyökérkönyvtárban (ez nincs verziókezelve):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```ts
+import { defineConfig } from "prisma/config";
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+export default defineConfig({
+  datasource: {
+    url: "postgresql://...",
+  },
+});
+```
 
-## Deploy on Vercel
+## Adatbázis
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npx prisma db push      # séma szinkronizálás
+npx prisma generate     # kliens generálás
+npx prisma studio       # adatbázis böngésző
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Elérhető parancsok
+
+```bash
+npm run dev       # fejlesztői szerver (port 3000)
+npm run build     # production build
+npm run start     # production szerver
+npm run lint      # ESLint
+```
+
+## Funkciók
+
+**Vendégoldal**
+- Foglalási naptár dátum- és vendégszám választóval
+- Dinamikus árkalkuláció (szezonális árak, hétvégi árak, gyerekárak)
+- Elérhetőség ellenőrzés
+- Galéria oldal
+- Kapcsolatfelvételi űrlap
+
+**Admin felület** (`/admin`)
+- Foglalások kezelése (jóváhagyás, lemondás, fizetve státusz)
+- Foglalás naptár (havi nézet, vendégnevekkel)
+- Naptár blokkolás
+- Szezonális árszabályok kezelése
+- Árnaptár (hetes nézet, árak és szabályok naponta)
+- Előleg és lemondási szabályok
+- Min. előfoglalási idő szezononként
