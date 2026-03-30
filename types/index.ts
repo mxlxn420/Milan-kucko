@@ -7,6 +7,8 @@ export interface Booking {
   guestPhone: string;
   numberOfGuests: number;
   numberOfAdults: number;
+  numberOfTeens: number;
+  numberOfBabies: number;
   numberOfChildren2to6: number;
   numberOfChildren6to12: number;
   notes?: string | null;
@@ -20,6 +22,8 @@ export interface Booking {
   cleaningFee: number;
   touristTax: number;
   totalPrice: number;
+  depositAmount: number;
+  depositPaidAt?: Date | string | null;
   status: BookingStatus;
   paymentIntentId?: string | null;
   paidAt?: Date | string | null;

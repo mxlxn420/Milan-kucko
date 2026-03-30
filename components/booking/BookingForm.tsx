@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, User, Mail, Phone, MessageSquare } from "lucide-react";
 import { formatDateHu, formatCurrency } from "@/lib/utils";
@@ -40,8 +41,8 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
           numberOfChildren2to6: bookingData.children2to6,
           numberOfChildren6to12: bookingData.children6to12,
           notes: form.notes || null,
-          checkIn: bookingData.checkIn.toISOString(),
-          checkOut: bookingData.checkOut.toISOString(),
+          checkIn:  format(bookingData.checkIn,  "yyyy-MM-dd"),
+          checkOut: format(bookingData.checkOut, "yyyy-MM-dd"),
           basePrice: bookingData.basePrice,
           childPrice2to6: bookingData.childPrice2to6,
           childPrice6to12: bookingData.childPrice6to12,
@@ -208,21 +209,94 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
           </div>
         </div>
 
-        <div className="border-t border-white/10 pt-4 space-y-2 text-sm mb-6">
-          <div className="flex justify-between">
-            <span className="text-cream/60">Szállás ({bookingData.nights} éj)</span>
-            <span>{formatCurrency(bookingData.basePrice * bookingData.nights)}</span>
+        <div className="border-t border-white/10 pt-4 space-y-2.5 text-sm mb-6">
+          {/* Szállás – hétköznap */}
+          {bookingData.weekdayNights > 0 && (
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-cream/80">
+                  {bookingData.weekendNights > 0 ? "Szállás – hétköznap" : `Szállás (${bookingData.nights} éj)`}
+                </p>
+                <p className="text-xs text-cream/40 mt-0.5">
+                  {bookingData.adults + bookingData.teens} fő × {bookingData.weekdayNights} éj × {formatCurrency(bookingData.weekdayRate)}/éj
+                </p>
+              </div>
+              <span className="shrink-0 ml-3">{formatCurrency((bookingData.adults + bookingData.teens) * bookingData.weekdayNights * bookingData.weekdayRate)}</span>
+            </div>
+          )}
+
+          {/* Szállás – hétvége */}
+          {bookingData.weekendNights > 0 && bookingData.weekendRate !== bookingData.weekdayRate && (
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-cream/80">
+                  {bookingData.weekdayNights > 0 ? "Szállás – hétvége" : `Szállás (${bookingData.nights} éj)`}
+                </p>
+                <p className="text-xs text-cream/40 mt-0.5">
+                  {bookingData.adults + bookingData.teens} fő × {bookingData.weekendNights} éj × {formatCurrency(bookingData.weekendRate)}/éj
+                </p>
+              </div>
+              <span className="shrink-0 ml-3">{formatCurrency((bookingData.adults + bookingData.teens) * bookingData.weekendNights * bookingData.weekendRate)}</span>
+            </div>
+          )}
+
+          {/* Szállás – ha hétvégi ár = hétköznapi (nincs különbség) */}
+          {bookingData.weekendNights > 0 && bookingData.weekendRate === bookingData.weekdayRate && bookingData.weekdayNights === 0 && (
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-cream/80">Szállás ({bookingData.nights} éj)</p>
+                <p className="text-xs text-cream/40 mt-0.5">
+                  {bookingData.adults + bookingData.teens} fő × {bookingData.nights} éj × {formatCurrency(bookingData.weekdayRate)}/éj
+                </p>
+              </div>
+              <span className="shrink-0 ml-3">{formatCurrency(bookingData.basePrice)}</span>
+            </div>
+          )}
+
+          {/* Kisgyerek 2–6 */}
+          {bookingData.children2to6 > 0 && bookingData.childPrice2to6 > 0 && (
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-cream/80">Kisgyerek (2–6 év)</p>
+                <p className="text-xs text-cream/40 mt-0.5">
+                  {bookingData.children2to6} fő × {bookingData.nights} éj × {formatCurrency(bookingData.childPrice2to6)}/éj
+                </p>
+              </div>
+              <span className="shrink-0 ml-3">{formatCurrency(bookingData.childPrice2to6 * bookingData.children2to6 * bookingData.nights)}</span>
+            </div>
+          )}
+
+          {/* Gyerek 6–12 */}
+          {bookingData.children6to12 > 0 && bookingData.childPrice6to12 > 0 && (
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-cream/80">Gyerek (6–12 év)</p>
+                <p className="text-xs text-cream/40 mt-0.5">
+                  {bookingData.children6to12} fő × {bookingData.nights} éj × {formatCurrency(bookingData.childPrice6to12)}/éj
+                </p>
+              </div>
+              <span className="shrink-0 ml-3">{formatCurrency(bookingData.childPrice6to12 * bookingData.children6to12 * bookingData.nights)}</span>
+            </div>
+          )}
+
+          {/* IFA */}
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-cream/80">IFA</p>
+              <p className="text-xs text-cream/40 mt-0.5">
+                {bookingData.adults} felnőtt × {bookingData.nights} éj × 450 Ft/éj
+              </p>
+            </div>
+            <span className="shrink-0 ml-3">{formatCurrency(bookingData.touristTax)}</span>
           </div>
+
+          {/* Extra vendég pótdíj */}
           {bookingData.guestSurcharge > 0 && (
             <div className="flex justify-between">
-              <span className="text-cream/60">Extra vendég</span>
+              <span className="text-cream/80">Extra vendég pótdíj</span>
               <span>{formatCurrency(bookingData.guestSurcharge)}</span>
             </div>
           )}
-          <div className="flex justify-between">
-            <span className="text-cream/60">IFA</span>
-            <span>{formatCurrency(bookingData.touristTax)}</span>
-          </div>
         </div>
 
         <div className="border-t border-white/10 pt-4 flex justify-between items-center">

@@ -19,6 +19,10 @@ export interface BookingData {
   children2to6:    number;
   children6to12:   number;
   nights:          number;
+  weekdayNights:   number;
+  weekendNights:   number;
+  weekdayRate:     number;
+  weekendRate:     number;
   totalPrice:      number;
   basePrice:       number;
   childPrice2to6:  number;

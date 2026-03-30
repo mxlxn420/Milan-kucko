@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion }    from "framer-motion";
 import { DayPicker, DateRange } from "react-day-picker";
-import { differenceInCalendarDays, isWeekend, startOfDay, addDays } from "date-fns";
+import { differenceInCalendarDays, getDay, startOfDay, addDays } from "date-fns";
 import { hu }        from "date-fns/locale";
 import {
   Users, Baby, ArrowRight, AlertCircle,
@@ -47,7 +47,7 @@ function getApplicableRule(checkIn: Date, rules: PricingRule[]): PricingRule | n
 }
 
 function getPriceForNight(date: Date, rule: PricingRule): number {
-  if (rule.weekendPrice > 0 && isWeekend(date)) return rule.weekendPrice;
+  if (rule.weekendPrice > 0 && [5, 6].includes(getDay(date))) return rule.weekendPrice;
   return rule.pricePerNight;
 }
 
@@ -62,7 +62,9 @@ function calcBaseTotal(checkIn: Date, checkOut: Date, rule: PricingRule, personC
 }
 
 function isRangeOverlapping(from: Date, to: Date, bookedRanges: BookedRange[]): boolean {
-  return bookedRanges.some((r) => from < r.to && to > r.from);
+  const f = startOfDay(from);
+  const t = startOfDay(to);
+  return bookedRanges.some((r) => f < startOfDay(r.to) && t > startOfDay(r.from));
 }
 
 function GuestCounter({
@@ -163,6 +165,14 @@ export default function BookingCalendar({ onNext }: Props) {
   const checkOut = range?.to   ?? null;
   const nights   = checkIn && checkOut ? differenceInCalendarDays(checkOut, checkIn) : 0;
 
+  const weekendNights = checkIn && checkOut ? (() => {
+    let count = 0;
+    const cur = new Date(checkIn);
+    while (cur < checkOut) { if ([5, 6].includes(getDay(cur))) count++; cur.setDate(cur.getDate() + 1); }
+    return count;
+  })() : 0;
+  const weekdayNights = nights - weekendNights;
+
   const totalGuests = adults + teens + babies + children2to6 + children6to12;
   const hasChildren = teens + babies + children2to6 + children6to12 > 0;
   const currentRule = checkIn ? getApplicableRule(checkIn, rules) : null;
@@ -218,8 +228,12 @@ export default function BookingCalendar({ onNext }: Props) {
       children2to6,
       children6to12,
       nights,
+      weekdayNights,
+      weekendNights,
+      weekdayRate:     currentRule?.pricePerNight ?? 0,
+      weekendRate:     (currentRule?.weekendPrice ?? 0) > 0 ? (currentRule?.weekendPrice ?? 0) : (currentRule?.pricePerNight ?? 0),
       totalPrice:      total,
-      basePrice:       currentRule?.pricePerNight ?? 0,
+      basePrice:       baseTotal,
       childPrice2to6:  child2to6Price,
       childPrice6to12: child6to12Price,
       guestSurcharge:  0,
@@ -445,9 +459,24 @@ export default function BookingCalendar({ onNext }: Props) {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-stone-700 font-medium">Szállás</p>
-                    <p className="text-xs text-stone-400 mt-0.5">
-                      {adults + teens} fő × {formatCurrency(currentRule.pricePerNight)}/éj × {nights} éj
-                    </p>
+                    {currentRule.weekendPrice > 0 && weekendNights > 0 && weekdayNights > 0 ? (
+                      <>
+                        <p className="text-xs text-stone-400 mt-0.5">
+                          {adults + teens} fő × {weekdayNights} hétköznap × {formatCurrency(currentRule.pricePerNight)}/éj
+                        </p>
+                        <p className="text-xs text-stone-400">
+                          {adults + teens} fő × {weekendNights} hétvégi éj × {formatCurrency(currentRule.weekendPrice)}/éj
+                        </p>
+                      </>
+                    ) : currentRule.weekendPrice > 0 && weekendNights === nights ? (
+                      <p className="text-xs text-stone-400 mt-0.5">
+                        {adults + teens} fő × {nights} hétvégi éj × {formatCurrency(currentRule.weekendPrice)}/éj
+                      </p>
+                    ) : (
+                      <p className="text-xs text-stone-400 mt-0.5">
+                        {adults + teens} fő × {nights} éj × {formatCurrency(currentRule.pricePerNight)}/éj
+                      </p>
+                    )}
                   </div>
                   <span className="text-stone-800 font-medium">{formatCurrency(baseTotal)}</span>
                 </div>

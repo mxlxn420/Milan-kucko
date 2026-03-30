@@ -4,7 +4,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { PriceBreakdown, PricingRule, BookedDateRange } from "@/types";
 
-export const CLEANING_FEE      = 8_000;
+export const CLEANING_FEE      = 0;   // jelenleg nem számítjuk fel
 export const TOURIST_TAX       = 500;   // per fő / éj
 export const MIN_NIGHTS        = 2;
 export const MAX_GUESTS        = 6;

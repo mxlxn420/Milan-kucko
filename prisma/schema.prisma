@@ -28,6 +28,8 @@ model Booking {
   cleaningFee           Float         @default(0)
   touristTax            Float         @default(0)
   totalPrice            Float
+  depositAmount         Float         @default(0)
+  depositPaidAt         DateTime?
   status                BookingStatus @default(PENDING)
   paymentIntentId       String?       @unique
   paidAt                DateTime?

@@ -52,8 +52,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
+    // Dátum-only string (yyyy-MM-dd) → UTC éjfél, timezone-mentes összehasonlításhoz
+    const checkInDate  = new Date(checkIn  + "T00:00:00Z");
+    const checkOutDate = new Date(checkOut + "T00:00:00Z");
     const nights = differenceInCalendarDays(checkOutDate, checkInDate);
 
     if (nights <= 0) {
@@ -83,6 +84,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Előleg kiszámítása az érvényes árrule policy-ja alapján
+    const applicableRule = await prisma.pricingRule.findFirst({
+      where: {
+        isActive: true,
+        OR: [
+          { dateFrom: null, dateTo: null },
+          { dateFrom: { lte: checkInDate }, dateTo: { gte: checkInDate } },
+        ],
+      },
+      orderBy: { priority: "desc" },
+      include: { policy: true },
+    });
+    const depositPercent = (applicableRule as any)?.policy?.depositPercent ?? 30;
+    const depositAmount  = Math.round(Number(totalPrice) * depositPercent / 100);
+
     // Foglalás ID
     const bookingRef = "MK-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
@@ -105,10 +121,11 @@ export async function POST(req: NextRequest) {
         basePrice: Number(basePrice),
         childPrice2to6: Number(body.childPrice2to6) || 0,
         childPrice6to12: Number(body.childPrice6to12) || 0,
-        guestSurcharge: 0,
-        cleaningFee: 0,
-        touristTax: 0,
+        guestSurcharge: Number(guestSurcharge) || 0,
+        cleaningFee:    Number(cleaningFee)    || 0,
+        touristTax:     Number(touristTax)     || 0,
         totalPrice: Number(totalPrice),
+        depositAmount,
         status: "PENDING",
       },
     });

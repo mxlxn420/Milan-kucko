@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  isWeekend, addWeeks, subWeeks, startOfWeek, addDays,
+  getDay, addWeeks, subWeeks, startOfWeek, addDays,
   format, isSameDay,
 } from "date-fns";
 import { hu } from "date-fns/locale";
@@ -28,7 +28,7 @@ function getApplicableRule(date: Date, rules: PricingRule[]): PricingRule | null
 }
 
 function getPriceForDay(date: Date, rule: PricingRule): number {
-  if (rule.weekendPrice > 0 && isWeekend(date)) return rule.weekendPrice;
+  if (rule.weekendPrice > 0 && [5, 6].includes(getDay(date))) return rule.weekendPrice;
   return rule.pricePerNight;
 }
 
@@ -99,7 +99,7 @@ export default function AdminPriceCalendar({ rules }: Props) {
           const rule    = getApplicableRule(day, rules);
           const price   = rule ? getPriceForDay(day, rule) : null;
           const colors  = rule ? (ruleColorMap[rule.id] ?? BASE_COLOR) : BASE_COLOR;
-          const weekend = isWeekend(day);
+          const weekend = [5, 6].includes(getDay(day));
           const isToday = isSameDay(day, today);
 
           return (

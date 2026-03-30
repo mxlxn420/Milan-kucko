@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { differenceInCalendarDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
 
 // ─── GET – egy foglalás adatai ───────────────────────────────
@@ -7,75 +8,117 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const booking = await prisma.booking.findUnique({
-      where: { id: params.id },
-    });
-
+    const booking = await prisma.booking.findUnique({ where: { id: params.id } });
     if (!booking) {
-      return NextResponse.json(
-        { success: false, error: "Foglalás nem található" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: "Foglalás nem található" }, { status: 404 });
     }
-
     return NextResponse.json({ success: true, data: booking });
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: "Szerver hiba" },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ success: false, error: "Szerver hiba" }, { status: 500 });
   }
 }
 
-// ─── PATCH – foglalás státuszának frissítése (admin) ─────────
+// ─── PATCH – státusz VAGY teljes szerkesztés ─────────────────
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const body   = await req.json();
-    const { status } = body;
+    const body = await req.json();
 
-    const validStatuses = ["PENDING", "CONFIRMED", "PAID", "CANCELLED"];
-    if (!validStatuses.includes(status)) {
-      return NextResponse.json(
-        { success: false, error: "Érvénytelen státusz" },
-        { status: 400 }
-      );
+    // Státusz-módosítás
+    if ("status" in body && !("checkIn" in body)) {
+      const validStatuses = ["PENDING", "CONFIRMED", "PAID", "CANCELLED"];
+      if (!validStatuses.includes(body.status)) {
+        return NextResponse.json({ success: false, error: "Érvénytelen státusz" }, { status: 400 });
+      }
+      const updated = await prisma.booking.update({
+        where: { id: params.id },
+        data: {
+          status: body.status,
+          ...(body.status === "PAID" ? { paidAt: new Date() } : {}),
+        },
+      });
+      return NextResponse.json({ success: true, data: updated });
     }
+
+    // Teljes szerkesztés
+    const ci = new Date(body.checkIn);
+    const co = new Date(body.checkOut);
+    const nights = differenceInCalendarDays(co, ci);
+
+    if (nights <= 0) {
+      return NextResponse.json({ success: false, error: "A távozás napjának az érkezés utánra kell esnie." }, { status: 400 });
+    }
+
+    // Ütközésellenőrzés (saját foglalást kizárjuk)
+    const conflicts = await prisma.booking.findMany({
+      where: {
+        id:     { not: params.id },
+        status: { in: ["PENDING", "CONFIRMED", "PAID", "BLOCKED"] },
+        AND: [
+          { checkIn:  { lt: co } },
+          { checkOut: { gt: ci } },
+        ],
+      },
+    });
+    if (conflicts.length > 0) {
+      return NextResponse.json({ success: false, error: "Az időszak már foglalt." }, { status: 409 });
+    }
+
+    const adults       = Number(body.numberOfAdults)       || 0;
+    const teens        = Number(body.numberOfTeens)         || 0;
+    const babies       = Number(body.numberOfBabies)        || 0;
+    const ch2to6       = Number(body.numberOfChildren2to6)  || 0;
+    const ch6to12      = Number(body.numberOfChildren6to12) || 0;
+    const numberOfGuests = adults + teens + babies + ch2to6 + ch6to12;
 
     const updated = await prisma.booking.update({
       where: { id: params.id },
-      data:  {
-        status,
-        ...(status === "PAID" ? { paidAt: new Date() } : {}),
+      data: {
+        guestName:              body.guestName,
+        guestEmail:             body.guestEmail,
+        guestPhone:             body.guestPhone,
+        checkIn:                ci,
+        checkOut:               co,
+        nights,
+        numberOfAdults:         adults,
+        numberOfTeens:          teens,
+        numberOfBabies:         babies,
+        numberOfChildren2to6:   ch2to6,
+        numberOfChildren6to12:  ch6to12,
+        numberOfGuests,
+        notes:                  body.notes || null,
+        totalPrice:             Number(body.totalPrice),
+        depositAmount:          Number(body.depositAmount) || 0,
+        basePrice:              Number(body.basePrice)    || 0,
+        childPrice2to6:         Number(body.childPrice2to6)  || 0,
+        childPrice6to12:        Number(body.childPrice6to12) || 0,
+        cleaningFee:            Number(body.cleaningFee)  || 0,
+        touristTax:             Number(body.touristTax)   || 0,
+        guestSurcharge:         Number(body.guestSurcharge) || 0,
+        ...(body.status ? {
+          status: body.status,
+          ...(body.status === "PAID" ? { paidAt: new Date() } : {}),
+        } : {}),
       },
     });
 
     return NextResponse.json({ success: true, data: updated });
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: "Szerver hiba" },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
   }
 }
 
-// ─── DELETE – foglalás törlése (admin) ───────────────────────
+// ─── DELETE – foglalás törlése ────────────────────────────────
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await prisma.booking.delete({
-      where: { id: params.id },
-    });
-
+    await prisma.booking.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: "Szerver hiba" },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
   }
 }

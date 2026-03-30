@@ -1,39 +1,250 @@
 "use client";
 
-import { useState } from "react";
-import { formatDateHu, formatCurrency } from "@/lib/utils";
-import { Check, X, Clock, CreditCard, ChevronRight } from "lucide-react";
-import type { Booking, BookingStatus } from "@/types";
+import { useState, useEffect, useCallback } from "react";
+import { format, differenceInCalendarDays, getDay } from "date-fns";
+import { formatDateHu, formatCurrency, getApplicablePricingRule, CLEANING_FEE, TOURIST_TAX } from "@/lib/utils";
+import { Check, X, CreditCard, ChevronRight, Pencil, Trash2, RefreshCw } from "lucide-react";
+import type { Booking, BookingStatus, PricingRule } from "@/types";
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; color: string }> = {
-  PENDING:   { label: "Függőben",   color: "bg-yellow-100 text-yellow-700"  },
-  CONFIRMED: { label: "Jóváhagyva", color: "bg-blue-100 text-blue-700"      },
-  PAID:      { label: "Fizetve",    color: "bg-green-100 text-green-700"     },
-  CANCELLED: { label: "Lemondva",   color: "bg-red-100 text-red-700"         },
-  BLOCKED:   { label: "Blokkolt",   color: "bg-stone-100 text-stone-600"     },
+  PENDING:   { label: "Függőben",   color: "bg-yellow-100 text-yellow-700" },
+  CONFIRMED: { label: "Jóváhagyva", color: "bg-blue-100 text-blue-700"    },
+  PAID:      { label: "Fizetve",    color: "bg-green-100 text-green-700"   },
+  CANCELLED: { label: "Lemondva",   color: "bg-red-100 text-red-700"       },
+  BLOCKED:   { label: "Blokkolt",   color: "bg-stone-100 text-stone-600"   },
 };
+
+const ALL_STATUSES: BookingStatus[] = ["PENDING", "CONFIRMED", "PAID", "CANCELLED"];
+
+interface EditForm {
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  checkIn: string;
+  checkOut: string;
+  numberOfAdults: number;
+  numberOfTeens: number;
+  numberOfBabies: number;
+  numberOfChildren2to6: number;
+  numberOfChildren6to12: number;
+  notes: string;
+  basePrice: number;
+  childPrice2to6: number;
+  childPrice6to12: number;
+  cleaningFee: number;
+  touristTax: number;
+  guestSurcharge: number;
+  totalPrice: number;
+  depositAmount: number;
+  status: BookingStatus;
+}
 
 interface Props {
   bookings: Booking[];
 }
 
-export default function AdminBookingsList({ bookings }: Props) {
-  const [list, setList]                   = useState<Booking[]>(bookings);
-  const [loading, setLoading]             = useState<string | null>(null);
-  const [selected, setSelected]           = useState<Booking | null>(null);
+function toDateInput(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return format(d, "yyyy-MM-dd");
+}
 
+// basePrice = teljes szállásdíj (hétvégi ár figyelembevételével, felnőttek × éjszakák)
+// childPrice2to6 / childPrice6to12 = per-child-per-night ráta (DB-vel egyező)
+// touristTax = csak felnőttek, 450 Ft/fő/éj (BookingCalendar-ral egyező)
+function calcPriceBreakdown(
+  checkIn: Date,
+  checkOut: Date,
+  adults: number,
+  teens: number,
+  ch2to6: number,
+  ch6to12: number,
+  rules: PricingRule[]
+): Pick<EditForm, "basePrice" | "childPrice2to6" | "childPrice6to12" | "guestSurcharge" | "cleaningFee" | "touristTax" | "totalPrice"> | null {
+  const rule = getApplicablePricingRule(checkIn, checkOut, rules);
+  if (!rule) return null;
+  const nights = differenceInCalendarDays(checkOut, checkIn);
+  if (nights <= 0) return null;
+
+  // Szállásdíj: felnőtt + fiatal (12–18) × éjszakánként, hétvégi árral
+  const personCount = adults + teens;
+  let basePrice = 0;
+  const cur = new Date(checkIn);
+  while (cur < checkOut) {
+    const dow = getDay(cur);
+    const nightRate = rule.weekendPrice > 0 && [5, 6].includes(dow) ? rule.weekendPrice : rule.pricePerNight;
+    basePrice += nightRate * personCount;
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  const childPrice2to6  = rule.childPrice2to6  ?? 0;
+  const childPrice6to12 = rule.childPrice6to12 ?? 0;
+  const childTotal2to6  = childPrice2to6  * ch2to6  * nights;
+  const childTotal6to12 = childPrice6to12 * ch6to12 * nights;
+  const totalGuests     = adults + teens + ch2to6 + ch6to12;
+  const extraGuests     = Math.max(0, totalGuests - ((rule.extraGuestFrom ?? 3) - 1));
+  const guestSurcharge  = extraGuests * (rule.extraGuestFee ?? 0) * nights;
+  const touristTax      = adults * 450 * nights;  // csak felnőttek fizetnek IFA-t
+  const cleaningFee     = CLEANING_FEE;
+  const totalPrice      = basePrice + childTotal2to6 + childTotal6to12 + guestSurcharge + cleaningFee + touristTax;
+
+  return { basePrice, childPrice2to6, childPrice6to12, guestSurcharge, cleaningFee, touristTax, totalPrice };
+}
+
+export default function AdminBookingsList({ bookings }: Props) {
+  const [list, setList]               = useState<Booking[]>(bookings);
+  const [loading, setLoading]         = useState<string | null>(null);
+  const [selected, setSelected]       = useState<Booking | null>(null);
+  const [editing, setEditing]         = useState(false);
+  const [editForm, setEditForm]       = useState<EditForm | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [saveError, setSaveError]     = useState<string | null>(null);
+  const [rules, setRules]             = useState<PricingRule[]>([]);
+
+  useEffect(() => {
+    fetch("/api/pricing")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setRules(d.data); });
+  }, []);
+
+  const openModal = (booking: Booking) => {
+    setSelected(booking);
+    setEditing(false);
+    setConfirmDelete(false);
+    setSaveError(null);
+  };
+
+  const closeModal = () => {
+    setSelected(null);
+    setEditing(false);
+    setConfirmDelete(false);
+    setSaveError(null);
+  };
+
+  const startEdit = (booking: Booking) => {
+    const initial: EditForm = {
+      guestName:             booking.guestName,
+      guestEmail:            booking.guestEmail,
+      guestPhone:            booking.guestPhone,
+      checkIn:               toDateInput(booking.checkIn),
+      checkOut:              toDateInput(booking.checkOut),
+      numberOfAdults:        booking.numberOfAdults,
+      numberOfTeens:         (booking as any).numberOfTeens  ?? 0,
+      numberOfBabies:        (booking as any).numberOfBabies ?? 0,
+      numberOfChildren2to6:  booking.numberOfChildren2to6,
+      numberOfChildren6to12: booking.numberOfChildren6to12,
+      notes:                 booking.notes ?? "",
+      basePrice:             booking.basePrice,
+      childPrice2to6:        booking.childPrice2to6,
+      childPrice6to12:       booking.childPrice6to12,
+      cleaningFee:           booking.cleaningFee,
+      touristTax:            booking.touristTax,
+      guestSurcharge:        booking.guestSurcharge,
+      totalPrice:            booking.totalPrice,
+      depositAmount:         booking.depositAmount ?? 0,
+      status:                booking.status as BookingStatus,
+    };
+    // Ha az árak már betöltöttek, azonnal újraszámolja
+    setEditForm(rules.length > 0 ? recalc(initial) : initial);
+    setEditing(true);
+    setSaveError(null);
+  };
+
+  const recalc = useCallback((form: EditForm) => {
+    if (!form.checkIn || !form.checkOut || !rules.length) return form;
+    const ci = new Date(form.checkIn);
+    const co = new Date(form.checkOut);
+    if (co <= ci) return form;
+    const breakdown = calcPriceBreakdown(ci, co, form.numberOfAdults, form.numberOfTeens, form.numberOfChildren2to6, form.numberOfChildren6to12, rules);
+    if (!breakdown) return form;
+    return { ...form, ...breakdown };
+  }, [rules]);
+
+  const setField = <K extends keyof EditForm>(key: K, value: EditForm[K]) => {
+    setEditForm((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, [key]: value };
+      if (["checkIn", "checkOut", "numberOfAdults", "numberOfTeens", "numberOfChildren2to6", "numberOfChildren6to12"].includes(key)) {
+        return recalc(next);
+      }
+      return next;
+    });
+  };
+
+  const handleRecalcManual = () => {
+    if (!editForm) return;
+    setEditForm(recalc(editForm));
+  };
+
+  // ─── Státusz módosítás (olvasó nézetből) ────────────────────
   const updateStatus = async (id: string, status: BookingStatus) => {
     setLoading(id);
     try {
-      const res = await fetch(`/api/bookings/${id}`, {
+      const res  = await fetch(`/api/bookings/${id}`, {
         method:  "PATCH",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ status }),
       });
       const data = await res.json();
       if (data.success) {
-        setList((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
-        if (selected?.id === id) setSelected((prev) => prev ? { ...prev, status } : prev);
+        setList((prev) => prev.map((b) => b.id === id ? { ...b, status } : b));
+        setSelected((prev) => prev ? { ...prev, status } : prev);
+      }
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  // ─── Előleg befizetve ────────────────────────────────────────
+  const markDepositPaid = async (id: string) => {
+    setLoading(id);
+    try {
+      const res  = await fetch(`/api/admin/bookings/${id}/deposit`, { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        const updated = data.data;
+        setList((prev) => prev.map((b) => b.id === id ? { ...b, ...updated } : b));
+        setSelected((prev) => prev ? { ...prev, ...updated } : prev);
+      }
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  // ─── Mentés ──────────────────────────────────────────────────
+  const saveEdit = async () => {
+    if (!editForm || !selected) return;
+    setLoading(selected.id);
+    setSaveError(null);
+    try {
+      const res  = await fetch(`/api/bookings/${selected.id}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(editForm),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setSaveError(data.error ?? "Mentési hiba");
+        return;
+      }
+      const updated: Booking = data.data;
+      setList((prev) => prev.map((b) => b.id === selected.id ? updated : b));
+      setSelected(updated);
+      setEditing(false);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  // ─── Törlés ──────────────────────────────────────────────────
+  const deleteBooking = async () => {
+    if (!selected) return;
+    setLoading(selected.id);
+    try {
+      const res  = await fetch(`/api/bookings/${selected.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        setList((prev) => prev.filter((b) => b.id !== selected.id));
+        closeModal();
       }
     } finally {
       setLoading(null);
@@ -50,15 +261,14 @@ export default function AdminBookingsList({ bookings }: Props) {
 
   return (
     <>
+      {/* ─── Táblázat ─────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-stone-50 border-b border-stone-100">
               <tr>
-                {["Azonosító", "Vendég", "Érkezés", "Távozás", "Fő", "Összeg", "Státusz", "Műveletek"].map((h) => (
-                  <th key={h} className="px-5 py-3.5 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">
-                    {h}
-                  </th>
+                {["Azonosító", "Vendég", "Érkezés", "Távozás", "Fő", "Összeg", "Státusz", ""].map((h) => (
+                  <th key={h} className="px-5 py-3.5 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -68,73 +278,30 @@ export default function AdminBookingsList({ bookings }: Props) {
                 return (
                   <tr
                     key={booking.id}
-                    onClick={() => setSelected(booking)}
+                    onClick={() => openModal(booking)}
                     className="hover:bg-stone-50 transition-colors cursor-pointer"
                   >
-                    <td className="px-5 py-4 font-mono text-xs text-stone-500">
-                      {booking.id}
-                    </td>
+                    <td className="px-5 py-4 font-mono text-xs text-stone-400">{booking.id.slice(-8)}</td>
                     <td className="px-5 py-4">
                       <p className="font-medium text-stone-800">{booking.guestName}</p>
                       <p className="text-xs text-stone-400">{booking.guestEmail}</p>
                     </td>
-                    <td className="px-5 py-4 text-stone-600">
-                      {formatDateHu(booking.checkIn)}
-                    </td>
-                    <td className="px-5 py-4 text-stone-600">
-                      {formatDateHu(booking.checkOut)}
-                    </td>
-                    <td className="px-5 py-4 text-stone-600 text-center">
-                      {booking.numberOfGuests}
-                    </td>
-                    <td className="px-5 py-4 font-medium text-stone-800">
-                      {formatCurrency(booking.totalPrice)}
-                    </td>
+                    <td className="px-5 py-4 text-stone-600">{formatDateHu(booking.checkIn)}</td>
+                    <td className="px-5 py-4 text-stone-600">{formatDateHu(booking.checkOut)}</td>
+                    <td className="px-5 py-4 text-stone-600 text-center">{booking.numberOfGuests}</td>
+                    <td className="px-5 py-4 font-medium text-stone-800">{formatCurrency(booking.totalPrice)}</td>
                     <td className="px-5 py-4">
                       <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusCfg.color}`}>
                         {statusCfg.label}
                       </span>
                     </td>
                     <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-1.5">
-                        {booking.status === "PENDING" && (
-                          <>
-                            <button
-                              onClick={() => updateStatus(booking.id, "CONFIRMED")}
-                              disabled={loading === booking.id}
-                              className="w-7 h-7 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 flex items-center justify-center transition-colors"
-                              title="Jóváhagyás"
-                            >
-                              <Check size={13} />
-                            </button>
-                            <button
-                              onClick={() => updateStatus(booking.id, "CANCELLED")}
-                              disabled={loading === booking.id}
-                              className="w-7 h-7 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center transition-colors"
-                              title="Lemondás"
-                            >
-                              <X size={13} />
-                            </button>
-                          </>
-                        )}
-                        {booking.status === "CONFIRMED" && (
-                          <button
-                            onClick={() => updateStatus(booking.id, "PAID")}
-                            disabled={loading === booking.id}
-                            className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 flex items-center justify-center transition-colors"
-                            title="Fizetve"
-                          >
-                            <CreditCard size={13} />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => setSelected(booking)}
-                          className="w-7 h-7 rounded-lg bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center transition-colors"
-                          title="Részletek"
-                        >
-                          <ChevronRight size={13} />
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => openModal(booking)}
+                        className="w-7 h-7 rounded-lg bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center transition-colors"
+                      >
+                        <ChevronRight size={13} />
+                      </button>
                     </td>
                   </tr>
                 );
@@ -144,11 +311,11 @@ export default function AdminBookingsList({ bookings }: Props) {
         </div>
       </div>
 
-      {/* Részletes nézet – modal */}
+      {/* ─── Modal ────────────────────────────────────────────── */}
       {selected && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={() => setSelected(null)}
+          onClick={closeModal}
         >
           <div
             className="bg-white rounded-3xl shadow-luxury w-full max-w-lg max-h-[90vh] overflow-y-auto"
@@ -158,14 +325,27 @@ export default function AdminBookingsList({ bookings }: Props) {
             <div className="flex items-center justify-between p-6 border-b border-stone-100">
               <div>
                 <p className="font-mono text-xs text-stone-400">{selected.id}</p>
-                <h2 className="font-serif text-xl text-stone-800 mt-0.5">{selected.guestName}</h2>
+                <h2 className="font-serif text-xl text-stone-800 mt-0.5">
+                  {editing ? "Foglalás szerkesztése" : selected.guestName}
+                </h2>
               </div>
-              <div className="flex items-center gap-3">
-                <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_CONFIG[selected.status as BookingStatus].color}`}>
-                  {STATUS_CONFIG[selected.status as BookingStatus].label}
-                </span>
+              <div className="flex items-center gap-2">
+                {!editing && (
+                  <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_CONFIG[selected.status as BookingStatus].color}`}>
+                    {STATUS_CONFIG[selected.status as BookingStatus].label}
+                  </span>
+                )}
+                {!editing && (
+                  <button
+                    onClick={() => startEdit(selected)}
+                    className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors"
+                    title="Szerkesztés"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                )}
                 <button
-                  onClick={() => setSelected(null)}
+                  onClick={closeModal}
                   className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors"
                 >
                   <X size={15} />
@@ -174,139 +354,609 @@ export default function AdminBookingsList({ bookings }: Props) {
             </div>
 
             <div className="p-6 space-y-5">
-              {/* Kapcsolat */}
-              <section>
-                <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Kapcsolat</h3>
-                <div className="space-y-1 text-sm text-stone-700">
-                  <p>{selected.guestEmail}</p>
-                  <p>{selected.guestPhone}</p>
-                </div>
-              </section>
+              {editing && editForm ? (
+                /* ─── Szerkesztő form ──────────────────────── */
+                <>
+                  {/* Vendégadatok */}
+                  <section>
+                    <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-3">Vendégadatok</h3>
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={editForm.guestName}
+                        onChange={(e) => setField("guestName", e.target.value)}
+                        placeholder="Teljes név"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+                      />
+                      <input
+                        type="email"
+                        value={editForm.guestEmail}
+                        onChange={(e) => setField("guestEmail", e.target.value)}
+                        placeholder="E-mail"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+                      />
+                      <input
+                        type="tel"
+                        value={editForm.guestPhone}
+                        onChange={(e) => setField("guestPhone", e.target.value)}
+                        placeholder="Telefon"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+                      />
+                    </div>
+                  </section>
 
-              {/* Dátumok */}
-              <section>
-                <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Tartózkodás</h3>
-                <div className="grid grid-cols-3 gap-3 text-sm">
-                  <div className="bg-stone-50 rounded-xl p-3">
-                    <p className="text-xs text-stone-400 mb-0.5">Érkezés</p>
-                    <p className="font-medium text-stone-800">{formatDateHu(selected.checkIn)}</p>
-                  </div>
-                  <div className="bg-stone-50 rounded-xl p-3">
-                    <p className="text-xs text-stone-400 mb-0.5">Távozás</p>
-                    <p className="font-medium text-stone-800">{formatDateHu(selected.checkOut)}</p>
-                  </div>
-                  <div className="bg-stone-50 rounded-xl p-3">
-                    <p className="text-xs text-stone-400 mb-0.5">Éjszakák</p>
-                    <p className="font-medium text-stone-800">{selected.nights} éj</p>
-                  </div>
-                </div>
-              </section>
+                  {/* Tartózkodás */}
+                  <section>
+                    <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-3">Tartózkodás</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-stone-400 mb-1 block">Érkezés</label>
+                        <input
+                          type="date"
+                          value={editForm.checkIn}
+                          onChange={(e) => setField("checkIn", e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-stone-400 mb-1 block">Távozás</label>
+                        <input
+                          type="date"
+                          value={editForm.checkOut}
+                          onChange={(e) => setField("checkOut", e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+                        />
+                      </div>
+                    </div>
+                    {editForm.checkIn && editForm.checkOut && new Date(editForm.checkOut) > new Date(editForm.checkIn) && (
+                      <p className="text-xs text-stone-400 mt-1.5 pl-1">
+                        {differenceInCalendarDays(new Date(editForm.checkOut), new Date(editForm.checkIn))} éjszaka
+                      </p>
+                    )}
+                  </section>
 
-              {/* Vendégek */}
-              <section>
-                <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Vendégek</h3>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
-                    <span className="text-stone-500">Összes</span>
-                    <span className="font-medium text-stone-800">{selected.numberOfGuests} fő</span>
-                  </div>
-                  <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
-                    <span className="text-stone-500">Felnőtt</span>
-                    <span className="font-medium text-stone-800">{selected.numberOfAdults} fő</span>
-                  </div>
-                  {selected.numberOfChildren2to6 > 0 && (
-                    <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
-                      <span className="text-stone-500">Gyerek (2–6)</span>
-                      <span className="font-medium text-stone-800">{selected.numberOfChildren2to6} fő</span>
+                  {/* Vendégek */}
+                  <section>
+                    <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-3">Vendégek</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      {([
+                        ["Felnőtt (18+)", "numberOfAdults"],
+                        ["Fiatal (12–18)", "numberOfTeens"],
+                        ["Baba (0–2)", "numberOfBabies"],
+                        ["Kisgyerek (2–6)", "numberOfChildren2to6"],
+                        ["Gyerek (6–12)", "numberOfChildren6to12"],
+                      ] as [string, keyof EditForm][]).map(([label, key]) => (
+                        <div key={key}>
+                          <label className="text-xs text-stone-400 mb-1 block">{label}</label>
+                          <input
+                            type="number"
+                            min={0}
+                            value={editForm[key] as number}
+                            onChange={(e) => setField(key, Number(e.target.value))}
+                            className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+                          />
+                        </div>
+                      ))}
                     </div>
-                  )}
-                  {selected.numberOfChildren6to12 > 0 && (
-                    <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
-                      <span className="text-stone-500">Gyerek (6–12)</span>
-                      <span className="font-medium text-stone-800">{selected.numberOfChildren6to12} fő</span>
-                    </div>
-                  )}
-                </div>
-              </section>
+                    <p className="text-xs text-stone-400 mt-2">Fiatal = szobadíj/fő, IFA nélkül · Baba = ingyenes</p>
+                  </section>
 
-              {/* Árak */}
-              <section>
-                <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Árösszesítő</h3>
-                <div className="space-y-1.5 text-sm">
-                  <div className="flex justify-between text-stone-600">
-                    <span>Szállás × {selected.nights} éj</span>
-                    <span>{formatCurrency(selected.basePrice * selected.nights)}</span>
-                  </div>
-                  {selected.numberOfChildren2to6 > 0 && selected.childPrice2to6 > 0 && (
-                    <div className="flex justify-between text-stone-600">
-                      <span>Gyerek (2–6) × {selected.numberOfChildren2to6} fő × {selected.nights} éj</span>
-                      <span>{formatCurrency(selected.childPrice2to6 * selected.numberOfChildren2to6 * selected.nights)}</span>
-                    </div>
-                  )}
-                  {selected.numberOfChildren6to12 > 0 && selected.childPrice6to12 > 0 && (
-                    <div className="flex justify-between text-stone-600">
-                      <span>Gyerek (6–12) × {selected.numberOfChildren6to12} fő × {selected.nights} éj</span>
-                      <span>{formatCurrency(selected.childPrice6to12 * selected.numberOfChildren6to12 * selected.nights)}</span>
-                    </div>
-                  )}
-                  {selected.touristTax > 0 && (
-                    <div className="flex justify-between text-stone-600">
-                      <span>Idegenforgalmi adó</span>
-                      <span>{formatCurrency(selected.touristTax)}</span>
-                    </div>
-                  )}
-                  {selected.cleaningFee > 0 && (
-                    <div className="flex justify-between text-stone-600">
-                      <span>Takarítási díj</span>
-                      <span>{formatCurrency(selected.cleaningFee)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between font-semibold text-stone-800 border-t border-stone-100 pt-2 mt-2">
-                    <span>Összesen</span>
-                    <span>{formatCurrency(selected.totalPrice)}</span>
-                  </div>
-                </div>
-              </section>
+                  {/* Megjegyzés */}
+                  <section>
+                    <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-3">Megjegyzés</h3>
+                    <textarea
+                      value={editForm.notes}
+                      onChange={(e) => setField("notes", e.target.value)}
+                      rows={3}
+                      placeholder="Vendég megjegyzése..."
+                      className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400 resize-none"
+                    />
+                  </section>
 
-              {/* Megjegyzés */}
-              {selected.notes && (
-                <section>
-                  <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Megjegyzés</h3>
-                  <p className="text-sm text-stone-700 bg-stone-50 rounded-xl px-3 py-2">{selected.notes}</p>
-                </section>
-              )}
-
-              {/* Műveletek */}
-              {(selected.status === "PENDING" || selected.status === "CONFIRMED") && (
-                <section className="flex gap-2 pt-1">
-                  {selected.status === "PENDING" && (
-                    <>
+                  {/* Ár */}
+                  <section>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider">Árösszesítő</h3>
                       <button
-                        onClick={() => updateStatus(selected.id, "CONFIRMED")}
-                        disabled={loading === selected.id}
-                        className="flex-1 py-2.5 rounded-xl bg-green-100 text-green-700 hover:bg-green-200 text-sm font-medium transition-colors"
+                        type="button"
+                        onClick={handleRecalcManual}
+                        className="flex items-center gap-1 text-xs text-forest-600 hover:text-forest-800 transition-colors"
+                        title="Újraszámolás az árakon alapulva"
                       >
-                        Jóváhagyás
+                        <RefreshCw size={11} />
+                        Újraszámol
                       </button>
-                      <button
-                        onClick={() => updateStatus(selected.id, "CANCELLED")}
-                        disabled={loading === selected.id}
-                        className="flex-1 py-2.5 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 text-sm font-medium transition-colors"
-                      >
-                        Lemondás
-                      </button>
-                    </>
-                  )}
-                  {selected.status === "CONFIRMED" && (
-                    <button
-                      onClick={() => updateStatus(selected.id, "PAID")}
-                      disabled={loading === selected.id}
-                      className="flex-1 py-2.5 rounded-xl bg-blue-100 text-blue-600 hover:bg-blue-200 text-sm font-medium transition-colors"
+                    </div>
+                    {(() => {
+                      const ci = editForm.checkIn ? new Date(editForm.checkIn) : null;
+                      const co = editForm.checkOut ? new Date(editForm.checkOut) : null;
+                      const editNights = ci && co ? Math.max(0, differenceInCalendarDays(co, ci)) : 0;
+
+                      // Hétvégi / hétköznapi éjek
+                      let weekendNights = 0;
+                      if (ci && co) {
+                        const cur = new Date(ci);
+                        while (cur < co) { if ([5, 6].includes(getDay(cur))) weekendNights++; cur.setDate(cur.getDate() + 1); }
+                      }
+                      const weekdayNights = editNights - weekendNights;
+
+                      // Érvényes szabály a dátumokhoz
+                      const rule = ci && co ? getApplicablePricingRule(ci, co, rules) : null;
+                      const weekdayRate  = rule?.pricePerNight ?? 0;
+                      const weekendRate  = rule && rule.weekendPrice > 0 ? rule.weekendPrice : weekdayRate;
+                      const hasWeekend   = rule && rule.weekendPrice > 0 && weekendNights > 0;
+                      const personCount  = editForm.numberOfAdults + editForm.numberOfTeens;
+
+                      return (
+                        <div className="space-y-2 text-sm">
+
+                          {/* Szállás – hétköznap */}
+                          {weekdayNights > 0 && (
+                            <div className="flex justify-between items-start text-stone-600">
+                              <div>
+                                <span>Szállás – hétköznap</span>
+                                <p className="text-xs text-stone-400">{personCount} fő × {weekdayNights} éj × {formatCurrency(weekdayRate)}/éj</p>
+                              </div>
+                              <span className="shrink-0 ml-2">{formatCurrency(personCount * weekdayNights * weekdayRate)}</span>
+                            </div>
+                          )}
+
+                          {/* Szállás – hétvége */}
+                          {hasWeekend && weekendNights > 0 && (
+                            <div className="flex justify-between items-start text-stone-600">
+                              <div>
+                                <span>Szállás – hétvége</span>
+                                <p className="text-xs text-stone-400">{personCount} fő × {weekendNights} éj × {formatCurrency(weekendRate)}/éj</p>
+                              </div>
+                              <span className="shrink-0 ml-2">{formatCurrency(personCount * weekendNights * weekendRate)}</span>
+                            </div>
+                          )}
+
+                          {/* Szállás – ha nincs hétvégi bontás */}
+                          {!hasWeekend && weekendNights > 0 && weekdayNights === 0 && (
+                            <div className="flex justify-between items-start text-stone-600">
+                              <div>
+                                <span>Szállás</span>
+                                <p className="text-xs text-stone-400">{personCount} fő × {editNights} éj × {formatCurrency(weekdayRate)}/éj</p>
+                              </div>
+                              <span className="shrink-0 ml-2">{formatCurrency(editForm.basePrice)}</span>
+                            </div>
+                          )}
+
+                          {/* Gyerek 2–6 */}
+                          {editForm.numberOfChildren2to6 > 0 && editForm.childPrice2to6 > 0 && (
+                            <div className="flex justify-between items-start text-stone-600">
+                              <div>
+                                <span>Kisgyerek (2–6 év)</span>
+                                <p className="text-xs text-stone-400">{editForm.numberOfChildren2to6} fő × {editNights} éj × {formatCurrency(editForm.childPrice2to6)}/éj</p>
+                              </div>
+                              <span className="shrink-0 ml-2">{formatCurrency(editForm.childPrice2to6 * editForm.numberOfChildren2to6 * editNights)}</span>
+                            </div>
+                          )}
+
+                          {/* Gyerek 6–12 */}
+                          {editForm.numberOfChildren6to12 > 0 && editForm.childPrice6to12 > 0 && (
+                            <div className="flex justify-between items-start text-stone-600">
+                              <div>
+                                <span>Gyerek (6–12 év)</span>
+                                <p className="text-xs text-stone-400">{editForm.numberOfChildren6to12} fő × {editNights} éj × {formatCurrency(editForm.childPrice6to12)}/éj</p>
+                              </div>
+                              <span className="shrink-0 ml-2">{formatCurrency(editForm.childPrice6to12 * editForm.numberOfChildren6to12 * editNights)}</span>
+                            </div>
+                          )}
+
+                          {/* IFA */}
+                          {editForm.touristTax > 0 && (
+                            <div className="flex justify-between items-start text-stone-600">
+                              <div>
+                                <span>IFA</span>
+                                <p className="text-xs text-stone-400">{editForm.numberOfAdults} felnőtt × {editNights} éj × 450 Ft/éj</p>
+                              </div>
+                              <span className="shrink-0 ml-2">{formatCurrency(editForm.touristTax)}</span>
+                            </div>
+                          )}
+
+                          {/* Pótdíj */}
+                          {editForm.guestSurcharge > 0 && (
+                            <div className="flex justify-between text-stone-600">
+                              <span>Extra vendég pótdíj</span>
+                              <span>{formatCurrency(editForm.guestSurcharge)}</span>
+                            </div>
+                          )}
+
+                          {/* Takarítás */}
+                          {editForm.cleaningFee > 0 && (
+                            <div className="flex justify-between text-stone-600">
+                              <span>Takarítási díj</span>
+                              <span>{formatCurrency(editForm.cleaningFee)}</span>
+                            </div>
+                          )}
+
+                          {/* Végső ár + előleg */}
+                          <div className="border-t border-stone-100 pt-3 mt-1 space-y-2">
+                            <div>
+                              <label className="text-xs text-stone-400 mb-1.5 block">Végső ár (szerkeszthető)</label>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  value={editForm.totalPrice}
+                                  onChange={(e) => setField("totalPrice", Number(e.target.value))}
+                                  className="flex-1 px-3 py-2 rounded-xl border border-stone-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-forest-400"
+                                />
+                                <span className="text-sm text-stone-400">Ft</span>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-xs text-amber-600 font-medium mb-1.5 block">Fizetendő előleg (szerkeszthető)</label>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  value={editForm.depositAmount}
+                                  onChange={(e) => setField("depositAmount", Number(e.target.value))}
+                                  className="flex-1 px-3 py-2 rounded-xl border border-amber-200 bg-amber-50 text-sm font-semibold text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                />
+                                <span className="text-sm text-stone-400">Ft</span>
+                              </div>
+                              {editForm.totalPrice > 0 && editForm.depositAmount > 0 && (
+                                <p className="text-xs text-stone-400 mt-1">
+                                  = {Math.round(editForm.depositAmount / editForm.totalPrice * 100)}% az összegből
+                                </p>
+                              )}
+                            </div>
+                            {editForm.depositAmount > 0 && editForm.totalPrice > editForm.depositAmount && (
+                              <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5">
+                                <div>
+                                  <p className="text-xs font-semibold text-stone-700">Helyszínen fizetendő</p>
+                                  <p className="text-[10px] text-stone-400 mt-0.5">Végső ár – előleg</p>
+                                </div>
+                                <span className="font-bold text-stone-800 text-sm">{formatCurrency(editForm.totalPrice - editForm.depositAmount)}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </section>
+
+                  {/* Státusz */}
+                  <section>
+                    <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-3">Státusz</h3>
+                    <select
+                      value={editForm.status}
+                      onChange={(e) => setField("status", e.target.value as BookingStatus)}
+                      className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
                     >
-                      Megjelölés fizetettként
-                    </button>
+                      {ALL_STATUSES.map((s) => (
+                        <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
+                      ))}
+                    </select>
+                  </section>
+
+                  {saveError && (
+                    <p className="text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">{saveError}</p>
                   )}
-                </section>
+
+                  {/* Gombok */}
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={saveEdit}
+                      disabled={loading === selected.id}
+                      className="flex-1 py-2.5 rounded-xl bg-forest-600 text-white hover:bg-forest-700 text-sm font-medium transition-colors disabled:opacity-50"
+                    >
+                      Mentés
+                    </button>
+                    <button
+                      onClick={() => { setEditing(false); setSaveError(null); }}
+                      className="flex-1 py-2.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 text-sm font-medium transition-colors"
+                    >
+                      Mégse
+                    </button>
+                  </div>
+
+                  {/* Törlés */}
+                  <div className="border-t border-stone-100 pt-4">
+                    {confirmDelete ? (
+                      <div className="space-y-2">
+                        <p className="text-sm text-red-600 text-center">Biztosan törlöd a foglalást? Ez nem visszavonható.</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={deleteBooking}
+                            disabled={loading === selected.id}
+                            className="flex-1 py-2.5 rounded-xl bg-red-600 text-white hover:bg-red-700 text-sm font-medium transition-colors disabled:opacity-50"
+                          >
+                            Igen, törlöm
+                          </button>
+                          <button
+                            onClick={() => setConfirmDelete(false)}
+                            className="flex-1 py-2.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 text-sm font-medium transition-colors"
+                          >
+                            Mégse
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDelete(true)}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors"
+                      >
+                        <Trash2 size={14} />
+                        Foglalás törlése
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                /* ─── Olvasó nézet ─────────────────────────── */
+                <>
+                  {/* Kapcsolat */}
+                  <section>
+                    <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Kapcsolat</h3>
+                    <div className="space-y-1 text-sm text-stone-700">
+                      <p>{selected.guestEmail}</p>
+                      <p>{selected.guestPhone}</p>
+                    </div>
+                  </section>
+
+                  {/* Dátumok */}
+                  <section>
+                    <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Tartózkodás</h3>
+                    <div className="grid grid-cols-3 gap-3 text-sm">
+                      <div className="bg-stone-50 rounded-xl p-3">
+                        <p className="text-xs text-stone-400 mb-0.5">Érkezés</p>
+                        <p className="font-medium text-stone-800">{formatDateHu(selected.checkIn)}</p>
+                      </div>
+                      <div className="bg-stone-50 rounded-xl p-3">
+                        <p className="text-xs text-stone-400 mb-0.5">Távozás</p>
+                        <p className="font-medium text-stone-800">{formatDateHu(selected.checkOut)}</p>
+                      </div>
+                      <div className="bg-stone-50 rounded-xl p-3">
+                        <p className="text-xs text-stone-400 mb-0.5">Éjszakák</p>
+                        <p className="font-medium text-stone-800">{selected.nights} éj</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Vendégek */}
+                  <section>
+                    <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Vendégek</h3>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
+                        <span className="text-stone-500">Összes</span>
+                        <span className="font-medium text-stone-800">{selected.numberOfGuests} fő</span>
+                      </div>
+                      <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
+                        <span className="text-stone-500">Felnőtt (18+)</span>
+                        <span className="font-medium text-stone-800">{selected.numberOfAdults} fő</span>
+                      </div>
+                      {(selected as any).numberOfTeens > 0 && (
+                        <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
+                          <span className="text-stone-500">Fiatal (12–18)</span>
+                          <span className="font-medium text-stone-800">{(selected as any).numberOfTeens} fő</span>
+                        </div>
+                      )}
+                      {(selected as any).numberOfBabies > 0 && (
+                        <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
+                          <span className="text-stone-500">Baba (0–2)</span>
+                          <span className="font-medium text-forest-600">{(selected as any).numberOfBabies} fő – ingyenes</span>
+                        </div>
+                      )}
+                      {selected.numberOfChildren2to6 > 0 && (
+                        <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
+                          <span className="text-stone-500">Kisgyerek (2–6)</span>
+                          <span className="font-medium text-stone-800">{selected.numberOfChildren2to6} fő</span>
+                        </div>
+                      )}
+                      {selected.numberOfChildren6to12 > 0 && (
+                        <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
+                          <span className="text-stone-500">Gyerek (6–12)</span>
+                          <span className="font-medium text-stone-800">{selected.numberOfChildren6to12} fő</span>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+
+                  {/* Árak */}
+                  <section>
+                    <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Árösszesítő</h3>
+                    {(() => {
+                      const ci = new Date(selected.checkIn);
+                      const co = new Date(selected.checkOut);
+                      const rule = rules.length ? getApplicablePricingRule(ci, co, rules) : null;
+                      const weekdayRate = rule?.pricePerNight ?? 0;
+                      const weekendRate = rule && rule.weekendPrice > 0 ? rule.weekendPrice : weekdayRate;
+                      const hasWeekendPrice = rule && rule.weekendPrice > 0;
+                      const personCount = selected.numberOfAdults + ((selected as any).numberOfTeens ?? 0);
+
+                      let weekendNights = 0;
+                      if (rule) {
+                        const cur = new Date(ci);
+                        while (cur < co) { if ([5, 6].includes(getDay(cur))) weekendNights++; cur.setDate(cur.getDate() + 1); }
+                      }
+                      const weekdayNights = selected.nights - weekendNights;
+
+                      return (
+                        <div className="space-y-2 text-sm">
+                          {/* Szállás hétköznap */}
+                          {weekdayNights > 0 && (
+                            <div className="flex justify-between items-start text-stone-600">
+                              <div>
+                                <span>{hasWeekendPrice && weekendNights > 0 ? "Szállás – hétköznap" : `Szállás (${selected.nights} éj)`}</span>
+                                {rule && <p className="text-xs text-stone-400">{personCount} fő × {weekdayNights} éj × {formatCurrency(weekdayRate)}/éj</p>}
+                              </div>
+                              <span className="shrink-0 ml-2">{formatCurrency(personCount * weekdayNights * weekdayRate)}</span>
+                            </div>
+                          )}
+
+                          {/* Szállás hétvége */}
+                          {hasWeekendPrice && weekendNights > 0 && (
+                            <div className="flex justify-between items-start text-stone-600">
+                              <div>
+                                <span>{weekdayNights > 0 ? "Szállás – hétvége" : `Szállás (${selected.nights} éj)`}</span>
+                                <p className="text-xs text-stone-400">{personCount} fő × {weekendNights} éj × {formatCurrency(weekendRate)}/éj</p>
+                              </div>
+                              <span className="shrink-0 ml-2">{formatCurrency(personCount * weekendNights * weekendRate)}</span>
+                            </div>
+                          )}
+
+                          {/* Ha nincs rule, csak a total */}
+                          {!rule && (
+                            <div className="flex justify-between text-stone-600">
+                              <span>Szállás ({selected.nights} éj)</span>
+                              <span>{formatCurrency(selected.basePrice)}</span>
+                            </div>
+                          )}
+
+                          {/* Kisgyerek 2–6 */}
+                          {selected.numberOfChildren2to6 > 0 && selected.childPrice2to6 > 0 && (
+                            <div className="flex justify-between items-start text-stone-600">
+                              <div>
+                                <span>Kisgyerek (2–6 év)</span>
+                                <p className="text-xs text-stone-400">{selected.numberOfChildren2to6} fő × {selected.nights} éj × {formatCurrency(selected.childPrice2to6)}/éj</p>
+                              </div>
+                              <span className="shrink-0 ml-2">{formatCurrency(selected.childPrice2to6 * selected.numberOfChildren2to6 * selected.nights)}</span>
+                            </div>
+                          )}
+
+                          {/* Gyerek 6–12 */}
+                          {selected.numberOfChildren6to12 > 0 && selected.childPrice6to12 > 0 && (
+                            <div className="flex justify-between items-start text-stone-600">
+                              <div>
+                                <span>Gyerek (6–12 év)</span>
+                                <p className="text-xs text-stone-400">{selected.numberOfChildren6to12} fő × {selected.nights} éj × {formatCurrency(selected.childPrice6to12)}/éj</p>
+                              </div>
+                              <span className="shrink-0 ml-2">{formatCurrency(selected.childPrice6to12 * selected.numberOfChildren6to12 * selected.nights)}</span>
+                            </div>
+                          )}
+
+                          {/* IFA */}
+                          {selected.touristTax > 0 && (
+                            <div className="flex justify-between items-start text-stone-600">
+                              <div>
+                                <span>IFA</span>
+                                <p className="text-xs text-stone-400">{selected.numberOfAdults} felnőtt × {selected.nights} éj × 450 Ft/éj</p>
+                              </div>
+                              <span className="shrink-0 ml-2">{formatCurrency(selected.touristTax)}</span>
+                            </div>
+                          )}
+
+                          {/* Pótdíj */}
+                          {selected.guestSurcharge > 0 && (
+                            <div className="flex justify-between text-stone-600">
+                              <span>Extra vendég pótdíj</span>
+                              <span>{formatCurrency(selected.guestSurcharge)}</span>
+                            </div>
+                          )}
+
+                          {/* Takarítás */}
+                          {selected.cleaningFee > 0 && (
+                            <div className="flex justify-between text-stone-600">
+                              <span>Takarítási díj</span>
+                              <span>{formatCurrency(selected.cleaningFee)}</span>
+                            </div>
+                          )}
+
+                          {/* Végösszeg */}
+                          <div className="flex justify-between font-semibold text-stone-800 border-t border-stone-100 pt-2 mt-1">
+                            <span>Összesen</span>
+                            <span>{formatCurrency(selected.totalPrice)}</span>
+                          </div>
+
+                          {/* Előleg */}
+                          {selected.depositAmount > 0 && (
+                            <div className="flex justify-between items-center bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 mt-2">
+                              <div>
+                                <p className="text-xs font-semibold text-amber-800">Fizetendő előleg</p>
+                                <p className="text-[10px] text-amber-600 mt-0.5">
+                                  {Math.round(selected.depositAmount / selected.totalPrice * 100)}% az összegből
+                                </p>
+                              </div>
+                              <span className="font-bold text-amber-800">{formatCurrency(selected.depositAmount)}</span>
+                            </div>
+                          )}
+
+                          {/* Maradék */}
+                          {selected.depositAmount > 0 && (
+                            <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5">
+                              <div>
+                                <p className="text-xs font-semibold text-stone-700">Helyszínen fizetendő</p>
+                                <p className="text-[10px] text-stone-400 mt-0.5">Teljes összeg – előleg</p>
+                              </div>
+                              <span className="font-bold text-stone-800">{formatCurrency(selected.totalPrice - selected.depositAmount)}</span>
+                            </div>
+                          )}
+
+                        </div>
+                      );
+                    })()}
+                  </section>
+
+                  {/* Megjegyzés */}
+                  {selected.notes && (
+                    <section>
+                      <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Megjegyzés</h3>
+                      <p className="text-sm text-stone-700 bg-stone-50 rounded-xl px-3 py-2">{selected.notes}</p>
+                    </section>
+                  )}
+
+                  {/* Előleg befizetve */}
+                  {selected.depositAmount > 0 && (
+                    <section>
+                      {selected.depositPaidAt ? (
+                        <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                          <Check className="w-5 h-5 text-green-600 shrink-0" />
+                          <div>
+                            <p className="text-sm font-semibold text-green-700">Előleg befizetve</p>
+                            <p className="text-xs text-green-500 mt-0.5">
+                              {format(new Date(selected.depositPaidAt), "yyyy. MM. dd. HH:mm")} · Visszaigazoló e-mail elküldve
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => markDepositPaid(selected.id)}
+                          disabled={loading === selected.id}
+                          className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
+                        >
+                          <CreditCard className="w-4 h-4" />
+                          Előleg befizetve – visszaigazoló küldése
+                        </button>
+                      )}
+                    </section>
+                  )}
+
+                  {/* Státusz műveletek */}
+                  {(selected.status === "PENDING" || selected.status === "CONFIRMED") && (
+                    <section className="flex gap-2 pt-1">
+                      {selected.status === "PENDING" && (
+                        <>
+                          <button
+                            onClick={() => updateStatus(selected.id, "CONFIRMED")}
+                            disabled={loading === selected.id}
+                            className="flex-1 py-2.5 rounded-xl bg-green-100 text-green-700 hover:bg-green-200 text-sm font-medium transition-colors"
+                          >
+                            Jóváhagyás
+                          </button>
+                          <button
+                            onClick={() => updateStatus(selected.id, "CANCELLED")}
+                            disabled={loading === selected.id}
+                            className="flex-1 py-2.5 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 text-sm font-medium transition-colors"
+                          >
+                            Lemondás
+                          </button>
+                        </>
+                      )}
+                      {selected.status === "CONFIRMED" && (
+                        <button
+                          onClick={() => updateStatus(selected.id, "PAID")}
+                          disabled={loading === selected.id}
+                          className="flex-1 py-2.5 rounded-xl bg-blue-100 text-blue-600 hover:bg-blue-200 text-sm font-medium transition-colors"
+                        >
+                          Megjelölés fizetettként
+                        </button>
+                      )}
+                    </section>
+                  )}
+                </>
               )}
             </div>
           </div>

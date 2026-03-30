@@ -263,6 +263,173 @@ function adminEmailHtml(data: BookingEmailData): string {
   `;
 }
 
+// ─── ELŐLEG VISSZAIGAZOLÓ EMAIL HTML ────────────────────────
+function depositConfirmationHtml(data: BookingEmailData & { depositAmount: number; remaining: number }): string {
+  return `
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#f5f0e8;font-family:Georgia,serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="580" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(26,58,42,0.08);">
+
+          <!-- Fejléc -->
+          <tr>
+            <td style="background:#1a3a2a;padding:40px;text-align:center;">
+              <p style="color:#f5f0e8;font-size:28px;font-weight:300;margin:0;letter-spacing:-0.02em;">Milán Kuckó</p>
+              <p style="color:rgba(245,240,232,0.6);font-size:12px;margin:8px 0 0;font-family:sans-serif;letter-spacing:0.2em;text-transform:uppercase;">Miskolctapolca · Bencések útja 117/A</p>
+            </td>
+          </tr>
+
+          <!-- Tartalom -->
+          <tr>
+            <td style="padding:40px;">
+
+              <!-- Megerősítés banner -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#d4edda;border-radius:12px;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:20px;text-align:center;">
+                    <p style="font-size:32px;margin:0 0 8px;">✅</p>
+                    <p style="font-family:sans-serif;font-size:18px;font-weight:700;color:#1a5c2a;margin:0 0 4px;">Előleg megérkezett!</p>
+                    <p style="font-family:sans-serif;font-size:14px;color:#2d7a3a;margin:0;">A foglalása most már végleges.</p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size:20px;color:#1a3a2a;margin:0 0 16px;">Kedves ${data.guestName}!</p>
+              <p style="font-family:sans-serif;font-size:14px;color:#737373;line-height:1.7;margin:0 0 24px;">
+                Örömmel értesítjük, hogy az előleg beérkezett. Foglalása végleges, várjuk Önt szeretettel!
+              </p>
+
+              <!-- Foglalási azonosító -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+                <tr>
+                  <td align="center">
+                    <p style="font-family:sans-serif;font-size:12px;color:#a8a8a8;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.1em;">Foglalási azonosító</p>
+                    <span style="background:#1a3a2a;color:#f5f0e8;font-family:monospace;font-size:16px;padding:8px 20px;border-radius:8px;letter-spacing:0.15em;">${data.bookingId}</span>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Foglalás adatai -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;border-radius:12px;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:20px;">
+                    <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 16px;">Foglalás részletei</p>
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#737373;">Érkezés</td>
+                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#2a2a2a;font-weight:500;text-align:right;">${formatDate(data.checkIn)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#737373;">Távozás</td>
+                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#2a2a2a;font-weight:500;text-align:right;">${formatDate(data.checkOut)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#737373;">Éjszakák</td>
+                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#2a2a2a;font-weight:500;text-align:right;">${data.nights} éj</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#737373;">Befizetett előleg</td>
+                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#1a5c2a;font-weight:600;text-align:right;">✓ ${formatHuf(data.depositAmount)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:12px 0 0;font-family:sans-serif;font-size:14px;color:#737373;">Helyszínen fizetendő</td>
+                        <td style="padding:12px 0 0;font-family:sans-serif;font-size:18px;color:#1a3a2a;font-weight:700;text-align:right;">${formatHuf(data.remaining)}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Tudnivalók -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8d9b5;border-radius:12px;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:20px;">
+                    <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 12px;">Tudnivalók</p>
+                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">🕑 Bejelentkezés: 14:00 – 20:00</p>
+                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">🕙 Kijelentkezés: 10:00-ig</p>
+                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">📍 3519 Miskolctapolca, Bencések útja 117/A</p>
+                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">📞 +36 30 845 4923</p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-family:sans-serif;font-size:13px;color:#a8a8a8;line-height:1.6;margin:0;">
+                Kérdése esetén hívjon minket a <strong>+36 30 845 4923</strong> számon vagy írjon az <strong>milan.kucko117@gmail.com</strong> címre.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Lábléc -->
+          <tr>
+            <td style="background:#f5f0e8;padding:24px 40px;text-align:center;border-top:1px solid #e8d9b5;">
+              <p style="font-family:sans-serif;font-size:12px;color:#a8a8a8;margin:0;">Milán Kuckó · milan.kucko117@gmail.com · +36 30 845 4923</p>
+              <p style="font-family:sans-serif;font-size:11px;color:#d4d4d4;margin:4px 0 0;">Ez egy automatikus értesítő e-mail. Kérjük, ne válaszoljon rá.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
+// ─── ELŐLEG VISSZAIGAZOLÓ EMAIL KÜLDŐ ───────────────────────
+export async function sendDepositConfirmationEmail(params: {
+  guestName: string;
+  guestEmail: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  guests: number;
+  totalPrice: number;
+  depositAmount: number;
+  bookingId: string;
+}): Promise<void> {
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  const FROM_EMAIL = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
+
+  const remaining = params.totalPrice - params.depositAmount;
+  const html = depositConfirmationHtml({ ...params, remaining });
+
+  if (!RESEND_API_KEY || RESEND_API_KEY === "re_xxxxxxxxxxxx") {
+    console.log("📧 [DEV] Előleg visszaigazoló email szimulálva:", {
+      to: params.guestEmail,
+      subject: `Előleg befizetve – ${params.bookingId}`,
+    });
+    return;
+  }
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${RESEND_API_KEY}`,
+    },
+    body: JSON.stringify({
+      from: `Milán Kuckó <${FROM_EMAIL}>`,
+      to: [params.guestEmail],
+      subject: `✅ Előleg befizetve – ${params.bookingId}`,
+      html,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("Előleg email hiba:", err);
+  }
+}
+
 // ─── FŐ EMAIL KÜLDŐ FÜGGVÉNY ─────────────────────────────────
 export async function sendBookingEmails(data: BookingEmailData): Promise<void> {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
