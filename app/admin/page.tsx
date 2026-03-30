@@ -21,7 +21,7 @@ export default async function AdminDashboard() {
       where: { status: "PENDING" },
     }),
     prisma.booking.aggregate({
-      where: { status: { in: ["CONFIRMED", "PAID"] } },
+      where: { status: "CONFIRMED" },
       _sum:  { totalPrice: true },
     }),
   ]);

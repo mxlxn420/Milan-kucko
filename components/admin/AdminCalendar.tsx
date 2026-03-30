@@ -122,7 +122,7 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
           {[
             { color: "bg-forest-900", label: "Kiválasztott"  },
             { color: "bg-forest-100", label: "Foglalt"        },
-            { color: "bg-terra-100",  label: "Blokkolt"       },
+            { color: "bg-terra-100",  label: "Zárva"          },
           ].map(({ color, label }) => (
             <div key={label} className="flex items-center gap-2 text-xs text-stone-500">
               <span className={`w-4 h-4 rounded-full ${color} inline-block`} />
@@ -143,7 +143,7 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
             className="bg-white rounded-2xl shadow-card p-5"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-stone-800">Napok blokkolása</h3>
+              <h3 className="font-medium text-stone-800">Napok zárása</h3>
               <button onClick={() => { setShowForm(false); setRange({}); }}>
                 <X size={16} className="text-stone-400" />
               </button>
@@ -166,17 +166,17 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
               className="btn-primary w-full justify-center text-sm py-3"
             >
               <Plus size={14} />
-              {loading ? "Mentés..." : "Blokkolás"}
+              {loading ? "Mentés..." : "Zárás"}
             </button>
           </motion.div>
         )}
 
         {/* Blokkolt időszakok listája */}
         <div className="bg-white rounded-2xl shadow-card p-5">
-          <h3 className="font-medium text-stone-800 mb-4">Blokkolt időszakok</h3>
+          <h3 className="font-medium text-stone-800 mb-4">Zárt időszakok</h3>
           {blocked.length === 0 ? (
             <p className="text-sm text-stone-400 text-center py-4">
-              Nincs blokkolt időszak
+              Nincs zárt időszak
             </p>
           ) : (
             <div className="space-y-2">

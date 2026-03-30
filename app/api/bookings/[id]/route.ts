@@ -28,16 +28,13 @@ export async function PATCH(
 
     // Státusz-módosítás
     if ("status" in body && !("checkIn" in body)) {
-      const validStatuses = ["PENDING", "CONFIRMED", "PAID", "CANCELLED"];
+      const validStatuses = ["PENDING", "CONFIRMED", "CANCELLED"];
       if (!validStatuses.includes(body.status)) {
         return NextResponse.json({ success: false, error: "Érvénytelen státusz" }, { status: 400 });
       }
       const updated = await prisma.booking.update({
         where: { id: params.id },
-        data: {
-          status: body.status,
-          ...(body.status === "PAID" ? { paidAt: new Date() } : {}),
-        },
+        data: { status: body.status },
       });
       return NextResponse.json({ success: true, data: updated });
     }
@@ -97,10 +94,7 @@ export async function PATCH(
         cleaningFee:            Number(body.cleaningFee)  || 0,
         touristTax:             Number(body.touristTax)   || 0,
         guestSurcharge:         Number(body.guestSurcharge) || 0,
-        ...(body.status ? {
-          status: body.status,
-          ...(body.status === "PAID" ? { paidAt: new Date() } : {}),
-        } : {}),
+        ...(body.status ? { status: body.status } : {}),
       },
     });
 

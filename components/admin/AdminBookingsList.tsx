@@ -7,14 +7,14 @@ import { Check, X, CreditCard, ChevronRight, Pencil, Trash2, RefreshCw } from "l
 import type { Booking, BookingStatus, PricingRule } from "@/types";
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; color: string }> = {
-  PENDING:   { label: "Függőben",   color: "bg-yellow-100 text-yellow-700" },
-  CONFIRMED: { label: "Jóváhagyva", color: "bg-blue-100 text-blue-700"    },
-  PAID:      { label: "Fizetve",    color: "bg-green-100 text-green-700"   },
-  CANCELLED: { label: "Lemondva",   color: "bg-red-100 text-red-700"       },
-  BLOCKED:   { label: "Blokkolt",   color: "bg-stone-100 text-stone-600"   },
+  PENDING:   { label: "Előlegre vár", color: "bg-yellow-100 text-yellow-700" },
+  CONFIRMED: { label: "Jóváhagyva",   color: "bg-blue-100 text-blue-700"    },
+  PAID:      { label: "Fizetve",      color: "bg-green-100 text-green-700"   },
+  CANCELLED: { label: "Elutasítva",   color: "bg-red-100 text-red-700"       },
+  BLOCKED:   { label: "Zárva",         color: "bg-stone-100 text-stone-600"   },
 };
 
-const ALL_STATUSES: BookingStatus[] = ["PENDING", "CONFIRMED", "PAID", "CANCELLED"];
+const ALL_STATUSES: BookingStatus[] = ["PENDING", "CONFIRMED", "CANCELLED"];
 
 interface EditForm {
   guestName: string;
@@ -296,12 +296,31 @@ export default function AdminBookingsList({ bookings }: Props) {
                       </span>
                     </td>
                     <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => openModal(booking)}
-                        className="w-7 h-7 rounded-lg bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center transition-colors"
-                      >
-                        <ChevronRight size={13} />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {booking.depositAmount > 0 && !booking.depositPaidAt && (
+                          <button
+                            onClick={() => markDepositPaid(booking.id)}
+                            disabled={loading === booking.id}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-colors shadow-sm disabled:opacity-60"
+                            title="Előleg befizetve – visszaigazoló küldése"
+                          >
+                            <CreditCard size={12} />
+                            Előleg
+                          </button>
+                        )}
+                        {booking.depositPaidAt && (
+                          <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-100 text-green-700 text-xs font-medium">
+                            <Check size={12} />
+                            Előleg ✓
+                          </span>
+                        )}
+                        <button
+                          onClick={() => openModal(booking)}
+                          className="w-7 h-7 rounded-lg bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center transition-colors"
+                        >
+                          <ChevronRight size={13} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -941,18 +960,9 @@ export default function AdminBookingsList({ bookings }: Props) {
                             disabled={loading === selected.id}
                             className="flex-1 py-2.5 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 text-sm font-medium transition-colors"
                           >
-                            Lemondás
+                            Elutasítás
                           </button>
                         </>
-                      )}
-                      {selected.status === "CONFIRMED" && (
-                        <button
-                          onClick={() => updateStatus(selected.id, "PAID")}
-                          disabled={loading === selected.id}
-                          className="flex-1 py-2.5 rounded-xl bg-blue-100 text-blue-600 hover:bg-blue-200 text-sm font-medium transition-colors"
-                        >
-                          Megjelölés fizetettként
-                        </button>
                       )}
                     </section>
                   )}

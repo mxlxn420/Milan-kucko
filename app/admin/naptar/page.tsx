@@ -30,7 +30,7 @@ export default async function AdminNaptar() {
     <div>
       <div className="mb-8">
         <h1 className="font-serif text-3xl text-stone-800">Naptár</h1>
-        <p className="text-stone-500 text-sm mt-1">Foglalt és blokkolt napok</p>
+        <p className="text-stone-500 text-sm mt-1">Foglalt és zárt napok</p>
       </div>
       <AdminCalendar
         bookings={bookings.map((b) => ({
@@ -47,12 +47,21 @@ export default async function AdminNaptar() {
       <div className="mt-8">
         <h2 className="font-serif text-xl text-stone-800 mb-4">Foglalások</h2>
         <AdminBookingCalendar
-          bookings={bookings.map((b) => ({
-            ...b,
-            checkIn:  b.checkIn.toISOString(),
-            checkOut: b.checkOut.toISOString(),
-            status:   b.status as "PENDING" | "CONFIRMED" | "PAID" | "CANCELLED" | "BLOCKED",
-          }))}
+          bookings={[
+            ...bookings.map((b) => ({
+              ...b,
+              checkIn:  b.checkIn.toISOString(),
+              checkOut: b.checkOut.toISOString(),
+              status:   b.status as "PENDING" | "CONFIRMED" | "PAID" | "CANCELLED" | "BLOCKED",
+            })),
+            ...blocked.map((b) => ({
+              id:       b.id,
+              guestName: b.reason || "Zárva",
+              checkIn:  b.dateFrom.toISOString(),
+              checkOut: b.dateTo.toISOString(),
+              status:   "BLOCKED" as const,
+            })),
+          ]}
         />
       </div>
       <div className="mt-8">

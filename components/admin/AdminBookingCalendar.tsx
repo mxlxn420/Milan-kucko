@@ -22,11 +22,11 @@ interface Props {
 }
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; border: string }> = {
-  PENDING:   { label: "Függőben",   border: "border-yellow-400" },
-  CONFIRMED: { label: "Jóváhagyva", border: "border-blue-400"   },
-  PAID:      { label: "Fizetve",    border: "border-green-400"  },
-  CANCELLED: { label: "Lemondva",   border: "border-red-300"    },
-  BLOCKED:   { label: "Blokkolt",   border: "border-stone-300"  },
+  PENDING:   { label: "Előlegre vár", border: "border-yellow-400" },
+  CONFIRMED: { label: "Jóváhagyva",  border: "border-blue-400"   },
+  PAID:      { label: "Fizetve",     border: "border-green-400"  },
+  CANCELLED: { label: "Elutasítva",  border: "border-red-300"    },
+  BLOCKED:   { label: "Zárva",       border: "border-stone-400"  },
 };
 
 // Visszatér a napon megjelenítendő foglalásokkal: először a távozók, majd az érkezők

@@ -19,7 +19,7 @@ export default function AdminStats({ stats }: Props) {
     },
     {
       icon:  Clock,
-      label: "Függőben",
+      label: "Előlegre vár",
       value: stats.pending.toString(),
       color: "bg-terra-400",
     },
