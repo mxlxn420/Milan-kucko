@@ -30,6 +30,8 @@ model Booking {
   totalPrice            Float
   depositAmount         Float         @default(0)
   depositPaidAt         DateTime?
+  extraServices         Json?
+  extraServicesTotal    Float         @default(0)
   status                BookingStatus @default(PENDING)
   paymentIntentId       String?       @unique
   paidAt                DateTime?
@@ -105,4 +107,21 @@ model ContactMessage {
   message   String   @db.Text
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model ExtraService {
+  id          String          @id @default(cuid())
+  name        String
+  description String          @db.Text
+  pricingType ServicePricing
+  price       Float?
+  imageUrl    String?
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+enum ServicePricing {
+  PER_NIGHT
+  PER_BOOKING
 }

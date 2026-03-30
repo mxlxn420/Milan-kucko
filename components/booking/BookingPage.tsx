@@ -9,26 +9,36 @@ import BookingSuccess  from "@/components/booking/BookingSuccess";
 
 export type BookingStep = "calendar" | "form" | "success";
 
+export interface SelectedService {
+  id:          string;
+  name:        string;
+  pricingType: "PER_NIGHT" | "PER_BOOKING";
+  price:       number | null;
+  quantity:    number;
+  nights:      number;
+  total:       number;
+}
+
 export interface BookingData {
-  checkIn:         Date;
-  checkOut:        Date;
-  guests:          number;
-  adults:          number;
-  teens:           number;
-  babies:          number;
-  children2to6:    number;
-  children6to12:   number;
-  nights:          number;
-  weekdayNights:   number;
-  weekendNights:   number;
-  weekdayRate:     number;
-  weekendRate:     number;
-  totalPrice:      number;
-  basePrice:       number;
-  childPrice2to6:  number;
-  childPrice6to12: number;
-  guestSurcharge:  number;
-  touristTax:      number;
+  checkIn:              Date;
+  checkOut:             Date;
+  guests:               number;
+  adults:               number;
+  teens:                number;
+  babies:               number;
+  children2to6:         number;
+  children6to12:        number;
+  nights:               number;
+  weekdayNights:        number;
+  weekendNights:        number;
+  weekdayRate:          number;
+  weekendRate:          number;
+  totalPrice:           number;
+  basePrice:            number;
+  childPrice2to6:       number;
+  childPrice6to12:      number;
+  guestSurcharge:       number;
+  touristTax:           number;
 }
 
 export default function BookingPage() {

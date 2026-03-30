@@ -874,6 +874,32 @@ export default function AdminBookingsList({ bookings }: Props) {
                             </div>
                           )}
 
+                          {/* Extra szolgáltatások */}
+                          {selected.extraServices && selected.extraServices.length > 0 && (
+                            <>
+                              <div className="border-t border-stone-100 pt-2 mt-1">
+                                <p className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Extra szolgáltatások</p>
+                              </div>
+                              {selected.extraServices.map((svc, i) => (
+                                <div key={i} className="flex justify-between items-start text-stone-600">
+                                  <div>
+                                    <span>{svc.name}</span>
+                                    {svc.price != null && (
+                                      <p className="text-xs text-stone-400">
+                                        {svc.pricingType === "PER_NIGHT"
+                                          ? `${formatCurrency(svc.price)} × ${svc.quantity} db × ${svc.nights} éj`
+                                          : `${formatCurrency(svc.price)} × ${svc.quantity} db`}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <span className="shrink-0 ml-2">
+                                    {svc.price != null ? formatCurrency(svc.total) : "—"}
+                                  </span>
+                                </div>
+                              ))}
+                            </>
+                          )}
+
                           {/* Végösszeg */}
                           <div className="flex justify-between font-semibold text-stone-800 border-t border-stone-100 pt-2 mt-1">
                             <span>Összesen</span>

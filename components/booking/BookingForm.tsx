@@ -1,27 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, User, Mail, Phone, MessageSquare } from "lucide-react";
+import Image from "next/image";
+import {
+  ArrowLeft, ArrowRight, User, Mail, Phone, MessageSquare,
+  Moon, CalendarCheck, Check, ImageOff, Plus, Minus,
+} from "lucide-react";
 import { formatDateHu, formatCurrency } from "@/lib/utils";
-import type { BookingData } from "./BookingPage";
+import type { BookingData, SelectedService } from "./BookingPage";
+
+interface ExtraService {
+  id:          string;
+  name:        string;
+  description: string;
+  pricingType: "PER_NIGHT" | "PER_BOOKING";
+  price:       number | null;
+  imageUrl:    string | null;
+}
 
 interface Props {
   bookingData: BookingData;
-  onBack: () => void;
-  onSuccess: (bookingId: string) => void;
+  onBack:      () => void;
+  onSuccess:   (bookingId: string) => void;
 }
 
 export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    notes: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", notes: "" });
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState<string | null>(null);
+  const [services, setServices]       = useState<ExtraService[]>([]);
+  const [selected, setSelected]       = useState<SelectedService[]>([]);
+
+  useEffect(() => {
+    fetch("/api/extra-services")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setServices(d.data); })
+      .catch(() => {});
+  }, []);
+
+  const calcTotal = (svc: { price: number | null; pricingType: string }, quantity: number, nights: number) => {
+    if (svc.price == null) return 0;
+    return svc.pricingType === "PER_NIGHT"
+      ? svc.price * quantity * nights
+      : svc.price * quantity;
+  };
+
+  const toggleService = (svc: ExtraService) => {
+    const already = selected.find((s) => s.id === svc.id);
+    if (already) {
+      setSelected((prev) => prev.filter((s) => s.id !== svc.id));
+    } else {
+      const nights   = svc.pricingType === "PER_NIGHT" ? bookingData.nights : 1;
+      const quantity = 1;
+      setSelected((prev) => [...prev, {
+        id:          svc.id,
+        name:        svc.name,
+        pricingType: svc.pricingType,
+        price:       svc.price,
+        quantity,
+        nights,
+        total: calcTotal(svc, quantity, nights),
+      }]);
+    }
+  };
+
+  const updateSelected = (id: string, patch: { quantity?: number; nights?: number }) => {
+    setSelected((prev) => prev.map((s) => {
+      if (s.id !== id) return s;
+      const quantity = patch.quantity ?? s.quantity;
+      const nights   = patch.nights   ?? s.nights;
+      return { ...s, quantity, nights, total: calcTotal(s, quantity, nights) };
+    }));
+  };
+
+  const extrasTotal    = selected.reduce((sum, s) => sum + s.total, 0);
+  const grandTotal     = bookingData.totalPrice + extrasTotal;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,34 +85,36 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
 
     try {
       const res = await fetch("/api/bookings", {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          guestName: form.name,
-          guestEmail: form.email,
-          guestPhone: form.phone,
-          numberOfGuests: bookingData.guests,
-          numberOfAdults: bookingData.adults,
-          numberOfChildren2to6: bookingData.children2to6,
+          guestName:            form.name,
+          guestEmail:           form.email,
+          guestPhone:           form.phone,
+          numberOfGuests:       bookingData.guests,
+          numberOfAdults:       bookingData.adults,
+          numberOfChildren2to6:  bookingData.children2to6,
           numberOfChildren6to12: bookingData.children6to12,
-          notes: form.notes || null,
-          checkIn:  format(bookingData.checkIn,  "yyyy-MM-dd"),
-          checkOut: format(bookingData.checkOut, "yyyy-MM-dd"),
-          basePrice: bookingData.basePrice,
-          childPrice2to6: bookingData.childPrice2to6,
-          childPrice6to12: bookingData.childPrice6to12,
-          guestSurcharge: 0,
-          cleaningFee: 0,
-          touristTax: 0,
-          totalPrice: bookingData.totalPrice,
+          notes:                form.notes || null,
+          checkIn:              format(bookingData.checkIn,  "yyyy-MM-dd"),
+          checkOut:             format(bookingData.checkOut, "yyyy-MM-dd"),
+          basePrice:            bookingData.basePrice,
+          childPrice2to6:       bookingData.childPrice2to6,
+          childPrice6to12:      bookingData.childPrice6to12,
+          guestSurcharge:       0,
+          cleaningFee:          0,
+          touristTax:           0,
+          totalPrice:           grandTotal,
+          extraServices:        selected,
+          extraServicesTotal:   extrasTotal,
         }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Ismeretlen hiba");
       onSuccess(data.data.id);
-    } catch (err: any) {
-      setError(err.message || "Hiba történt. Kérjük próbálja újra!");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Hiba történt. Kérjük próbálja újra!");
     } finally {
       setLoading(false);
     }
@@ -67,121 +124,252 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="lg:col-span-2 bg-white rounded-3xl shadow-card p-8 space-y-5">
-        <h2 className="font-serif text-xl text-forest-900 mb-6">Adja meg adatait</h2>
+      <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6">
 
-        <div>
-          <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">
-            <User size={12} className="inline mr-1" />Teljes név *
-          </label>
-          <input
-            className="input-base"
-            placeholder="Kovács Anna"
-            required
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-        </div>
+        {/* Személyes adatok */}
+        <div className="bg-white rounded-3xl shadow-card p-8 space-y-5">
+          <h2 className="font-serif text-xl text-forest-900">Adja meg adatait</h2>
 
-        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">
-              <Mail size={12} className="inline mr-1" />E-mail *
+              <User size={12} className="inline mr-1" />Teljes név *
             </label>
             <input
               className="input-base"
-              type="email"
-              placeholder="email@example.com"
+              placeholder="Kovács Anna"
               required
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">
+                <Mail size={12} className="inline mr-1" />E-mail *
+              </label>
+              <input
+                className="input-base"
+                type="email"
+                placeholder="email@example.com"
+                required
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">
+                <Phone size={12} className="inline mr-1" />Telefon *
+              </label>
+              <input
+                className="input-base"
+                placeholder="+36 30 123 4567"
+                required
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
+            </div>
+          </div>
+
           <div>
             <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">
-              <Phone size={12} className="inline mr-1" />Telefon *
+              <MessageSquare size={12} className="inline mr-1" />Megjegyzés
             </label>
-            <input
-              className="input-base"
-              placeholder="+36 30 123 4567"
-              required
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            <textarea
+              className="input-base resize-none"
+              rows={4}
+              placeholder="Pl. késői érkezés, különleges kérés, babakiságy igény..."
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />
           </div>
         </div>
 
-        <div>
-          <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">
-            <MessageSquare size={12} className="inline mr-1" />Megjegyzés
-          </label>
-          <textarea
-            className="input-base resize-none"
-            rows={4}
-            placeholder="Pl. késői érkezés, különleges kérés, babakiságy igény..."
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-          />
-        </div>
+        {/* Extra szolgáltatások */}
+        {services.length > 0 && (
+          <div className="bg-white rounded-3xl shadow-card p-8">
+            <h2 className="font-serif text-xl text-forest-900 mb-1">Extra szolgáltatások</h2>
+            <p className="text-sm text-stone-400 mb-6">Opcionális kiegészítők a tartózkodáshoz</p>
 
-        <div className="flex items-start gap-3 pt-2">
-          <input
-            type="checkbox"
-            id="aszf"
-            required
-            className="mt-1 accent-forest-900"
-          />
-          <label htmlFor="aszf" className="text-sm text-stone-500 leading-relaxed">
-            Elfogadom az{" "}
-            <a href="/aszf" target="_blank" className="text-forest-700 underline hover:text-forest-900">
-              Általános Szerződési Feltételeket
-            </a>{" "}
-            és az{" "}
-            <a href="/adatvedelem" target="_blank" className="text-forest-700 underline hover:text-forest-900">
-              Adatvédelmi tájékoztatót
-            </a>.
-          </label>
-        </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {services.map((svc) => {
+                const sel = selected.find((s) => s.id === svc.id);
+                const isSelected = !!sel;
 
-        {error && (
-          <p className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl border border-red-100">
-            {error}
-          </p>
+                return (
+                  <div
+                    key={svc.id}
+                    className={`relative rounded-2xl border-2 overflow-hidden transition-all duration-200 ${
+                      isSelected
+                        ? "border-forest-500 shadow-md"
+                        : "border-stone-200"
+                    }`}
+                  >
+                    {/* Kép — kattintható toggle */}
+                    <button
+                      type="button"
+                      onClick={() => toggleService(svc)}
+                      className="w-full text-left"
+                    >
+                      {svc.imageUrl ? (
+                        <div className="relative h-32 w-full">
+                          <Image src={svc.imageUrl} alt={svc.name} fill className="object-cover" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                        </div>
+                      ) : (
+                        <div className="h-20 w-full bg-stone-100 flex items-center justify-center">
+                          <ImageOff size={20} className="text-stone-300" />
+                        </div>
+                      )}
+                    </button>
+
+                    {/* Pipa */}
+                    {isSelected && (
+                      <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-forest-600 flex items-center justify-center shadow-md pointer-events-none">
+                        <Check size={13} className="text-white" />
+                      </div>
+                    )}
+
+                    {/* Tartalom */}
+                    <div className="p-4">
+                      <button type="button" onClick={() => toggleService(svc)} className="w-full text-left">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-medium text-stone-800 text-sm leading-tight">{svc.name}</p>
+                          <span className={`shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                            svc.pricingType === "PER_NIGHT"
+                              ? "bg-forest-50 text-forest-700"
+                              : "bg-terra-50 text-terra-700"
+                          }`}>
+                            {svc.pricingType === "PER_NIGHT" ? <Moon size={9} /> : <CalendarCheck size={9} />}
+                            {svc.pricingType === "PER_NIGHT" ? "/éj" : "/fog."}
+                          </span>
+                        </div>
+                        <p className="text-xs text-stone-500 mt-1 leading-relaxed line-clamp-2">{svc.description}</p>
+                        <p className="text-sm font-semibold text-forest-700 mt-2.5">
+                          {svc.price != null ? formatCurrency(svc.price) : "Ár érdeklődésre"}
+                          {svc.price != null && (
+                            <span className="text-xs font-normal text-stone-400 ml-1">
+                              {svc.pricingType === "PER_NIGHT" ? "/éj/db" : "/db"}
+                            </span>
+                          )}
+                        </p>
+                      </button>
+
+                      {/* Léptető — csak PER_NIGHT és kiválasztva */}
+                      {isSelected && sel && svc.pricingType === "PER_NIGHT" && (
+                        <div className="mt-3 pt-3 border-t border-stone-100 space-y-2" onClick={(e) => e.stopPropagation()}>
+
+                          {/* Darabszám */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-stone-500">Darabszám</span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => updateSelected(svc.id, { quantity: Math.max(1, sel.quantity - 1) })}
+                                className="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors"
+                              >
+                                <Minus size={12} />
+                              </button>
+                              <span className="w-6 text-center text-sm font-semibold text-stone-800">{sel.quantity}</span>
+                              <button
+                                type="button"
+                                onClick={() => updateSelected(svc.id, { quantity: sel.quantity + 1 })}
+                                className="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors"
+                              >
+                                <Plus size={12} />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Éjszakák száma */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-stone-500">Éjszakák száma</span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => updateSelected(svc.id, { nights: Math.max(1, sel.nights - 1) })}
+                                className="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors"
+                              >
+                                <Minus size={12} />
+                              </button>
+                              <span className="w-6 text-center text-sm font-semibold text-stone-800">{sel.nights}</span>
+                              <button
+                                type="button"
+                                onClick={() => updateSelected(svc.id, { nights: Math.min(bookingData.nights, sel.nights + 1) })}
+                                className="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors"
+                              >
+                                <Plus size={12} />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Részösszeg */}
+                          {svc.price != null && (
+                            <div className="flex items-center justify-between pt-1">
+                              <span className="text-xs text-stone-400">
+                                {formatCurrency(svc.price)} × {sel.quantity} db × {sel.nights} éj
+                              </span>
+                              <span className="text-sm font-bold text-forest-700">{formatCurrency(sel.total)}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
 
-        <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="btn-secondary flex items-center gap-2"
-          >
-            <ArrowLeft size={15} /> Vissza
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary flex-1 justify-center"
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <motion.span
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
-                  className="block w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                />
-                Küldés...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                Foglalás elküldése <ArrowRight size={15} />
-              </span>
-            )}
-          </button>
+        {/* ÁSZF + Beküldés */}
+        <div className="bg-white rounded-3xl shadow-card p-8 space-y-5">
+          <div className="flex items-start gap-3">
+            <input type="checkbox" id="aszf" required className="mt-1 accent-forest-900" />
+            <label htmlFor="aszf" className="text-sm text-stone-500 leading-relaxed">
+              Elfogadom az{" "}
+              <a href="/aszf" target="_blank" className="text-forest-700 underline hover:text-forest-900">
+                Általános Szerződési Feltételeket
+              </a>{" "}
+              és az{" "}
+              <a href="/adatvedelem" target="_blank" className="text-forest-700 underline hover:text-forest-900">
+                Adatvédelmi tájékoztatót
+              </a>.
+            </label>
+          </div>
+
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl border border-red-100">
+              {error}
+            </p>
+          )}
+
+          <div className="flex gap-3">
+            <button type="button" onClick={onBack} className="btn-secondary flex items-center gap-2">
+              <ArrowLeft size={15} /> Vissza
+            </button>
+            <button type="submit" disabled={loading} className="btn-primary flex-1 justify-center">
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <motion.span
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+                    className="block w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                  />
+                  Küldés...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  Foglalás elküldése <ArrowRight size={15} />
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </form>
 
       {/* Összefoglaló */}
-      <div className="bg-forest-900 rounded-3xl shadow-card p-6 text-cream h-fit">
+      <div className="bg-forest-900 rounded-3xl shadow-card p-6 text-cream h-fit sticky top-8">
         <h3 className="font-serif text-xl mb-6 text-cream">Foglalás összefoglalója</h3>
 
         <div className="space-y-3 text-sm mb-6">
@@ -240,7 +428,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
             </div>
           )}
 
-          {/* Szállás – ha hétvégi ár = hétköznapi (nincs különbség) */}
+          {/* Szállás – egységes hétvégi ár */}
           {bookingData.weekendNights > 0 && bookingData.weekendRate === bookingData.weekdayRate && bookingData.weekdayNights === 0 && (
             <div className="flex justify-between items-start">
               <div>
@@ -297,12 +485,38 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
               <span>{formatCurrency(bookingData.guestSurcharge)}</span>
             </div>
           )}
+
+          {/* Kiválasztott extra szolgáltatások */}
+          {selected.length > 0 && (
+            <>
+              <div className="border-t border-white/10 pt-2.5 mt-1">
+                <p className="text-xs text-cream/40 uppercase tracking-wider mb-2">Extra szolgáltatások</p>
+              </div>
+              {selected.map((s) => (
+                <div key={s.id} className="flex justify-between items-start">
+                  <div>
+                    <p className="text-cream/80">{s.name}</p>
+                    {s.price != null && (
+                      <p className="text-xs text-cream/40 mt-0.5">
+                        {s.pricingType === "PER_NIGHT"
+                          ? `${formatCurrency(s.price)} × ${s.quantity} db × ${s.nights} éj`
+                          : `${formatCurrency(s.price)} × ${s.quantity} db`}
+                      </p>
+                    )}
+                  </div>
+                  <span className="shrink-0 ml-3">
+                    {s.price != null ? formatCurrency(s.total) : "—"}
+                  </span>
+                </div>
+              ))}
+            </>
+          )}
         </div>
 
         <div className="border-t border-white/10 pt-4 flex justify-between items-center">
           <span className="text-cream/80 font-medium">Végösszeg</span>
           <span className="font-serif text-2xl text-cream">
-            {formatCurrency(bookingData.totalPrice)}
+            {formatCurrency(grandTotal)}
           </span>
         </div>
 

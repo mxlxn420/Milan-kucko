@@ -9,14 +9,16 @@ import {
   LogOut,
   Home,
   ScrollText,
+  Sparkles,
 } from "lucide-react";
 
 const LINKS = [
-  { href: "/admin",             icon: LayoutDashboard, label: "Áttekintés" },
-  { href: "/admin/foglalasok",  icon: Calendar,        label: "Foglalások" },
-  { href: "/admin/naptar",      icon: Calendar,        label: "Naptár"     },
-  { href: "/admin/arak",        icon: Settings,        label: "Árak"       },
-  { href: "/admin/szabalyok",   icon: ScrollText,      label: "Szabályok"  },
+  { href: "/admin",                        icon: LayoutDashboard, label: "Áttekintés"          },
+  { href: "/admin/foglalasok",             icon: Calendar,        label: "Foglalások"           },
+  { href: "/admin/naptar",                 icon: Calendar,        label: "Naptár"               },
+  { href: "/admin/arak",                   icon: Settings,        label: "Árak"                 },
+  { href: "/admin/szabalyok",              icon: ScrollText,      label: "Szabályok"            },
+  { href: "/admin/extra-szolgaltatasok",   icon: Sparkles,        label: "Extra szolgáltatások" },
 ];
 
 export default function AdminSidebar() {

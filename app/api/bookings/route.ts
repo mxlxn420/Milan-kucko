@@ -42,6 +42,8 @@ export async function POST(req: NextRequest) {
       cleaningFee,
       touristTax,
       totalPrice,
+      extraServices,
+      extraServicesTotal,
     } = body;
 
     // Validáció
@@ -126,6 +128,8 @@ export async function POST(req: NextRequest) {
         touristTax:     Number(touristTax)     || 0,
         totalPrice: Number(totalPrice),
         depositAmount,
+        extraServices:     extraServices     ?? null,
+        extraServicesTotal: Number(extraServicesTotal) || 0,
         status: "PENDING",
       },
     });
