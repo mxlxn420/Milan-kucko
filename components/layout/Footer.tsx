@@ -25,7 +25,7 @@ export default function Footer() {
               <p className="text-xs text-cream/50 tracking-[0.25em] uppercase mt-1">Miskolctapolca</p>
             </Link>
             <p className="text-sm leading-relaxed text-cream/60 mb-6">
-              Romantikus nyaraló privát dézsafürdővel és szaunával,
+              Romantikus vendégház privát jakuzzival,
               Miskolctapolca szívében. A tökéletes kikapcsolódás helyszíne.
             </p>
 

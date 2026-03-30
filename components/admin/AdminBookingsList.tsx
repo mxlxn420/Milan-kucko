@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { format, differenceInCalendarDays, getDay } from "date-fns";
 import { formatDateHu, formatCurrency, getApplicablePricingRule, CLEANING_FEE, TOURIST_TAX } from "@/lib/utils";
-import { Check, X, CreditCard, ChevronRight, Pencil, Trash2, RefreshCw } from "lucide-react";
+import { Check, X, CreditCard, ChevronRight, Pencil, Trash2, RefreshCw, Plus, Minus, Moon, CalendarCheck } from "lucide-react";
 import type { Booking, BookingStatus, PricingRule } from "@/types";
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; color: string }> = {
@@ -91,19 +91,33 @@ function calcPriceBreakdown(
 }
 
 export default function AdminBookingsList({ bookings }: Props) {
+  type ExtraSvc = NonNullable<Booking["extraServices"]>[number];
+
   const [list, setList]               = useState<Booking[]>(bookings);
   const [loading, setLoading]         = useState<string | null>(null);
   const [selected, setSelected]       = useState<Booking | null>(null);
   const [editing, setEditing]         = useState(false);
   const [editForm, setEditForm]       = useState<EditForm | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [saveError, setSaveError]     = useState<string | null>(null);
-  const [rules, setRules]             = useState<PricingRule[]>([]);
+  interface AvailableService {
+    id: string; name: string; description: string;
+    pricingType: "PER_NIGHT" | "PER_BOOKING";
+    price: number | null;
+  }
+
+  const [editExtras, setEditExtras]         = useState<ExtraSvc[]>([]);
+  const [availableServices, setAvailableServices] = useState<AvailableService[]>([]);
+  const [showAddPanel, setShowAddPanel]     = useState(false);
+  const [confirmDelete, setConfirmDelete]   = useState(false);
+  const [saveError, setSaveError]           = useState<string | null>(null);
+  const [rules, setRules]                   = useState<PricingRule[]>([]);
 
   useEffect(() => {
     fetch("/api/pricing")
       .then((r) => r.json())
       .then((d) => { if (d.success) setRules(d.data); });
+    fetch("/api/extra-services")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setAvailableServices(d.data); });
   }, []);
 
   const openModal = (booking: Booking) => {
@@ -145,6 +159,8 @@ export default function AdminBookingsList({ bookings }: Props) {
     };
     // Ha az árak már betöltöttek, azonnal újraszámolja
     setEditForm(rules.length > 0 ? recalc(initial) : initial);
+    setEditExtras((booking.extraServices ?? []) as ExtraSvc[]);
+    setShowAddPanel(false);
     setEditing(true);
     setSaveError(null);
   };
@@ -216,10 +232,11 @@ export default function AdminBookingsList({ bookings }: Props) {
     setLoading(selected.id);
     setSaveError(null);
     try {
+      const extrasTotal = editExtras.reduce((sum, s) => sum + (s.total ?? 0), 0);
       const res  = await fetch(`/api/bookings/${selected.id}`, {
         method:  "PATCH",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(editForm),
+        body:    JSON.stringify({ ...editForm, extraServices: editExtras, extraServicesTotal: extrasTotal }),
       });
       const data = await res.json();
       if (!data.success) {
@@ -590,6 +607,167 @@ export default function AdminBookingsList({ bookings }: Props) {
                               <span>{formatCurrency(editForm.cleaningFee)}</span>
                             </div>
                           )}
+
+                          {/* Extra szolgáltatások – szerkeszthető */}
+                          {editExtras.length > 0 && (
+                            <div className="border-t border-stone-100 pt-2 mt-1 space-y-2">
+                              <p className="text-xs font-medium text-stone-400 uppercase tracking-wider">Extra szolgáltatások</p>
+                              {editExtras.map((svc, i) => (
+                                <div key={i} className="bg-stone-50 rounded-xl px-3 py-2.5 space-y-2">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <span className={`shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                                        svc.pricingType === "PER_NIGHT" ? "bg-forest-50 text-forest-700" : "bg-terra-50 text-terra-700"
+                                      }`}>
+                                        {svc.pricingType === "PER_NIGHT" ? <Moon size={9} /> : <CalendarCheck size={9} />}
+                                        {svc.pricingType === "PER_NIGHT" ? "/éj" : "/fog."}
+                                      </span>
+                                      <p className="text-sm font-medium text-stone-700 truncate">{svc.name}</p>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditExtras((prev) => prev.filter((_, idx) => idx !== i))}
+                                      className="shrink-0 w-6 h-6 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors"
+                                    >
+                                      <Trash2 size={11} className="text-red-500" />
+                                    </button>
+                                  </div>
+
+                                  {/* PER_NIGHT: léptető */}
+                                  {svc.pricingType === "PER_NIGHT" && (
+                                    <div className="space-y-1.5">
+                                      {/* Darabszám */}
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs text-stone-400">Darabszám</span>
+                                        <div className="flex items-center gap-1.5">
+                                          <button type="button" onClick={() => setEditExtras((prev) => prev.map((s, idx) => {
+                                            if (idx !== i) return s;
+                                            const q = Math.max(1, s.quantity - 1);
+                                            return { ...s, quantity: q, total: s.price != null ? s.price * q * s.nights : 0 };
+                                          }))} className="w-6 h-6 rounded-md bg-stone-200 hover:bg-stone-300 flex items-center justify-center transition-colors">
+                                            <Minus size={10} />
+                                          </button>
+                                          <span className="w-5 text-center text-sm font-semibold text-stone-800">{svc.quantity}</span>
+                                          <button type="button" onClick={() => setEditExtras((prev) => prev.map((s, idx) => {
+                                            if (idx !== i) return s;
+                                            const q = s.quantity + 1;
+                                            return { ...s, quantity: q, total: s.price != null ? s.price * q * s.nights : 0 };
+                                          }))} className="w-6 h-6 rounded-md bg-stone-200 hover:bg-stone-300 flex items-center justify-center transition-colors">
+                                            <Plus size={10} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                      {/* Éjszakák */}
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs text-stone-400">Éjszakák</span>
+                                        <div className="flex items-center gap-1.5">
+                                          <button type="button" onClick={() => setEditExtras((prev) => prev.map((s, idx) => {
+                                            if (idx !== i) return s;
+                                            const n = Math.max(1, s.nights - 1);
+                                            return { ...s, nights: n, total: s.price != null ? s.price * s.quantity * n : 0 };
+                                          }))} className="w-6 h-6 rounded-md bg-stone-200 hover:bg-stone-300 flex items-center justify-center transition-colors">
+                                            <Minus size={10} />
+                                          </button>
+                                          <span className="w-5 text-center text-sm font-semibold text-stone-800">{svc.nights}</span>
+                                          <button type="button" onClick={() => setEditExtras((prev) => prev.map((s, idx) => {
+                                            if (idx !== i) return s;
+                                            const n = s.nights + 1;
+                                            return { ...s, nights: n, total: s.price != null ? s.price * s.quantity * n : 0 };
+                                          }))} className="w-6 h-6 rounded-md bg-stone-200 hover:bg-stone-300 flex items-center justify-center transition-colors">
+                                            <Plus size={10} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Részösszeg */}
+                                  {svc.price != null && (
+                                    <div className="flex justify-between items-center pt-0.5">
+                                      <span className="text-xs text-stone-400">
+                                        {svc.pricingType === "PER_NIGHT"
+                                          ? `${formatCurrency(svc.price)} × ${svc.quantity} db × ${svc.nights} éj`
+                                          : `${formatCurrency(svc.price)}/foglalás`}
+                                      </span>
+                                      <span className="text-sm font-bold text-forest-700">{formatCurrency(svc.total)}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Extra hozzáadása gomb */}
+                          {(() => {
+                            const editNights = editForm.checkIn && editForm.checkOut
+                              ? Math.max(1, differenceInCalendarDays(new Date(editForm.checkOut), new Date(editForm.checkIn)))
+                              : 1;
+                            const notYetAdded = availableServices.filter(
+                              (svc) => !editExtras.find((e) => e.id === svc.id)
+                            );
+                            if (notYetAdded.length === 0) return null;
+                            return (
+                              <div className={editExtras.length > 0 ? "pt-1" : "border-t border-stone-100 pt-2 mt-1"}>
+                                {!showAddPanel ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowAddPanel(true)}
+                                    className="flex items-center gap-1.5 text-xs text-forest-600 hover:text-forest-800 transition-colors"
+                                  >
+                                    <Plus size={13} />
+                                    Extra szolgáltatás hozzáadása
+                                  </button>
+                                ) : (
+                                  <div className="bg-stone-50 rounded-xl p-3 space-y-2">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <p className="text-xs font-medium text-stone-500">Válassz szolgáltatást</p>
+                                      <button type="button" onClick={() => setShowAddPanel(false)}>
+                                        <X size={13} className="text-stone-400" />
+                                      </button>
+                                    </div>
+                                    {notYetAdded.map((svc) => (
+                                      <button
+                                        key={svc.id}
+                                        type="button"
+                                        onClick={() => {
+                                          const nights   = svc.pricingType === "PER_NIGHT" ? editNights : 1;
+                                          const quantity = 1;
+                                          const total    = svc.price != null
+                                            ? svc.pricingType === "PER_NIGHT"
+                                              ? svc.price * quantity * nights
+                                              : svc.price * quantity
+                                            : 0;
+                                          setEditExtras((prev) => [...prev, {
+                                            id: svc.id, name: svc.name,
+                                            pricingType: svc.pricingType,
+                                            price: svc.price,
+                                            quantity, nights, total,
+                                          }]);
+                                          setShowAddPanel(false);
+                                        }}
+                                        className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white border border-stone-200 hover:border-forest-400 text-left transition-colors"
+                                      >
+                                        <div className="min-w-0">
+                                          <div className="flex items-center gap-1.5">
+                                            <span className={`shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                                              svc.pricingType === "PER_NIGHT" ? "bg-forest-50 text-forest-700" : "bg-terra-50 text-terra-700"
+                                            }`}>
+                                              {svc.pricingType === "PER_NIGHT" ? <Moon size={9} /> : <CalendarCheck size={9} />}
+                                              {svc.pricingType === "PER_NIGHT" ? "/éj" : "/fog."}
+                                            </span>
+                                            <span className="text-sm font-medium text-stone-700 truncate">{svc.name}</span>
+                                          </div>
+                                        </div>
+                                        <span className="shrink-0 text-sm text-forest-700 font-semibold">
+                                          {svc.price != null ? formatCurrency(svc.price) : "—"}
+                                        </span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
 
                           {/* Végső ár + előleg */}
                           <div className="border-t border-stone-100 pt-3 mt-1 space-y-2">

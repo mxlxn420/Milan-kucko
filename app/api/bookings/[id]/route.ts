@@ -95,6 +95,10 @@ export async function PATCH(
         touristTax:             Number(body.touristTax)   || 0,
         guestSurcharge:         Number(body.guestSurcharge) || 0,
         ...(body.status ? { status: body.status } : {}),
+        ...(body.extraServices !== undefined ? {
+          extraServices:     body.extraServices,
+          extraServicesTotal: Number(body.extraServicesTotal) || 0,
+        } : {}),
       },
     });
 
