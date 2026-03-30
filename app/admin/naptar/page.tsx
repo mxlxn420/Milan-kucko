@@ -1,7 +1,9 @@
-import { cookies }    from "next/headers";
-import { redirect }   from "next/navigation";
-import { prisma }     from "@/lib/prisma";
-import AdminCalendar  from "@/components/admin/AdminCalendar";
+import { cookies }               from "next/headers";
+import { redirect }              from "next/navigation";
+import { prisma }                from "@/lib/prisma";
+import AdminCalendar             from "@/components/admin/AdminCalendar";
+import AdminPriceCalendar        from "@/components/admin/AdminPriceCalendar";
+import AdminBookingCalendar      from "@/components/admin/AdminBookingCalendar";
 
 export default async function AdminNaptar() {
   const cookieStore = await cookies();
@@ -9,7 +11,7 @@ export default async function AdminNaptar() {
 
   if (!token) redirect("/admin/login");
 
-  const [bookings, blocked] = await Promise.all([
+  const [bookings, blocked, rules] = await Promise.all([
     prisma.booking.findMany({
       where:   { status: { in: ["PENDING", "CONFIRMED", "PAID"] } },
       select:  { checkIn: true, checkOut: true, status: true, guestName: true, id: true },
@@ -17,6 +19,10 @@ export default async function AdminNaptar() {
     }),
     prisma.blockedPeriod.findMany({
       orderBy: { dateFrom: "asc" },
+    }),
+    prisma.pricingRule.findMany({
+      where:   { isActive: true },
+      orderBy: { priority: "desc" },
     }),
   ]);
 
@@ -38,6 +44,25 @@ export default async function AdminNaptar() {
           dateTo:   b.dateTo.toISOString(),
         }))}
       />
+      <div className="mt-8">
+        <h2 className="font-serif text-xl text-stone-800 mb-4">Foglalások</h2>
+        <AdminBookingCalendar
+          bookings={bookings.map((b) => ({
+            ...b,
+            checkIn:  b.checkIn.toISOString(),
+            checkOut: b.checkOut.toISOString(),
+            status:   b.status as "PENDING" | "CONFIRMED" | "PAID" | "CANCELLED" | "BLOCKED",
+          }))}
+        />
+      </div>
+      <div className="mt-8">
+        <h2 className="font-serif text-xl text-stone-800 mb-4">Árak és szabályok</h2>
+        <AdminPriceCalendar rules={rules.map((r) => ({
+          ...r,
+          dateFrom: r.dateFrom?.toISOString() ?? null,
+          dateTo:   r.dateTo?.toISOString()   ?? null,
+        }))} />
+      </div>
     </div>
   );
 }

@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { label: "Kezdőlap", href: "/#hero" },
   { label: "Rólunk", href: "/#rolunk" },
   { label: "Felszereltség", href: "/#felszereltseg" },
-  { label: "Galéria", href: "/#galeria" },
+  { label: "Galéria", href: "/galeria" },
   { label: "Árak", href: "/#arak" },
   { label: "Kapcsolat", href: "/#kapcsolat" },
   { label: "Értékelések", href: "/#ertekelesek" },

@@ -29,7 +29,7 @@ export default function AboutSection() {
           <AnimatedSection direction="left" className="relative">
             <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-luxury">
               <Image
-                src="https://images.unsplash.com/photo-1449844908441-8829872d2607?w=800&q=85"
+                src="/images/haz/Milán Kuckó vendégház kis.jpg"
                 alt="Milán Kuckó – vendégház kívülről"
                 fill sizes="(max-width:1024px) 100vw, 50vw"
                 className="object-cover"
@@ -44,7 +44,7 @@ export default function AboutSection() {
               transition={{ duration: 0.7, delay: 0.3 }}
             >
               <Image
-                src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&q=85"
+                src="/images/belso/fürdő.jpg"
                 alt="Jacuzzi este"
                 fill sizes="176px"
                 className="object-cover"

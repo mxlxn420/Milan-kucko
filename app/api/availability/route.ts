@@ -3,7 +3,7 @@ import { prisma }       from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const [bookings, blocked] = await Promise.all([
+    const [bookings, blocked, policy] = await Promise.all([
       prisma.booking.findMany({
         where: {
           status:   { in: ["PENDING", "CONFIRMED", "PAID", "BLOCKED"] },
@@ -19,11 +19,17 @@ export async function GET() {
         where: { dateTo: { gte: new Date() } },
         select: { dateFrom: true, dateTo: true },
       }),
+      prisma.pricingRule.findFirst({
+        where:   { isActive: true },
+        orderBy: { priority: "desc" },
+        select:  { minAdvanceDays: true },
+      }),
     ]);
 
     return NextResponse.json({
       success: true,
       data: {
+        minAdvanceDays: policy?.minAdvanceDays ?? 2,
         bookings: bookings.map((b) => ({
           checkIn:  b.checkIn.toISOString(),
           checkOut: b.checkOut.toISOString(),

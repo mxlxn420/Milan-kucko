@@ -5,14 +5,15 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import AnimatedSection from "@/components/ui/AnimatedSection";
+import Link from "next/link";
 
 const IMAGES = [
-  { src: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=85", alt: "Kuckó külső", span: "col-span-2 row-span-2" },
-  { src: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=85", alt: "Dézsafürdő",  span: "" },
-  { src: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=85", alt: "Nappali",     span: "" },
-  { src: "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&q=85", alt: "Hálószoba",   span: "" },
-  { src: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=85", alt: "Konyha",       span: "" },
-  { src: "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=600&q=85", alt: "Szauna",      span: "" },
+  { src: "/images/haz/IMG_8537 kicsi.jpg", alt: "Kuckó külső", span: "col-span-2 row-span-2" },
+  { src: "/images/jacuzzi/jacuzzi.jpg", alt: "Jacuzzi", span: "" },
+  { src: "/images/belso/nappali.jpg", alt: "Nappali", span: "" },
+  { src: "/images/belso/haloszoba.jpg", alt: "Hálószoba", span: "" },
+  { src: "/images/belso/konyha.jpg", alt: "Konyha", span: "" },
+  { src: "/images/belso/fürdő.jpg", alt: "Fürdő", span: "" },
 ];
 
 export default function GallerySection() {
@@ -52,6 +53,12 @@ export default function GallerySection() {
               </div>
             </motion.div>
           ))}
+        </div>
+
+        <div className="text-center mt-10">
+          <Link href="/galeria" className="btn-secondary">
+            Összes kép megtekintése →
+          </Link>
         </div>
 
       </div>

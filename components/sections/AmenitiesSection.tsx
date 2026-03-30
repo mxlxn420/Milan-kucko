@@ -8,18 +8,18 @@ import {
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
 const AMENITIES = [
-  { icon: Waves,           label: "Jacuzzi / pezsgőfürdő",    desc: "Privát, korlátlan használat"      },
-  { icon: Flame,           label: "Kandalló",                  desc: "Hangulatos esti tűz"              },
-  { icon: Wind,            label: "Klíma (ingyenes)",          desc: "Fűtés és hűtés egész évben"       },
-  { icon: Wifi,            label: "Ingyenes WiFi",             desc: "Nagy sebességű internet"          },
-  { icon: Tv,              label: "Smart TV",                  desc: "Síkképernyős, műholdas"           },
-  { icon: UtensilsCrossed, label: "Felszerelt konyha",         desc: "Főzőlap, mosogatógép, mikró"      },
-  { icon: Coffee,          label: "Korlátlan tea & kávé",      desc: "Tea-/kávéfőző bekészítve"         },
-  { icon: Wine,            label: "Ajándék üveg bor",          desc: "Minden érkezéskor"                },
-  { icon: Car,             label: "Ingyenes parkoló",          desc: "Saját, privát beálló"             },
-  { icon: TreePine,        label: "Hatalmas privát kert",      desc: "Grill, bogrács, szalonnasütő"     },
-  { icon: Shirt,           label: "Fürdőköpeny & törölköző",   desc: "Minden vendégnek"                 },
-  { icon: Baby,            label: "Bababarát szállás",         desc: "Kiságy, fürdetőkád, etetőkészlet" },
+  { icon: Waves, label: "Jacuzzi", desc: "Privát, korlátlan használat" },
+  { icon: Flame, label: "Kandalló", desc: "Hangulatos esti tűz" },
+  { icon: Wind, label: "Klíma", desc: "Fűtés és hűtés egész évben" },
+  { icon: Wifi, label: "Ingyenes WiFi", desc: "Nagy sebességű internet" },
+  { icon: Tv, label: "Smart TV", desc: "Síkképernyős, műholdas" },
+  { icon: UtensilsCrossed, label: "Felszerelt konyha", desc: "Főzőlap, mosogatógép, mikró" },
+  { icon: Coffee, label: "Bekészített tea és kávé", desc: "Tea-/kávéfőző bekészítve" },
+  { icon: Wine, label: "Ajándék üveg bor", desc: "Minden érkezéskor" },
+  { icon: Car, label: "Ingyenes parkoló", desc: "Saját, privát beálló" },
+  { icon: TreePine, label: "Hatalmas privát kert", desc: "Grill, bogrács, szalonnasütő" },
+  { icon: Shirt, label: "Fürdőköpeny & törölköző", desc: "Minden vendégnek" },
+  { icon: Baby, label: "Bababarát szállás", desc: "Kiságy, fürdetőkád, etetőkészlet" },
 ];
 
 export default function AmenitiesSection() {

@@ -21,8 +21,10 @@ export async function PATCH(
         dateFrom:        body.dateFrom ? new Date(body.dateFrom) : null,
         dateTo:          body.dateTo   ? new Date(body.dateTo)   : null,
         minNights:       Number(body.minNights)       || 2,
+        minAdvanceDays:  Number(body.minAdvanceDays) ?? 2,
         isActive:        Boolean(body.isActive),
         priority:        Number(body.priority)        || 0,
+        policyId:        body.policyId ?? null,
       },
     });
 

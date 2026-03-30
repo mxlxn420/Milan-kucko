@@ -7,14 +7,14 @@ import { ChevronDown, Star, Waves, Home } from "lucide-react";
 import BookingWidget from "@/components/booking/BookingWidget";
 
 const SLIDES = [
-  { src: "/images/hero.jpg",     alt: "Milán Kuckó – vendégház kívülről" },
-  { src: "/images/jacuzzi.jpg",  alt: "Privát jacuzzi"                   },
-  { src: "/images/kert.jpg",     alt: "Hatalmas privát kert"             },
+  { src: "/images/haz/IMG_8519 kicsi.jpg", alt: "Milán Kuckó – vendégház kívülről" },
+  { src: "/images/jacuzzi/jacuzzikivilag.jpg", alt: "Privát jacuzzi" },
+  { src: "/images/kert/kert.jpg", alt: "Hatalmas privát kert" },
 ];
 
 const BADGES = [
-  { icon: Waves, label: "Privát jacuzzi"               },
-  { icon: Home,  label: "Csak ti vagytok"              },
+  { icon: Waves, label: "Privát jacuzzi" },
+  { icon: Home, label: "Csak ti vagytok" },
 ];
 
 export default function HeroSection() {
@@ -22,7 +22,7 @@ export default function HeroSection() {
   const [current, setCurrent] = useState(0);
 
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const textY   = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
+  const textY = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   useEffect(() => {
@@ -48,7 +48,10 @@ export default function HeroSection() {
           <Image
             src={SLIDES[current].src}
             alt={SLIDES[current].alt}
-            fill priority sizes="100vw"
+            fill
+            priority
+            quality={85}
+            sizes="100vw"
             className="object-cover object-center"
           />
           <div className="absolute inset-0 bg-hero-overlay" />
@@ -128,11 +131,10 @@ export default function HeroSection() {
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`transition-all duration-500 rounded-full ${
-                i === current
+              className={`transition-all duration-500 rounded-full ${i === current
                   ? "w-8 h-2 bg-cream"
                   : "w-2 h-2 bg-cream/40 hover:bg-cream/70"
-              }`}
+                }`}
               aria-label={`${i + 1}. kép`}
             />
           ))}

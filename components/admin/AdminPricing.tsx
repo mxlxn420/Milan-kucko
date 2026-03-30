@@ -7,8 +7,14 @@ import { formatCurrency } from "@/lib/utils";
 import type { PricingRule } from "@/types";
 import SeasonForm from "@/components/admin/SeasonForm";
 
+interface PolicyOption {
+  id:   string;
+  name: string;
+}
+
 interface Props {
-  rules: PricingRule[];
+  rules:    PricingRule[];
+  policies: PolicyOption[];
 }
 
 interface EditableRule {
@@ -21,11 +27,13 @@ interface EditableRule {
   dateFrom:        Date | null;
   dateTo:          Date | null;
   minNights:       number;
+  minAdvanceDays:  number;
   isActive:        boolean;
   featured:        boolean;
+  policyId:        string | null;
 }
 
-export default function AdminPricing({ rules: initialRules }: Props) {
+export default function AdminPricing({ rules: initialRules, policies }: Props) {
   const [rules, setRules]         = useState<PricingRule[]>(initialRules);
   const [saving, setSaving]       = useState<string | null>(null);
   const [deleting, setDeleting]   = useState<string | null>(null);
@@ -48,8 +56,10 @@ export default function AdminPricing({ rules: initialRules }: Props) {
     dateFrom:        null as Date | null,
     dateTo:          null as Date | null,
     minNights:       2,
+    minAdvanceDays:  2,
     isActive:        true,
     featured:        false,
+    policyId:        null as string | null,
   };
 
   const [newRule, setNewRule] = useState(EMPTY_NEW);
@@ -76,7 +86,7 @@ export default function AdminPricing({ rules: initialRules }: Props) {
   function checkOverlap(from: Date | null, to: Date | null, featured: boolean): string | null {
     if (!from || !to || featured) return null;
     for (const r of existingRanges) {
-      if (from <= r.to && to >= r.from) return r.name;
+      if (from < r.to && to > r.from) return r.name;
     }
     return null;
   }
@@ -115,8 +125,10 @@ export default function AdminPricing({ rules: initialRules }: Props) {
       dateFrom:        rule.dateFrom ? new Date(rule.dateFrom as string) : null,
       dateTo:          rule.dateTo   ? new Date(rule.dateTo   as string) : null,
       minNights:       rule.minNights,
+      minAdvanceDays:  (rule as any).minAdvanceDays ?? 2,
       isActive:        rule.isActive,
       featured:        rule.priority >= 10,
+      policyId:        (rule as any).policyId ?? null,
     });
     setShowNew(false);
   };
@@ -139,8 +151,10 @@ export default function AdminPricing({ rules: initialRules }: Props) {
           dateFrom:        editRule.dateFrom?.toISOString() ?? null,
           dateTo:          editRule.dateTo?.toISOString()   ?? null,
           minNights:       editRule.minNights,
+          minAdvanceDays:  editRule.minAdvanceDays,
           isActive:        editRule.isActive,
           priority:        editRule.featured ? 10 : 5,
+          policyId:        editRule.policyId ?? null,
         }),
       });
       const data = await res.json();
@@ -193,9 +207,11 @@ export default function AdminPricing({ rules: initialRules }: Props) {
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
           ...newRule,
-          priority: newRule.featured ? 10 : 5,
-          dateFrom: newRule.dateFrom?.toISOString() ?? null,
-          dateTo:   newRule.dateTo?.toISOString()   ?? null,
+          priority:       newRule.featured ? 10 : 5,
+          dateFrom:       newRule.dateFrom?.toISOString() ?? null,
+          dateTo:         newRule.dateTo?.toISOString()   ?? null,
+          minAdvanceDays: newRule.minAdvanceDays,
+          policyId:       newRule.policyId ?? null,
         }),
       });
       const data = await res.json();
@@ -282,6 +298,7 @@ export default function AdminPricing({ rules: initialRules }: Props) {
             existingRanges={existingRanges}
             datePanel={datePanel}
             setDatePanel={setDatePanel}
+            policies={policies}
           />
         )}
       </AnimatePresence>
@@ -316,6 +333,7 @@ export default function AdminPricing({ rules: initialRules }: Props) {
                   existingRanges={existingRanges}
                   datePanel={datePanel}
                   setDatePanel={setDatePanel}
+                  policies={policies}
                 />
               ) : (
                 <motion.div
@@ -343,6 +361,11 @@ export default function AdminPricing({ rules: initialRules }: Props) {
                           : "Dátum nélkül"
                         }
                         {" · "}Min. {rule.minNights} éj
+                        {(rule as any).policyId && policies.find((p) => p.id === (rule as any).policyId) && (
+                          <span className="ml-2 bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full text-[10px]">
+                            {policies.find((p) => p.id === (rule as any).policyId)!.name}
+                          </span>
+                        )}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">

@@ -14,6 +14,8 @@ export interface Booking {
   checkOut: Date | string;
   nights: number;
   basePrice: number;
+  childPrice2to6: number;
+  childPrice6to12: number;
   guestSurcharge: number;
   cleaningFee: number;
   touristTax: number;

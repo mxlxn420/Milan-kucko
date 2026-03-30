@@ -4,12 +4,12 @@ import Link from "next/link";
 import { MapPin, Phone, Mail, Facebook, Instagram, ArrowUpRight } from "lucide-react";
 
 const NAV = [
-  { label: "Rólunk",        href: "/#rolunk"        },
+  { label: "Rólunk", href: "/#rolunk" },
   { label: "Felszereltség", href: "/#felszereltseg" },
-  { label: "Galéria",       href: "/#galeria"       },
-  { label: "Árak",          href: "/#arak"          },
-  { label: "GYIK",          href: "/#gyik"          },
-  { label: "Kapcsolat",     href: "/#kapcsolat"     },
+  { label: "Galéria", href: "/#galeria" },
+  { label: "Árak", href: "/#arak" },
+  { label: "GYIK", href: "/#gyik" },
+  { label: "Kapcsolat", href: "/#kapcsolat" },
 ];
 
 export default function Footer() {
@@ -25,16 +25,23 @@ export default function Footer() {
               <p className="text-xs text-cream/50 tracking-[0.25em] uppercase mt-1">Miskolctapolca</p>
             </Link>
             <p className="text-sm leading-relaxed text-cream/60 mb-6">
-              Romantikus nyaraló privát dézsafürdővel és szaunával, Miskolctapolca szívében.
+              Romantikus nyaraló privát dézsafürdővel és szaunával,
+              Miskolctapolca szívében. A tökéletes kikapcsolódás helyszíne.
             </p>
-            <div className="flex gap-3">
-              {[{ icon: Facebook, label: "Facebook" }, { icon: Instagram, label: "Instagram" }].map(({ icon: Icon, label }) => (
-                <a key={label} href="#" aria-label={label}
-                  className="w-9 h-9 rounded-full border border-cream/20 flex items-center justify-center text-cream/60 hover:text-cream hover:border-cream/50 transition-all"
-                >
-                  <Icon size={15} />
-                </a>
-              ))}
+
+            {/* Social média */}
+            <div className="flex items-center gap-3">
+
+              <a href="https://www.facebook.com/profile.php?id=100070831690258"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-9 h-9 rounded-full border border-cream/20 text-cream/60 hover:text-cream hover:border-cream/50 transition-all duration-200"
+                aria-label="Facebook"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                </svg>
+              </a>
             </div>
           </div>
 
@@ -60,17 +67,17 @@ export default function Footer() {
             <h3 className="text-xs font-medium tracking-[0.2em] uppercase text-cream mb-6">Elérhetőség</h3>
             <ul className="space-y-4">
               <li>
-                <a href="https://maps.google.com/?q=Miskolctapolca" target="_blank" rel="noopener noreferrer"
+                <a href="https://www.google.com/maps/place/Mil%C3%A1n+Kuck%C3%B3/@48.0729848,20.747624,19.75z/data=!4m9!3m8!1s0x47409f03c29cd2c9:0x12b2c6f766a0724d!5m2!4m1!1i2!8m2!3d48.0731645!4d20.7470249!16s%2Fg%2F11xkrxtm8c" target="_blank" rel="noopener noreferrer"
                   className="flex items-start gap-3 text-sm text-cream/60 hover:text-cream transition-colors group"
                 >
                   <MapPin size={16} className="mt-0.5 shrink-0 text-terra-400" />
-                  3519 Miskolctapolca, Bencések útja 117/C
+                  3519 Miskolctapolca, Bencések útja 117/A
                 </a>
               </li>
               <li>
                 <a href="tel:+36308454923" className="flex items-center gap-3 text-sm text-cream/60 hover:text-cream transition-colors">
                   <Phone size={16} className="shrink-0 text-terra-400" />
-                  +36 30 123 4567
+                  +36 30 845 4923
                 </a>
               </li>
               <li>

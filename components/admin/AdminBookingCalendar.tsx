@@ -1,0 +1,181 @@
+"use client";
+
+import { useState } from "react";
+import {
+  startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths,
+  isSameDay, format, getDay, startOfDay,
+} from "date-fns";
+import { hu } from "date-fns/locale";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { BookingStatus } from "@/types";
+
+interface BookingItem {
+  id:        string;
+  guestName: string;
+  checkIn:   string;
+  checkOut:  string;
+  status:    BookingStatus;
+}
+
+interface Props {
+  bookings: BookingItem[];
+}
+
+const STATUS_CONFIG: Record<BookingStatus, { label: string; border: string }> = {
+  PENDING:   { label: "Függőben",   border: "border-yellow-400" },
+  CONFIRMED: { label: "Jóváhagyva", border: "border-blue-400"   },
+  PAID:      { label: "Fizetve",    border: "border-green-400"  },
+  CANCELLED: { label: "Lemondva",   border: "border-red-300"    },
+  BLOCKED:   { label: "Blokkolt",   border: "border-stone-300"  },
+};
+
+// Visszatér a napon megjelenítendő foglalásokkal: először a távozók, majd az érkezők
+function getDayBookings(day: Date, bookings: BookingItem[]): { booking: BookingItem; isCheckOut: boolean }[] {
+  const d = startOfDay(day);
+  const checkingOut = bookings.filter((b) => {
+    if (b.status === "CANCELLED") return false;
+    return isSameDay(startOfDay(new Date(b.checkOut)), d);
+  }).map((b) => ({ booking: b, isCheckOut: true }));
+
+  const staying = bookings.filter((b) => {
+    if (b.status === "CANCELLED") return false;
+    const checkIn  = startOfDay(new Date(b.checkIn));
+    const checkOut = startOfDay(new Date(b.checkOut));
+    return d >= checkIn && d < checkOut && !isSameDay(checkIn, d);
+  }).map((b) => ({ booking: b, isCheckOut: false }));
+
+  const checkingIn = bookings.filter((b) => {
+    if (b.status === "CANCELLED") return false;
+    return isSameDay(startOfDay(new Date(b.checkIn)), d);
+  }).map((b) => ({ booking: b, isCheckOut: false }));
+
+  return [...checkingOut, ...staying, ...checkingIn];
+}
+
+export default function AdminBookingCalendar({ bookings }: Props) {
+  const today = new Date();
+  const [month, setMonth]       = useState(() => startOfMonth(today));
+  const [selected, setSelected] = useState<BookingItem | null>(null);
+
+  const days = eachDayOfInterval({ start: startOfMonth(month), end: endOfMonth(month) });
+  const firstDayOffset = (getDay(days[0]) + 6) % 7;
+
+  const monthBookings = bookings.filter((b) => {
+    if (b.status === "CANCELLED") return false;
+    const checkIn  = new Date(b.checkIn);
+    const checkOut = new Date(b.checkOut);
+    return checkIn <= endOfMonth(month) && checkOut >= startOfMonth(month);
+  });
+
+  return (
+    <div className="bg-white rounded-2xl shadow-card p-6">
+      {/* Fejléc */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="font-serif text-xl text-stone-800">
+          {format(month, "yyyy. MMMM", { locale: hu })}
+        </h2>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setMonth((m) => subMonths(m, 1))}
+            className="w-8 h-8 rounded-lg bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            onClick={() => setMonth(startOfMonth(today))}
+            className="px-3 h-8 rounded-lg bg-stone-100 hover:bg-stone-200 text-xs text-stone-600 transition-colors"
+          >
+            Ma
+          </button>
+          <button
+            onClick={() => setMonth((m) => addMonths(m, 1))}
+            className="w-8 h-8 rounded-lg bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Napok fejléce */}
+      <div className="grid grid-cols-7 mb-1">
+        {["Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat", "Vasárnap"].map((d) => (
+          <div key={d} className="text-center text-xs font-medium text-stone-400 py-2">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Naptár rács */}
+      <div className="grid grid-cols-7 gap-1">
+        {Array.from({ length: firstDayOffset }).map((_, i) => (
+          <div key={`empty-${i}`} className="min-h-[90px]" />
+        ))}
+
+        {days.map((day) => {
+          const dayBookings = getDayBookings(day, bookings);
+          const isToday     = isSameDay(day, today);
+
+          return (
+            <div
+              key={day.toISOString()}
+              className={`min-h-[90px] rounded-xl border p-1.5 flex flex-col gap-1 transition-colors
+                ${dayBookings.length > 0 ? "border-stone-200 bg-stone-50" : "border-stone-100 bg-white"}
+                ${isToday ? "ring-2 ring-forest-500 ring-offset-1" : ""}
+              `}
+            >
+              <span className={`text-xs font-semibold ${isToday ? "text-forest-700" : "text-stone-500"}`}>
+                {format(day, "d")}
+              </span>
+
+              {dayBookings.map(({ booking: b, isCheckOut: isCO }) => {
+                const status = STATUS_CONFIG[b.status];
+                return (
+                  <button
+                    key={b.id + (isCO ? "-out" : "-in")}
+                    onClick={() => setSelected(selected?.id === b.id ? null : b)}
+                    className={`w-full text-left rounded-lg px-1.5 py-1 border-l-2 hover:opacity-80 transition-opacity
+                      ${isCO
+                        ? "bg-red-50 text-red-800 border-red-300 opacity-70"
+                        : `bg-forest-50 text-forest-800 ${status.border}`
+                      }`}
+                  >
+                    <p className="text-[10px] font-semibold leading-tight truncate">{b.guestName}</p>
+                    <p className="text-[9px] opacity-60 leading-tight">{isCO ? "Távozik" : status.label}</p>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Kiválasztott foglalás részlete */}
+      {selected && (
+        <div className="mt-4 p-4 rounded-xl border border-stone-200 bg-stone-50 flex items-center justify-between">
+          <div>
+            <p className="font-medium text-stone-800">{selected.guestName}</p>
+            <p className="text-sm text-stone-500">
+              {format(new Date(selected.checkIn), "yyyy. MM. dd.")} – {format(new Date(selected.checkOut), "MM. dd.")}
+              {" · "}
+              {STATUS_CONFIG[selected.status]?.label}
+            </p>
+          </div>
+          <span className="font-mono text-xs text-stone-400">{selected.id}</span>
+        </div>
+      )}
+
+      {/* Jelmagyarázat */}
+      <div className="flex flex-wrap gap-4 mt-5 pt-4 border-t border-stone-100 text-xs text-stone-500">
+        <span><span className="font-bold text-green-600">BE</span> = érkezés</span>
+        <span><span className="font-bold text-red-500">KI</span> = távozás</span>
+        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+          <span key={key} className={`border-l-2 pl-1.5 ${cfg.border}`}>{cfg.label}</span>
+        ))}
+      </div>
+
+      {monthBookings.length === 0 && (
+        <p className="text-center text-sm text-stone-400 mt-4">Nincs foglalás ebben a hónapban.</p>
+      )}
+    </div>
+  );
+}

@@ -23,21 +23,43 @@ export const metadata: Metadata = {
     template: "%s | Milán Kuckó",
   },
   description:
-    "Romantikus nyaraló privát dézsafürdővel és szaunával Miskolctapolcán. Foglaljon közvetlenül – nincsenek extra díjak!",
-  keywords: ["milán kuckó", "miskolctapolca szállás", "dézsafürdő", "szauna", "nyaraló"],
+    "Romantikus vendégház privát jacuzzival és kandallóval Miskolctapolcán. Foglaljon közvetlenül – nincsenek extra díjak!",
+  keywords: [
+    "milán kuckó",
+    "miskolctapolca szállás",
+    "jacuzzi szállás",
+    "romantikus vendégház miskolc",
+    "privát jacuzzi szállás",
+    "vendégház miskolctapolca",
+    "hétvégi pihenés borsod",
+    "kandalló szállás",
+  ],
   openGraph: {
-    type: "website",
-    locale: "hu_HU",
-    url: "https://milankucko.hu",
-    siteName: "Milán Kuckó",
-    title: "Milán Kuckó | Prémium pihenés Miskolctapolcán",
-    description: "Romantikus nyaraló privát dézsafürdővel és szaunával Miskolctapolcán.",
+    type:        "website",
+    locale:      "hu_HU",
+    url:         "https://milankucko.hu",
+    siteName:    "Milán Kuckó",
+    title:       "Milán Kuckó | Prémium pihenés Miskolctapolcán",
+    description: "Romantikus vendégház privát jacuzzival Miskolctapolcán.",
     images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card:        "summary_large_image",
+    title:       "Milán Kuckó | Prémium pihenés Miskolctapolcán",
+    description: "Romantikus vendégház privát jacuzzival Miskolctapolcán.",
+    images:      ["/og-image.jpg"],
+  },
+  robots: {
+    index:  true,
+    follow: true,
+  },
+  alternates: {
+    canonical: "https://milankucko.hu",
   },
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width:      "device-width",
   initialScale: 1,
   themeColor: "#1a3a2a",
 };
@@ -45,6 +67,48 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="hu" className={`${playfair.variable} ${jost.variable}`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type":    "LodgingBusiness",
+              name:       "Milán Kuckó",
+              description: "Romantikus vendégház privát jacuzzival és kandallóval Miskolctapolcán",
+              url:        "https://milankucko.hu",
+              telephone:  "+36 30 845 4923",  // ← IDE ÍRD A VALÓDI SZÁMOT
+              email:      "milan.kucko117@gmail.com", // ← IDE ÍRD A VALÓDI EMAILT
+              address: {
+                "@type":         "PostalAddress",
+                streetAddress:   "Bencések útja 117/A",
+                addressLocality: "Miskolctapolca",
+                postalCode:      "3519",
+                addressCountry:  "HU",
+              },
+              geo: {
+                "@type":     "GeoCoordinates",
+                latitude:    48.0731645,
+                longitude:   20.7470249,
+              },
+              priceRange: "$$",
+              checkinTime:  "14:00",
+              checkoutTime: "10:00",
+              amenityFeature: [
+                { "@type": "LocationFeatureSpecification", name: "Privát jacuzzi",    value: true },
+                { "@type": "LocationFeatureSpecification", name: "Kandalló",          value: true },
+                { "@type": "LocationFeatureSpecification", name: "Wi-Fi",             value: true },
+                { "@type": "LocationFeatureSpecification", name: "Klíma",             value: true },
+                { "@type": "LocationFeatureSpecification", name: "Ingyenes parkoló",  value: true },
+                { "@type": "LocationFeatureSpecification", name: "Privát kert",       value: true },
+              ],
+              sameAs: [
+                "https://www.facebook.com/profile.php?id=100070831690258",   // ← valódi FB link
+              ],
+            }),
+          }}
+        />
+      </head>
       <body className="font-sans bg-cream text-stone-800 antialiased">
         {children}
       </body>

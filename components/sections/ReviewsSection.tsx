@@ -37,8 +37,8 @@ const REVIEWS = [
 ];
 
 const OVERALL_RATING  = 5.0;
-const TOTAL_RATINGS   = 4;
-const GOOGLE_MAPS_URL = "https://www.google.com/maps/place/?q=place_id:ChIJydKcwgOfQEcRTXKgZvfGshI";
+const TOTAL_RATINGS   = 12;
+const GOOGLE_MAPS_URL = "https://www.google.com/travel/search?gsas=1&ts=EggKAggDCgIIAxocEhoSFAoHCOoPEAMYHRIHCOoPEAMYHxgCMgIQAA&qs=MhNDZ29JemVTQnRmYmVzZGtTRUFFOAI&ap=ugEHcmV2aWV3cw&ictx=111&biw=1920&bih=951&hl=hu-HU&ved=0CAAQ5JsGahcKEwiogPq7wrSTAxUAAAAAHQAAAAAQBA";
 
 function Stars({ rating, size = 16 }: { rating: number; size?: number }) {
   return (

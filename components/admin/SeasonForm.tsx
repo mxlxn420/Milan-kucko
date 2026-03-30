@@ -17,8 +17,15 @@ interface SeasonFormRule {
   dateFrom:        Date | null;
   dateTo:          Date | null;
   minNights:       number;
+  minAdvanceDays:  number;
   isActive:        boolean;
   featured:        boolean;
+  policyId:        string | null;
+}
+
+interface PolicyOption {
+  id:   string;
+  name: string;
 }
 
 interface Props {
@@ -35,13 +42,14 @@ interface Props {
   existingRanges: { from: Date; to: Date; name: string }[];
   datePanel:     string | null;
   setDatePanel:  (p: string | null) => void;
+  policies:      PolicyOption[];
 }
 
 export default function SeasonForm({
   rule, setRule, onSave, onCancel,
   isSaving, isNew, disabledDays, overlapError,
   panelPrefix, basePrice, existingRanges,
-  datePanel, setDatePanel,
+  datePanel, setDatePanel, policies,
 }: Props) {
   const formatBtn = (d: Date | null) =>
     d ? format(d, "yyyy. MMMM d.", { locale: hu }) : "Kattints a kiválasztáshoz";
@@ -268,6 +276,23 @@ export default function SeasonForm({
           />
         </div>
 
+        {/* Min előfoglalás */}
+        <div>
+          <label className="text-xs text-cream/60 uppercase tracking-wider block mb-1.5">
+            Min. előfoglalás (nap)
+          </label>
+          <input
+            type="number"
+            min={0}
+            className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-cream text-sm focus:outline-none focus:border-white/50"
+            value={rule.minAdvanceDays}
+            onChange={(e) => setRule({ ...rule, minAdvanceDays: Math.max(0, Number(e.target.value)) })}
+          />
+          <p className="text-xs text-cream/40 mt-1">
+            {rule.minAdvanceDays === 0 ? "Azonnal foglalható" : `Legalább ${rule.minAdvanceDays} nappal előre`}
+          </p>
+        </div>
+
         {/* Gyerek árak */}
         <div className="md:col-span-2">
           <p className="text-xs text-cream/60 uppercase tracking-wider mb-3 pt-2 border-t border-white/10">
@@ -298,6 +323,25 @@ export default function SeasonForm({
             onChange={(e) => setRule({ ...rule, childPrice6to12: Number(e.target.value) })}
           />
         </div>
+
+        {/* Előleg / lemondási szabály */}
+        {policies.length > 0 && (
+          <div className="md:col-span-2">
+            <label className="text-xs text-cream/60 uppercase tracking-wider block mb-1.5">
+              Előleg és lemondási szabály
+            </label>
+            <select
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-cream text-sm focus:outline-none focus:border-white/50"
+              value={rule.policyId ?? ""}
+              onChange={(e) => setRule({ ...rule, policyId: e.target.value || null })}
+            >
+              <option value="" className="text-stone-800">— Nincs megadva —</option>
+              {policies.map((p) => (
+                <option key={p.id} value={p.id} className="text-stone-800">{p.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Aktív (csak szerkesztésnél) */}
         {!isNew && (

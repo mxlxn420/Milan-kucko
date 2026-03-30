@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion }    from "framer-motion";
 import { DayPicker, DateRange } from "react-day-picker";
-import { differenceInCalendarDays, isWeekend } from "date-fns";
+import { differenceInCalendarDays, isWeekend, startOfDay, addDays } from "date-fns";
 import { hu }        from "date-fns/locale";
 import {
   Users, Baby, ArrowRight, AlertCircle,
@@ -121,6 +121,7 @@ export default function BookingCalendar({ onNext }: Props) {
   const [rules, setRules]                 = useState<PricingRule[]>([]);
   const [loadingRules, setLoadingRules]   = useState(true);
   const [bookedRanges, setBookedRanges]   = useState<BookedRange[]>([]);
+  const [minAdvanceDays, setMinAdvanceDays] = useState(2);
 
   useEffect(() => {
     const loadPricing = async () => {
@@ -152,6 +153,7 @@ export default function BookingCalendar({ onNext }: Props) {
             to:   new Date(b.checkOut),
           }));
           setBookedRanges(ranges);
+          setMinAdvanceDays(data.data.minAdvanceDays ?? 2);
         }
       })
       .catch(console.error);
@@ -243,13 +245,36 @@ export default function BookingCalendar({ onNext }: Props) {
           mode="range"
           selected={range}
           onSelect={handleSelect}
-          fromDate={new Date()}
+          fromDate={startOfDay(addDays(new Date(), minAdvanceDays))}
           numberOfMonths={2}
           locale={hu}
-          disabled={bookedRanges}
-          modifiers={{ booked: bookedRanges }}
+          disabled={(day) => {
+            const d = startOfDay(day);
+            const earliest = startOfDay(addDays(new Date(), minAdvanceDays));
+            if (d < earliest) return true;
+            return bookedRanges.some((r) => d >= startOfDay(r.from) && d < startOfDay(r.to));
+          }}
+          modifiers={{
+            booked: (day) =>
+              bookedRanges.some((r) => {
+                const d = startOfDay(day);
+                return d >= startOfDay(r.from) && d < startOfDay(r.to);
+              }),
+            tooSoon: (day) => {
+              const d = startOfDay(day);
+              const earliest = startOfDay(addDays(new Date(), minAdvanceDays));
+              return d >= startOfDay(new Date()) && d < earliest;
+            },
+          }}
           modifiersStyles={{
             booked: {
+              backgroundColor: "#f5e6d8",
+              color: "#a86435",
+              textDecoration: "line-through",
+              cursor: "not-allowed",
+              opacity: 0.7,
+            },
+            tooSoon: {
               backgroundColor: "#f5e6d8",
               color: "#a86435",
               textDecoration: "line-through",

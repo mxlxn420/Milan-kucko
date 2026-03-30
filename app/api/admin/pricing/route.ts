@@ -15,10 +15,12 @@ export async function POST(req: NextRequest) {
         dateFrom:       body.dateFrom ? new Date(body.dateFrom) : null,
         dateTo:         body.dateTo   ? new Date(body.dateTo)   : null,
         minNights:      Number(body.minNights)       || 2,
+        minAdvanceDays: Number(body.minAdvanceDays) ?? 2,
         extraGuestFee:  0,
         extraGuestFrom: 3,
         isActive:       body.isActive ?? true,
         priority:       Number(body.priority)        || 5,
+        policyId:       body.policyId ?? null,
       },
     });
 

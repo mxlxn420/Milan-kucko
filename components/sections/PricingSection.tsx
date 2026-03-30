@@ -130,7 +130,7 @@ export default async function PricingSection() {
             </div>
             <div className="flex justify-between py-3 text-sm">
               <span className="text-stone-600">Háziállat</span>
-              <span className="font-medium text-stone-800">Nem hozható</span>
+              <span className="font-medium text-stone-800">Nem tudunk fogadni</span>
             </div>
           </div>
         </AnimatedSection>

@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -47,22 +46,26 @@ enum BookingStatus {
   BLOCKED
 }
 
+
 model PricingRule {
-  id              String    @id @default(cuid())
+  id              String         @id @default(cuid())
   name            String
   pricePerNight   Float
-  weekendPrice    Float     @default(0)
-  childPrice2to6  Float     @default(0)
-  childPrice6to12 Float     @default(0)
+  weekendPrice    Float          @default(0)
+  childPrice2to6  Float          @default(0)
+  childPrice6to12 Float          @default(0)
   dateFrom        DateTime?
   dateTo          DateTime?
-  minNights       Int       @default(2)
-  extraGuestFee   Float     @default(0)
-  extraGuestFrom  Int       @default(3)
-  isActive        Boolean   @default(true)
-  priority        Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  minNights       Int            @default(2)
+  minAdvanceDays  Int            @default(2)
+  extraGuestFee   Float          @default(0)
+  extraGuestFrom  Int            @default(3)
+  isActive        Boolean        @default(true)
+  priority        Int            @default(0)
+  policyId        String?
+  policy          BookingPolicy? @relation(fields: [policyId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
 model Admin {
@@ -80,6 +83,16 @@ model BlockedPeriod {
   dateTo    DateTime
   reason    String?
   createdAt DateTime @default(now())
+}
+
+model BookingPolicy {
+  id             String        @id @default(cuid())
+  name           String
+  depositPercent Int           @default(30)
+  freeCancelDays Int           @default(7)
+  rules          PricingRule[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 model ContactMessage {
