@@ -10,6 +10,7 @@ import {
   Home,
   ScrollText,
   Sparkles,
+  Tag,
 } from "lucide-react";
 
 const LINKS = [
@@ -18,6 +19,7 @@ const LINKS = [
   { href: "/admin/naptar",                 icon: Calendar,        label: "Naptár"               },
   { href: "/admin/arak",                   icon: Settings,        label: "Árak"                 },
   { href: "/admin/szabalyok",              icon: ScrollText,      label: "Szabályok"            },
+  { href: "/admin/kedvezmenyek",           icon: Tag,             label: "Kedvezmények"         },
   { href: "/admin/extra-szolgaltatasok",   icon: Sparkles,        label: "Extra szolgáltatások" },
 ];
 

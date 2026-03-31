@@ -486,6 +486,17 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
             </div>
           )}
 
+          {/* Kedvezmény */}
+          {bookingData.discountAmount > 0 && (
+            <div className="flex justify-between items-start bg-green-900/30 -mx-1 px-2 py-1.5 rounded-lg">
+              <div>
+                <p className="text-green-300 font-medium">Kedvezmény – {bookingData.discountName}</p>
+                <p className="text-xs text-green-400/70 mt-0.5">{bookingData.discountPercent}%</p>
+              </div>
+              <span className="text-green-300 font-medium shrink-0 ml-2">−{formatCurrency(bookingData.discountAmount)}</span>
+            </div>
+          )}
+
           {/* Kiválasztott extra szolgáltatások */}
           {selected.length > 0 && (
             <>

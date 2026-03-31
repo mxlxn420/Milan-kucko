@@ -1,0 +1,42 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function GET() {
+  try {
+    const discounts = await prisma.discount.findMany({
+      orderBy: { stayFrom: "asc" },
+    });
+    return NextResponse.json({ success: true, data: discounts });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+
+    if (!body.name || !body.discountPercent || !body.stayFrom || !body.stayTo) {
+      return NextResponse.json(
+        { success: false, error: "Hiányzó kötelező mezők" },
+        { status: 400 }
+      );
+    }
+
+    const discount = await prisma.discount.create({
+      data: {
+        name:            body.name,
+        discountPercent: Number(body.discountPercent),
+        stayFrom:        new Date(body.stayFrom),
+        stayTo:          new Date(body.stayTo),
+        bookingFrom:     body.bookingFrom ? new Date(body.bookingFrom) : null,
+        bookingTo:       body.bookingTo   ? new Date(body.bookingTo)   : null,
+        isActive:        body.isActive ?? true,
+      },
+    });
+
+    return NextResponse.json({ success: true, data: discount });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+  }
+}

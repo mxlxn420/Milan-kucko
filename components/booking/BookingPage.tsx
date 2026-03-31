@@ -39,6 +39,9 @@ export interface BookingData {
   childPrice6to12:      number;
   guestSurcharge:       number;
   touristTax:           number;
+  discountPercent:      number;
+  discountAmount:       number;
+  discountName:         string;
 }
 
 export default function BookingPage() {

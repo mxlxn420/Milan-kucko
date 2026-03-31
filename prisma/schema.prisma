@@ -32,6 +32,8 @@ model Booking {
   depositPaidAt         DateTime?
   extraServices         Json?
   extraServicesTotal    Float         @default(0)
+  discountPercent       Float         @default(0)
+  discountAmount        Float         @default(0)
   status                BookingStatus @default(PENDING)
   paymentIntentId       String?       @unique
   paidAt                DateTime?
@@ -107,6 +109,19 @@ model ContactMessage {
   message   String   @db.Text
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model Discount {
+  id              String    @id @default(cuid())
+  name            String
+  discountPercent Float
+  stayFrom        DateTime
+  stayTo          DateTime
+  bookingFrom     DateTime?
+  bookingTo       DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model ExtraService {

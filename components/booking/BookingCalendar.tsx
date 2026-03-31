@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion }    from "framer-motion";
 import { DayPicker, DateRange } from "react-day-picker";
-import { differenceInCalendarDays, getDay, startOfDay, addDays } from "date-fns";
+import { differenceInCalendarDays, getDay, startOfDay, addDays, format } from "date-fns";
 import { hu }        from "date-fns/locale";
 import {
   Users, Baby, ArrowRight, AlertCircle,
@@ -124,6 +124,7 @@ export default function BookingCalendar({ onNext }: Props) {
   const [loadingRules, setLoadingRules]   = useState(true);
   const [bookedRanges, setBookedRanges]   = useState<BookedRange[]>([]);
   const [minAdvanceDays, setMinAdvanceDays] = useState(2);
+  const [discount, setDiscount]           = useState<{ name: string; discountPercent: number } | null>(null);
 
   useEffect(() => {
     const loadPricing = async () => {
@@ -141,6 +142,16 @@ export default function BookingCalendar({ onNext }: Props) {
     };
     loadPricing();
   }, []);
+
+  useEffect(() => {
+    if (!range?.from || !range?.to) { setDiscount(null); return; }
+    const ci = format(range.from, "yyyy-MM-dd");
+    const co = format(range.to,   "yyyy-MM-dd");
+    fetch(`/api/discounts?checkIn=${ci}&checkOut=${co}`)
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setDiscount(d.data); })
+      .catch(() => {});
+  }, [range]);
 
   useEffect(() => {
     fetch("/api/availability")
@@ -185,8 +196,10 @@ export default function BookingCalendar({ onNext }: Props) {
   const child6to12Price = currentRule?.childPrice6to12 ?? 0;
   const childTotal2to6  = child2to6Price  * children2to6  * nights;
   const childTotal6to12 = child6to12Price * children6to12 * nights;
-  const touristTax      = 450 * adults * nights;
-  const total           = baseTotal + childTotal2to6 + childTotal6to12 + touristTax;
+  const touristTax         = 450 * adults * nights;
+  const accommodationTotal = baseTotal + childTotal2to6 + childTotal6to12;
+  const discountAmount     = discount ? Math.round(accommodationTotal * discount.discountPercent / 100) : 0;
+  const total              = accommodationTotal + touristTax - discountAmount;
 
   const handleSelect = (r: DateRange | undefined) => {
     setError(null);
@@ -238,6 +251,9 @@ export default function BookingCalendar({ onNext }: Props) {
       childPrice6to12: child6to12Price,
       guestSurcharge:  0,
       touristTax,
+      discountPercent: discount?.discountPercent ?? 0,
+      discountAmount,
+      discountName:    discount?.name ?? "",
     });
   };
 
@@ -521,6 +537,15 @@ export default function BookingCalendar({ onNext }: Props) {
                       </p>
                     </div>
                     <span className="text-stone-800 font-medium">{formatCurrency(touristTax)}</span>
+                  </div>
+                )}
+
+                {discountAmount > 0 && discount && (
+                  <div className="flex justify-between items-start bg-green-50 -mx-1 px-1 py-1.5 rounded-lg">
+                    <div>
+                      <p className="text-green-700 font-medium">Kedvezmény – {discount.name}</p>
+                    </div>
+                    <span className="text-green-700 font-medium shrink-0 ml-2">−{formatCurrency(discountAmount)}</span>
                   </div>
                 )}
               </div>

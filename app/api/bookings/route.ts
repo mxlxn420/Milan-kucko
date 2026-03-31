@@ -98,8 +98,32 @@ export async function POST(req: NextRequest) {
       orderBy: { priority: "desc" },
       include: { policy: true },
     });
+    // Kedvezmény keresés — szállás időszak + opcionális foglalási ablak
+    const now = new Date();
+    const applicableDiscount = await prisma.discount.findFirst({
+      where: {
+        isActive: true,
+        stayFrom: { lte: checkInDate },
+        stayTo:   { gte: checkInDate },
+        OR: [
+          { bookingFrom: null, bookingTo: null },
+          { bookingFrom: { lte: now }, bookingTo: null },
+          { bookingFrom: null, bookingTo: { gte: now } },
+          { bookingFrom: { lte: now }, bookingTo: { gte: now } },
+        ],
+      },
+      orderBy: { discountPercent: "desc" },
+    });
+
+    const discountPercent = applicableDiscount?.discountPercent ?? 0;
+    const rawTotal        = Number(totalPrice);
+    const discountAmount  = discountPercent > 0
+      ? Math.round(rawTotal * discountPercent / 100)
+      : 0;
+    const finalTotal = rawTotal - discountAmount;
+
     const depositPercent = (applicableRule as any)?.policy?.depositPercent ?? 30;
-    const depositAmount  = Math.round(Number(totalPrice) * depositPercent / 100);
+    const depositAmount  = Math.round(finalTotal * depositPercent / 100);
 
     // Foglalás ID
     const bookingRef = "MK-" + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -126,7 +150,9 @@ export async function POST(req: NextRequest) {
         guestSurcharge: Number(guestSurcharge) || 0,
         cleaningFee:    Number(cleaningFee)    || 0,
         touristTax:     Number(touristTax)     || 0,
-        totalPrice: Number(totalPrice),
+        totalPrice: finalTotal,
+        discountPercent,
+        discountAmount,
         depositAmount,
         extraServices:     extraServices     ?? null,
         extraServicesTotal: Number(extraServicesTotal) || 0,
