@@ -1018,15 +1018,20 @@ export default function AdminBookingsList({ bookings }: Props) {
                           )}
 
                           {/* IFA */}
-                          {selected.touristTax > 0 && (
-                            <div className="flex justify-between items-start text-stone-600">
-                              <div>
-                                <span>IFA</span>
-                                <p className="text-xs text-stone-400">{selected.numberOfAdults} felnőtt × {selected.nights} éj × 450 Ft/éj</p>
+                          {(() => {
+                            const ifa = selected.touristTax > 0
+                              ? selected.touristTax
+                              : selected.numberOfAdults * selected.nights * 450;
+                            return ifa > 0 ? (
+                              <div className="flex justify-between items-start text-stone-600">
+                                <div>
+                                  <span>IFA</span>
+                                  <p className="text-xs text-stone-400">{selected.numberOfAdults} felnőtt × {selected.nights} éj × 450 Ft/éj</p>
+                                </div>
+                                <span className="shrink-0 ml-2">{formatCurrency(ifa)}</span>
                               </div>
-                              <span className="shrink-0 ml-2">{formatCurrency(selected.touristTax)}</span>
-                            </div>
-                          )}
+                            ) : null;
+                          })()}
 
                           {/* Pótdíj */}
                           {selected.guestSurcharge > 0 && (
