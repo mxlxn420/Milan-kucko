@@ -13,9 +13,9 @@ import "react-day-picker/dist/style.css";
 type Panel = "none" | "checkin" | "checkout" | "guests";
 
 function GuestRow({
-  label, value, min = 0, max = 10, onChange,
+  label, value, min = 0, atMax = false, onChange,
 }: {
-  label: string; value: number; min?: number; max?: number;
+  label: string; value: number; min?: number; atMax?: boolean;
   onChange: (n: number) => void;
 }) {
   return (
@@ -29,8 +29,8 @@ function GuestRow({
         >−</button>
         <span className="w-5 text-center font-medium text-stone-800 text-sm">{value}</span>
         <button
-          onClick={() => onChange(Math.min(max, value + 1))}
-          disabled={value >= max}
+          onClick={() => { if (!atMax) onChange(value + 1); }}
+          disabled={atMax}
           className="w-7 h-7 rounded-full border border-stone-200 text-stone-600 hover:bg-stone-100 transition-colors disabled:opacity-40 flex items-center justify-center"
         >+</button>
       </div>
@@ -65,6 +65,7 @@ export default function BookingWidget() {
   const toggle = (p: Panel) => setPanel((prev) => (prev === p ? "none" : p));
   const fmt    = (d: Date | null) => d ? format(d, "MMM d.", { locale: hu }) : null;
 
+  const MAX_GUESTS  = 4;
   const totalGuests = adults + teens + babies + children2to6 + children6to12;
   const hasChildren = teens + babies + children2to6 + children6to12 > 0;
   const guestLabel  = hasChildren
@@ -226,31 +227,31 @@ export default function BookingWidget() {
               label="Felnőtt (18+ év)"
               value={adults}
               min={1}
-              max={6}
+              atMax={totalGuests >= MAX_GUESTS}
               onChange={(n) => { setAdults(n); storeSetAdults(n); }}
             />
             <GuestRow
               label="Baba (0–2 év) – ingyenes"
               value={babies}
-              max={4}
+              atMax={totalGuests >= MAX_GUESTS}
               onChange={(n) => { setBabies(n); storeSetBabies(n); }}
             />
             <GuestRow
               label="Kisgyerek (2–6 év)"
               value={children2to6}
-              max={4}
+              atMax={totalGuests >= MAX_GUESTS}
               onChange={(n) => { setChildren2to6(n); storeSetChildren2to6(n); }}
             />
             <GuestRow
               label="Gyerek (6–12 év)"
               value={children6to12}
-              max={4}
+              atMax={totalGuests >= MAX_GUESTS}
               onChange={(n) => { setChildren6to12(n); storeSetChildren6to12(n); }}
             />
             <GuestRow
               label="Fiatal (12–18 év)"
               value={teens}
-              max={6}
+              atMax={totalGuests >= MAX_GUESTS}
               onChange={(n) => { setTeens(n); storeSetTeens(n); }}
             />
 

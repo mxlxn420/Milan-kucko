@@ -68,10 +68,10 @@ function isRangeOverlapping(from: Date, to: Date, bookedRanges: BookedRange[]): 
 }
 
 function GuestCounter({
-  label, sublabel, value, min = 0, max = 10, onChange,
+  label, sublabel, value, min = 0, atMax = false, onChange,
 }: {
   label: string; sublabel: string; value: number;
-  min?: number; max?: number; onChange: (n: number) => void;
+  min?: number; atMax?: boolean; onChange: (n: number) => void;
 }) {
   return (
     <div className="flex items-center justify-between py-3 border-b border-stone-100 last:border-0">
@@ -87,8 +87,8 @@ function GuestCounter({
         >−</button>
         <span className="w-6 text-center font-medium text-stone-800 text-sm">{value}</span>
         <button type="button"
-          onClick={() => onChange(Math.min(max, value + 1))}
-          disabled={value >= max}
+          onClick={() => { if (!atMax) onChange(value + 1); }}
+          disabled={atMax}
           className="w-8 h-8 rounded-full border border-stone-200 text-stone-600 hover:bg-stone-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-lg leading-none"
         >+</button>
       </div>
@@ -111,11 +111,14 @@ export default function BookingCalendar({ onNext }: Props) {
       ? { from: storeCheckIn, to: storeCheckOut }
       : undefined
   );
-  const [adults, setAdults]               = useState(store.adults        > 0 ? store.adults        : 2);
-  const [teens, setTeens]                 = useState(store.teens         ?? 0);
-  const [babies, setBabies]               = useState(store.babies        ?? 0);
-  const [children2to6, setChildren2to6]   = useState(store.children2to6  ?? 0);
-  const [children6to12, setChildren6to12] = useState(store.children6to12 ?? 0);
+  const storeTotal = (store.adults ?? 0) + (store.teens ?? 0) + (store.babies ?? 0) + (store.children2to6 ?? 0) + (store.children6to12 ?? 0);
+  const validStore = storeTotal <= 4;
+
+  const [adults, setAdults]               = useState(validStore && store.adults > 0 ? store.adults : 2);
+  const [teens, setTeens]                 = useState(validStore ? (store.teens ?? 0) : 0);
+  const [babies, setBabies]               = useState(validStore ? (store.babies ?? 0) : 0);
+  const [children2to6, setChildren2to6]   = useState(validStore ? (store.children2to6 ?? 0) : 0);
+  const [children6to12, setChildren6to12] = useState(validStore ? (store.children6to12 ?? 0) : 0);
   const [error, setError]                 = useState<string | null>(null);
   const [showChildren, setShowChildren]   = useState(
     (store.teens + store.babies + store.children2to6 + store.children6to12) > 0
@@ -184,7 +187,9 @@ export default function BookingCalendar({ onNext }: Props) {
   })() : 0;
   const weekdayNights = nights - weekendNights;
 
+  const MAX_GUESTS  = 4;
   const totalGuests = adults + teens + babies + children2to6 + children6to12;
+  const paidGuests  = adults + teens + babies + children2to6 + children6to12;
   const hasChildren = teens + babies + children2to6 + children6to12 > 0;
   const currentRule = checkIn ? getApplicableRule(checkIn, rules) : null;
   const minNights   = currentRule?.minNights ?? 2;
@@ -225,6 +230,10 @@ export default function BookingCalendar({ onNext }: Props) {
     }
     if (adults < 1) {
       setError("Legalább 1 felnőtt (18+) szükséges!");
+      return;
+    }
+    if (paidGuests > MAX_GUESTS) {
+      setError(`Maximum ${MAX_GUESTS} fő foglalható!`);
       return;
     }
     if (isRangeOverlapping(checkIn, checkOut, bookedRanges)) {
@@ -345,7 +354,7 @@ export default function BookingCalendar({ onNext }: Props) {
             sublabel="Szobadíj/fő + IFA (450 Ft/éj)"
             value={adults}
             min={1}
-            max={6}
+            atMax={totalGuests >= MAX_GUESTS}
             onChange={setAdults}
           />
 
@@ -385,28 +394,28 @@ export default function BookingCalendar({ onNext }: Props) {
                 label="Baba (0–2 év)"
                 sublabel="Ingyenes – csak jelzés"
                 value={babies}
-                max={4}
+                atMax={totalGuests >= MAX_GUESTS}
                 onChange={setBabies}
               />
               <GuestCounter
                 label="Kisgyerek (2–6 év)"
                 sublabel={child2to6Price > 0 ? formatCurrency(child2to6Price) + "/éj" : "Ár nincs megadva"}
                 value={children2to6}
-                max={4}
+                atMax={totalGuests >= MAX_GUESTS}
                 onChange={setChildren2to6}
               />
               <GuestCounter
                 label="Gyerek (6–12 év)"
                 sublabel={child6to12Price > 0 ? formatCurrency(child6to12Price) + "/éj" : "Ár nincs megadva"}
                 value={children6to12}
-                max={4}
+                atMax={totalGuests >= MAX_GUESTS}
                 onChange={setChildren6to12}
               />
               <GuestCounter
                 label="Fiatal (12–18 év)"
                 sublabel="Szobadíj/fő – IFA nélkül"
                 value={teens}
-                max={6}
+                atMax={totalGuests >= MAX_GUESTS}
                 onChange={setTeens}
               />
             </motion.div>
@@ -441,10 +450,13 @@ export default function BookingCalendar({ onNext }: Props) {
                 <span className="font-medium text-stone-700">{children6to12} fő</span>
               </div>
             )}
-            <div className="flex justify-between text-xs font-semibold text-stone-700 pt-1.5 border-t border-stone-100 mt-1">
+            <div className={`flex justify-between text-xs font-semibold pt-1.5 border-t border-stone-100 mt-1 ${totalGuests > MAX_GUESTS ? "text-red-600" : "text-stone-700"}`}>
               <span>Összesen</span>
-              <span>{totalGuests} fő</span>
+              <span>{totalGuests} / {MAX_GUESTS} fő</span>
             </div>
+            {totalGuests > MAX_GUESTS && (
+              <p className="text-xs text-red-500 mt-1">Maximum {MAX_GUESTS} fő foglalható!</p>
+            )}
           </div>
         </div>
 
@@ -592,7 +604,11 @@ export default function BookingCalendar({ onNext }: Props) {
           </motion.div>
         )}
 
-        <button onClick={handleNext} className="btn-primary w-full justify-center">
+        <button
+          onClick={handleNext}
+          disabled={totalGuests > MAX_GUESTS}
+          className="btn-primary w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           Tovább az adatokhoz <ArrowRight size={16} />
         </button>
 

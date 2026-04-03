@@ -54,6 +54,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Max. kapacitás ellenőrzés (babák nem számítanak)
+    const adults        = Number(body.numberOfAdults        ?? 0);
+    const teens         = Number(body.numberOfTeens         ?? 0);
+    const babies        = Number(body.numberOfBabies        ?? 0);
+    const children2to6  = Number(body.numberOfChildren2to6  ?? 0);
+    const children6to12 = Number(body.numberOfChildren6to12 ?? 0);
+    const paidGuests    = adults + teens + babies + children2to6 + children6to12;
+    if (paidGuests > 4) {
+      return NextResponse.json(
+        { success: false, error: "Maximum 4 fő foglalható!" },
+        { status: 400 }
+      );
+    }
+
     // Dátum-only string (yyyy-MM-dd) → UTC éjfél, timezone-mentes összehasonlításhoz
     const checkInDate  = new Date(checkIn  + "T00:00:00Z");
     const checkOutDate = new Date(checkOut + "T00:00:00Z");
