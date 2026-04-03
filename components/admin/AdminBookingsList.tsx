@@ -918,37 +918,29 @@ export default function AdminBookingsList({ bookings }: Props) {
                     <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Vendégek</h3>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
-                        <span className="text-stone-500">Összes</span>
-                        <span className="font-medium text-stone-800">{selected.numberOfGuests} fő</span>
-                      </div>
-                      <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
                         <span className="text-stone-500">Felnőtt (18+)</span>
                         <span className="font-medium text-stone-800">{selected.numberOfAdults} fő</span>
                       </div>
-                      {(selected as any).numberOfTeens > 0 && (
-                        <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
-                          <span className="text-stone-500">Fiatal (12–18)</span>
-                          <span className="font-medium text-stone-800">{(selected as any).numberOfTeens} fő</span>
-                        </div>
-                      )}
-                      {(selected as any).numberOfBabies > 0 && (
-                        <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
-                          <span className="text-stone-500">Baba (0–2)</span>
-                          <span className="font-medium text-forest-600">{(selected as any).numberOfBabies} fő – ingyenes</span>
-                        </div>
-                      )}
-                      {selected.numberOfChildren2to6 > 0 && (
-                        <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
-                          <span className="text-stone-500">Kisgyerek (2–6)</span>
-                          <span className="font-medium text-stone-800">{selected.numberOfChildren2to6} fő</span>
-                        </div>
-                      )}
-                      {selected.numberOfChildren6to12 > 0 && (
-                        <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
-                          <span className="text-stone-500">Gyerek (6–12)</span>
-                          <span className="font-medium text-stone-800">{selected.numberOfChildren6to12} fő</span>
-                        </div>
-                      )}
+                      <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
+                        <span className="text-stone-500">Fiatal (12–18)</span>
+                        <span className="font-medium text-stone-800">{(selected as any).numberOfTeens ?? 0} fő</span>
+                      </div>
+                      <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
+                        <span className="text-stone-500">Gyerek (6–12)</span>
+                        <span className="font-medium text-stone-800">{selected.numberOfChildren6to12} fő</span>
+                      </div>
+                      <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
+                        <span className="text-stone-500">Kisgyerek (2–6)</span>
+                        <span className="font-medium text-stone-800">{selected.numberOfChildren2to6} fő</span>
+                      </div>
+                      <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
+                        <span className="text-stone-500">Baba (0–2)</span>
+                        <span className="font-medium text-forest-600">{(selected as any).numberOfBabies ?? 0} fő</span>
+                      </div>
+                      <div className="flex justify-between bg-forest-50 rounded-xl px-3 py-2">
+                        <span className="text-stone-500">Összesen</span>
+                        <span className="font-semibold text-stone-800">{selected.numberOfGuests} fő</span>
+                      </div>
                     </div>
                   </section>
 
