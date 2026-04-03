@@ -24,15 +24,8 @@ export interface Booking {
   totalPrice: number;
   depositAmount: number;
   depositPaidAt?: Date | string | null;
-  extraServices?: Array<{
-    id:          string;
-    name:        string;
-    pricingType: "PER_NIGHT" | "PER_BOOKING";
-    price:       number | null;
-    quantity:    number;
-    nights:      number;
-    total:       number;
-  }> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  extraServices?: any;
   extraServicesTotal?: number;
   status: BookingStatus;
   paymentIntentId?: string | null;

@@ -142,8 +142,8 @@ export default function AdminBookingsList({ bookings }: Props) {
       checkIn:               toDateInput(booking.checkIn),
       checkOut:              toDateInput(booking.checkOut),
       numberOfAdults:        booking.numberOfAdults,
-      numberOfTeens:         (booking as any).numberOfTeens  ?? 0,
-      numberOfBabies:        (booking as any).numberOfBabies ?? 0,
+      numberOfTeens:         booking.numberOfTeens,
+      numberOfBabies:        booking.numberOfBabies,
       numberOfChildren2to6:  booking.numberOfChildren2to6,
       numberOfChildren6to12: booking.numberOfChildren6to12,
       notes:                 booking.notes ?? "",
@@ -923,7 +923,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                       </div>
                       <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
                         <span className="text-stone-500">Fiatal (12–18)</span>
-                        <span className="font-medium text-stone-800">{(selected as any).numberOfTeens ?? 0} fő</span>
+                        <span className="font-medium text-stone-800">{selected.numberOfTeens} fő</span>
                       </div>
                       <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
                         <span className="text-stone-500">Gyerek (6–12)</span>
@@ -935,7 +935,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                       </div>
                       <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
                         <span className="text-stone-500">Baba (0–2)</span>
-                        <span className="font-medium text-forest-600">{(selected as any).numberOfBabies ?? 0} fő</span>
+                        <span className="font-medium text-forest-600">{selected.numberOfBabies} fő</span>
                       </div>
                       <div className="flex justify-between bg-forest-50 rounded-xl px-3 py-2">
                         <span className="text-stone-500">Összesen</span>
@@ -954,7 +954,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                       const weekdayRate = rule?.pricePerNight ?? 0;
                       const weekendRate = rule && rule.weekendPrice > 0 ? rule.weekendPrice : weekdayRate;
                       const hasWeekendPrice = rule && rule.weekendPrice > 0;
-                      const personCount = selected.numberOfAdults + ((selected as any).numberOfTeens ?? 0);
+                      const personCount = selected.numberOfAdults + selected.numberOfTeens;
 
                       let weekendNights = 0;
                       if (rule) {

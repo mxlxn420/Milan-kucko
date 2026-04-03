@@ -43,23 +43,23 @@ export function calculatePrice(
   const nights = differenceInCalendarDays(checkOut, checkIn);
 
   if (nights <= 0) return {
-    nights: 0, pricePerNight: 0, baseTotal: 0, guestSurcharge: 0,
-    cleaningFee: CLEANING_FEE, touristTax: 0, total: 0,
+    nights: 0, pricePerNight: 0, baseTotal: 0, childTotal2to6: 0, childTotal6to12: 0,
+    guestSurcharge: 0, cleaningFee: CLEANING_FEE, touristTax: 0, total: 0,
     minNights: MIN_NIGHTS, isValid: false,
     validationError: "A távozás napjának az érkezés utánra kell esnie.",
   };
 
   const rule = getApplicablePricingRule(checkIn, checkOut, rules);
   if (!rule) return {
-    nights, pricePerNight: 0, baseTotal: 0, guestSurcharge: 0,
-    cleaningFee: CLEANING_FEE, touristTax: 0, total: 0,
+    nights, pricePerNight: 0, baseTotal: 0, childTotal2to6: 0, childTotal6to12: 0,
+    guestSurcharge: 0, cleaningFee: CLEANING_FEE, touristTax: 0, total: 0,
     minNights: MIN_NIGHTS, isValid: false,
     validationError: "Nem található áradat. Kérjük, vegye fel velünk a kapcsolatot.",
   };
 
   if (nights < rule.minNights) return {
-    nights, pricePerNight: rule.pricePerNight, baseTotal: 0, guestSurcharge: 0,
-    cleaningFee: CLEANING_FEE, touristTax: 0, total: 0,
+    nights, pricePerNight: rule.pricePerNight, baseTotal: 0, childTotal2to6: 0, childTotal6to12: 0,
+    guestSurcharge: 0, cleaningFee: CLEANING_FEE, touristTax: 0, total: 0,
     minNights: rule.minNights, isValid: false,
     validationError: `Ebben az időszakban minimum ${rule.minNights} éjszakára foglalhat.`,
   };
@@ -70,8 +70,10 @@ export function calculatePrice(
   const touristTax     = guests * TOURIST_TAX * nights;
   const total          = baseTotal + guestSurcharge + CLEANING_FEE + touristTax;
 
-  return { nights, pricePerNight: rule.pricePerNight, baseTotal, guestSurcharge,
-    cleaningFee: CLEANING_FEE, touristTax, total, minNights: rule.minNights, isValid: true };
+  return {
+    nights, pricePerNight: rule.pricePerNight, baseTotal, childTotal2to6: 0, childTotal6to12: 0,
+    guestSurcharge, cleaningFee: CLEANING_FEE, touristTax, total, minNights: rule.minNights, isValid: true,
+  };
 }
 
 export function isDateBooked(date: Date, ranges: BookedDateRange[]): boolean {

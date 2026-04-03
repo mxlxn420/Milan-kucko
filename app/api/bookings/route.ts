@@ -54,6 +54,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!body.numberOfAdults || Number(body.numberOfAdults) < 1) {
+      return NextResponse.json(
+        { success: false, error: "Legalább 1 felnőtt szükséges!" },
+        { status: 400 }
+      );
+    }
+
     // Max. kapacitás ellenőrzés (babák nem számítanak)
     const adults        = Number(body.numberOfAdults        ?? 0);
     const teens         = Number(body.numberOfTeens         ?? 0);

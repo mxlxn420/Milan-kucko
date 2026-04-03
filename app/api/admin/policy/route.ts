@@ -14,7 +14,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, depositPercent, freeCancelDays, minAdvanceDays } = await req.json();
+    const { name, depositPercent, freeCancelDays } = await req.json();
     if (!name) return NextResponse.json({ success: false, error: "Név megadása kötelező" }, { status: 400 });
 
     const policy = await prisma.bookingPolicy.create({
@@ -22,7 +22,6 @@ export async function POST(req: NextRequest) {
         name,
         depositPercent: Number(depositPercent) || 30,
         freeCancelDays: Number(freeCancelDays) || 7,
-        minAdvanceDays: Number(minAdvanceDays) ?? 2,
       },
     });
     return NextResponse.json({ success: true, data: policy });
