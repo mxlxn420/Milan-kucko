@@ -105,7 +105,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
           childPrice6to12:      bookingData.childPrice6to12,
           guestSurcharge:       0,
           cleaningFee:          0,
-          touristTax:           0,
+          touristTax:           bookingData.touristTax,
           totalPrice:           grandTotal,
           extraServices:        selected,
           extraServicesTotal:   extrasTotal,
