@@ -100,12 +100,12 @@ export default function ReviewsSection() {
         </AnimatedSection>
 
         {/* Értékelés kártyák */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="flex flex-wrap justify-center gap-5">
           {REVIEWS.map((review, i) => (
             <AnimatedSection
               key={i}
               delay={i * 0.1}
-              className="bg-white/8 border border-white/10 rounded-2xl p-6 flex flex-col hover:bg-white/12 transition-colors duration-300"
+              className="w-full md:w-[calc(50%-10px)] lg:w-[calc(25%-15px)] bg-white/8 border border-white/10 rounded-2xl p-6 flex flex-col hover:bg-white/12 transition-colors duration-300"
             >
               {/* Idézőjel */}
               <Quote size={22} className="text-terra-400/40 mb-4 shrink-0" />
