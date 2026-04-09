@@ -8,9 +8,9 @@ async function isAuthed() {
   return !!store.get("admin_token")?.value;
 }
 
-const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-const MAX_SIZE_MB   = 5;
-const BUCKET        = "extra-services";
+const ALLOWED_TYPES  = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const MAX_SIZE_MB    = 5;
+const ALLOWED_BUCKETS = ["extra-services", "hero"];
 
 function getSupabase() {
   const url = process.env.SUPABASE_URL;
@@ -21,6 +21,13 @@ function getSupabase() {
 
 export async function POST(req: Request) {
   if (!(await isAuthed())) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+  const { searchParams } = new URL(req.url);
+  const bucket = searchParams.get("bucket") ?? "extra-services";
+
+  if (!ALLOWED_BUCKETS.includes(bucket)) {
+    return NextResponse.json({ success: false, error: "Ismeretlen bucket" }, { status: 400 });
+  }
 
   const formData = await req.formData();
   const file     = formData.get("file") as File | null;
@@ -34,14 +41,14 @@ export async function POST(req: Request) {
   const buffer   = Buffer.from(await file.arrayBuffer());
 
   const supabase = getSupabase();
-  const { error } = await supabase.storage.from(BUCKET).upload(filename, buffer, {
+  const { error } = await supabase.storage.from(bucket).upload(filename, buffer, {
     contentType: file.type,
     upsert:      false,
   });
 
   if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
 
-  const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(filename);
+  const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filename);
 
   return NextResponse.json({ success: true, url: publicUrl });
 }

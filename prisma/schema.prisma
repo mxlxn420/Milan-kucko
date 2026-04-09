@@ -140,3 +140,15 @@ enum ServicePricing {
   PER_NIGHT
   PER_BOOKING
 }
+
+model HeroContent {
+  id            String   @id @default("singleton")
+  subtitle      String
+  titleBefore   String
+  titleEmphasis String
+  titleAfter    String
+  description   String   @db.Text
+  highlights    Json
+  slides        Json?
+  updatedAt     DateTime @updatedAt
+}

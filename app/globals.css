@@ -88,103 +88,86 @@
   }
 }
 
-/* ─── React Day Picker ──────────────────────────────────────── */
-.rdp {
-  --rdp-accent-color: #1a3a2a;
-  --rdp-background-color: #f0f5f1;
+/* ─── React Day Picker v9 ───────────────────────────────────── */
+/* html .rdp-root > magasabb specificitás mint a csomag .rdp-root szabályai */
+html .rdp-root {
+  --rdp-accent-color:                      #1a3a2a;
+  --rdp-accent-background-color:           #f0f5f1;
+  --rdp-range_middle-background-color:     #dceade;
+  --rdp-range_middle-color:                #1a3a2a;
+  --rdp-range_start-color:                 #f5f0e8;
+  --rdp-range_end-color:                   #f5f0e8;
+  --rdp-range_start-date-background-color: #1a3a2a;
+  --rdp-range_end-date-background-color:   #1a3a2a;
+  --rdp-today-color:                       #c17f4e;
+  --rdp-day_button-border-radius:          8px;
+  --rdp-selected-border:                   2px solid transparent;
   margin: 0;
 }
 
+/* Lekerekített gomb (felülírja a 100%-os kör defaultot) */
+html .rdp-root .rdp-day_button {
+  border-radius: 8px !important;
+}
+
 /* Napok */
-.rdp-day {
-  color: #2a2a2a !important;
-  font-weight: 500 !important;
-  font-size: 14px !important;
+html .rdp-root .rdp-day {
+  color: #2a2a2a;
+  font-weight: 500;
+  font-size: 14px;
 }
 
 /* Hover */
-.rdp-day:hover:not([disabled]) {
+html .rdp-root .rdp-day_button:hover:not(:disabled) {
   background-color: #dceade !important;
   color: #1a3a2a !important;
-  border-radius: 8px !important;
 }
 
 /* Kiválasztott nap */
-.rdp-day_selected,
-.rdp-day_selected:hover {
+html .rdp-root .rdp-selected .rdp-day_button {
   background-color: #1a3a2a !important;
   color: #f5f0e8 !important;
-  border-radius: 8px !important;
   font-weight: 600 !important;
 }
 
-/* Range közép */
-.rdp-day_range_middle {
-  background-color: #dceade !important;
-  color: #1a3a2a !important;
-  border-radius: 0 !important;
-}
-
-/* Range start/end */
-.rdp-day_range_start,
-.rdp-day_range_end {
-  background-color: #1a3a2a !important;
-  color: #f5f0e8 !important;
-  border-radius: 8px !important;
-}
-
 /* Mai nap */
-.rdp-day_today {
-  color: #c17f4e !important;
-  font-weight: 700 !important;
+html .rdp-root .rdp-today:not(.rdp-outside) {
+  font-weight: 700;
 }
 
 /* Letiltott napok */
-.rdp-day_disabled {
-  color: #d4d4d4 !important;
-  opacity: 0.5 !important;
+html .rdp-root .rdp-disabled:not(.rdp-selected) {
+  opacity: 0.4;
 }
 
 /* Fejléc (hónapnév, évszám) */
-.rdp-caption_label {
+html .rdp-root .rdp-caption_label {
   color: #1a3a2a !important;
   font-weight: 600 !important;
   font-size: 15px !important;
 }
 
-/* Hétköznapok fejléce (H K Sz Cs P Szo V) */
-.rdp-head_cell span {
-  color: #2a2a2a !important;
-  opacity: 1 !important;
-}
-
-.rdp-weekday {
+/* Hétköznapok fejléce */
+html .rdp-root .rdp-weekday {
   color: #2a2a2a !important;
   opacity: 1 !important;
   font-weight: 700 !important;
 }
 
 /* Navigációs gombok */
-.rdp-nav_button {
+html .rdp-root .rdp-button_previous,
+html .rdp-root .rdp-button_next {
   color: #1a3a2a !important;
-}
-.rdp-nav_button:hover {
-  background-color: #dceade !important;
   border-radius: 8px !important;
+}
+html .rdp-root .rdp-button_previous:hover,
+html .rdp-root .rdp-button_next:hover {
+  background-color: #dceade !important;
 }
 
 /* Külső hónap napjai */
-.rdp-day_outside {
-  color: #a8a8a8 !important;
-  opacity: 0.4 !important;
-}
-
-/* Foglalt napok */
-.rdp-day_booked {
-  background-color: #f5e6d8 !important;
-  color: #a86435 !important;
-  text-decoration: line-through !important;
-  cursor: not-allowed !important;
+html .rdp-root .rdp-outside {
+  opacity: 0.35 !important;
 }
 
 /* Lightbox */

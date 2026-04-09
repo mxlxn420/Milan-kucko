@@ -11,6 +11,7 @@ import {
   ScrollText,
   Sparkles,
   Tag,
+  Image,
 } from "lucide-react";
 
 const LINKS = [
@@ -21,6 +22,7 @@ const LINKS = [
   { href: "/admin/szabalyok",              icon: ScrollText,      label: "Szabályok"            },
   { href: "/admin/kedvezmenyek",           icon: Tag,             label: "Kedvezmények"         },
   { href: "/admin/extra-szolgaltatasok",   icon: Sparkles,        label: "Extra szolgáltatások" },
+  { href: "/admin/hero",                   icon: Image,           label: "Hero szekció"          },
 ];
 
 export default function AdminSidebar() {

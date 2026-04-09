@@ -272,14 +272,6 @@ export default function BookingCalendar({ onNext }: Props) {
       {/* Naptár */}
       <div className="lg:col-span-2 bg-white rounded-3xl shadow-card p-6">
         <h2 className="font-serif text-xl text-forest-900 mb-1">Válasszon dátumot</h2>
-        {currentRule && (
-          <p className="text-xs text-terra-500 mb-4">
-            Aktív szezon: <strong>{currentRule.name}</strong> –{" "}
-            {formatCurrency(currentRule.pricePerNight)}/éj
-            {currentRule.weekendPrice > 0 &&
-              " (hétvége: " + formatCurrency(currentRule.weekendPrice) + "/éj)"}
-          </p>
-        )}
         <DayPicker
           mode="range"
           selected={range}
@@ -471,17 +463,6 @@ export default function BookingCalendar({ onNext }: Props) {
             </div>
           ) : nights > 0 && currentRule ? (
             <>
-              <div className="flex items-center gap-2 bg-forest-50 text-forest-700 text-xs px-3 py-2 rounded-lg mb-4">
-                <span className="w-1.5 h-1.5 rounded-full bg-forest-500 shrink-0" />
-                <span className="font-medium">{currentRule.name}</span>
-                {currentRule.dateFrom && currentRule.dateTo && (
-                  <span className="text-forest-500 ml-auto">
-                    {new Date(currentRule.dateFrom).toLocaleDateString("hu-HU", { month: "short", day: "numeric" })}
-                    {" – "}
-                    {new Date(currentRule.dateTo).toLocaleDateString("hu-HU", { month: "short", day: "numeric" })}
-                  </span>
-                )}
-              </div>
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-start">
