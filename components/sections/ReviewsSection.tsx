@@ -5,7 +5,6 @@ const REVIEWS = [
   {
     name:     "Tamás Gubis",
     rating:   5,
-    date:     "6 hónapja",
     text:     "Csendre, nyugalomra vágytunk a Párommal. Helyi, és közelben lévő látványosságban nincs hiány, ha valaki szeretné megismerni a Bükk adta gyönyörű látnivalókat. Teljes mértékben elégedettek voltunk a jól felszerelt szálláshellyel.",
     initials: "TG",
     type:     "Páros",
@@ -13,7 +12,6 @@ const REVIEWS = [
   {
     name:     "Annamari Ujvári",
     rating:   5,
-    date:     "3 hónapja",
     text:     "Szuper felszereltségű kis ház, minden van, amit az ember csak el tud képzelni!",
     initials: "AU",
     type:     "Páros",
@@ -21,7 +19,6 @@ const REVIEWS = [
   {
     name:     "Alexandra Deák",
     rating:   5,
-    date:     "8 hónapja",
     text:     "Gyönyörű szép, tökéletes a pihenésre és csendes. A tulajdonos borzasztóan kedves és aranyos!",
     initials: "AD",
     type:     "Családi",
@@ -29,15 +26,20 @@ const REVIEWS = [
   {
     name:     "Ilona Molnár",
     rating:   5,
-    date:     "6 hónapja",
     text:     "Nagyon szép és rendezett minden. Nekünk nagyon tetszett minden, és csak ajánlani tudom mindenkinek.",
     initials: "IM",
+    type:     "Páros",
+  },
+  {
+    name:     "Zsolt Mészáros",
+    rating:   5,
+    text:     "Ha tehetem, visszatérek - kiváló hely, barátságos tulajdonos, nagyszerű elhelyezkedés.",
+    initials: "ZM",
     type:     "Páros",
   },
 ];
 
 const OVERALL_RATING  = 5.0;
-const TOTAL_RATINGS   = 12;
 const GOOGLE_MAPS_URL = "https://www.google.com/travel/search?gsas=1&ts=EggKAggDCgIIAxocEhoSFAoHCOoPEAMYHRIHCOoPEAMYHxgCMgIQAA&qs=MhNDZ29JemVTQnRmYmVzZGtTRUFFOAI&ap=ugEHcmV2aWV3cw&ictx=111&biw=1920&bih=951&hl=hu-HU&ved=0CAAQ5JsGahcKEwiogPq7wrSTAxUAAAAAHQAAAAAQBA";
 
 function Stars({ rating, size = 16 }: { rating: number; size?: number }) {
@@ -82,7 +84,7 @@ export default function ReviewsSection() {
               <div className="flex flex-col items-start gap-1.5">
                 <Stars rating={OVERALL_RATING} size={20} />
                 <p className="text-cream/60 text-xs">
-                  {TOTAL_RATINGS} Google-értékelés alapján
+                  Google-értékelések alapján
                 </p>
               </div>
             </div>
