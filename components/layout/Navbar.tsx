@@ -12,8 +12,8 @@ const NAV_LINKS = [
   { label: "Felszereltség", href: "/#felszereltseg" },
   { label: "Galéria", href: "/galeria" },
   { label: "Árak", href: "/#arak" },
-  { label: "Kapcsolat", href: "/#kapcsolat" },
   { label: "Értékelések", href: "/#ertekelesek" },
+  { label: "Kapcsolat", href: "/#kapcsolat" },
 ];
 
 export default function Navbar() {

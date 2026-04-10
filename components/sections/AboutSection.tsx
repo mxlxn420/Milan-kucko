@@ -65,8 +65,8 @@ export default function AboutSection() {
                   </svg>
                 ))}
               </div>
-              <p className="text-xs font-medium text-stone-700"><strong>10 / 10</strong> – Tökéletes</p>
-              <p className="text-[10px] text-stone-400">Szallas.hu értékelés</p>
+              <p className="text-xs font-medium text-stone-700"><strong>5.0 / 5.0</strong> – Kiváló</p>
+              <p className="text-[10px] text-stone-400">Google értékelés</p>
             </motion.div>
           </AnimatedSection>
 

@@ -22,7 +22,7 @@ const LINKS = [
   { href: "/admin/szabalyok",              icon: ScrollText,      label: "Szabályok"            },
   { href: "/admin/kedvezmenyek",           icon: Tag,             label: "Kedvezmények"         },
   { href: "/admin/extra-szolgaltatasok",   icon: Sparkles,        label: "Extra szolgáltatások" },
-  { href: "/admin/hero",                   icon: Image,           label: "Hero szekció"          },
+  { href: "/admin/hero",                   icon: Image,           label: "Kezdőlap"          },
 ];
 
 export default function AdminSidebar() {

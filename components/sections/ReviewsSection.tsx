@@ -126,7 +126,7 @@ export default function ReviewsSection() {
                       <p className="text-cream text-sm font-medium leading-none mb-0.5">
                         {review.name}
                       </p>
-                      <p className="text-cream/40 text-xs">{review.date}</p>
+                      <p className="text-cream/40 text-xs">Google</p>
                     </div>
                   </div>
                   <Stars rating={review.rating} size={14} />
