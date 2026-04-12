@@ -39,7 +39,7 @@ interface Props {
   overlapError:  string | null;
   panelPrefix:   string;
   basePrice:     number;
-  existingRanges: { from: Date; to: Date; name: string }[];
+  existingRanges: { from: Date; to: Date; name: string; priority: number }[];
   datePanel:     string | null;
   setDatePanel:  (p: string | null) => void;
   policies:      PolicyOption[];
@@ -53,6 +53,10 @@ export default function SeasonForm({
 }: Props) {
   const formatBtn = (d: Date | null) =>
     d ? format(d, "yyyy. MMMM d.", { locale: hu }) : "Kattints a kiválasztáshoz";
+
+  const displayRanges = rule.featured
+    ? existingRanges.filter((r) => r.priority >= 10)
+    : existingRanges;
 
   return (
     <motion.div
@@ -142,8 +146,10 @@ export default function SeasonForm({
                 <p className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-3">
                   Szezon kezdete
                 </p>
-                {!rule.featured && existingRanges.length > 0 && (
-                  <p className="text-xs text-terra-500 mb-2">🔒 Áthúzott napok már más szezonhoz tartoznak</p>
+                {displayRanges.length > 0 && (
+                  <p className="text-xs text-terra-500 mb-2">
+                    {rule.featured ? "🔒 Áthúzott napok már kiemelt időszakhoz tartoznak" : "🔒 Áthúzott napok már más szezonhoz tartoznak"}
+                  </p>
                 )}
                 <DayPicker
                   mode="single"
@@ -154,7 +160,7 @@ export default function SeasonForm({
                   }}
                   disabled={disabledDays}
                   locale={hu}
-                  modifiers={{ existing: existingRanges.map((r) => ({ from: r.from, to: r.to })) }}
+                  modifiers={{ existing: displayRanges.map((r) => ({ from: r.from, to: r.to })) }}
                   modifiersStyles={{
                     selected: { backgroundColor: "#1a3a2a", color: "#f5f0e8", borderRadius: "8px" },
                     today:    { color: "#c17f4e", fontWeight: "700" },
@@ -199,8 +205,10 @@ export default function SeasonForm({
                 <p className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-3">
                   Szezon vége
                 </p>
-                {!rule.featured && existingRanges.length > 0 && (
-                  <p className="text-xs text-terra-500 mb-2">🔒 Áthúzott napok már más szezonhoz tartoznak</p>
+                {displayRanges.length > 0 && (
+                  <p className="text-xs text-terra-500 mb-2">
+                    {rule.featured ? "🔒 Áthúzott napok már kiemelt időszakhoz tartoznak" : "🔒 Áthúzott napok már más szezonhoz tartoznak"}
+                  </p>
                 )}
                 <DayPicker
                   mode="single"
@@ -212,7 +220,7 @@ export default function SeasonForm({
                   fromDate={rule.dateFrom ?? undefined}
                   disabled={disabledDays}
                   locale={hu}
-                  modifiers={{ existing: existingRanges.map((r) => ({ from: r.from, to: r.to })) }}
+                  modifiers={{ existing: displayRanges.map((r) => ({ from: r.from, to: r.to })) }}
                   modifiersStyles={{
                     selected: { backgroundColor: "#1a3a2a", color: "#f5f0e8", borderRadius: "8px" },
                     today:    { color: "#c17f4e", fontWeight: "700" },

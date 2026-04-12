@@ -68,9 +68,10 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
     return seasonRules
       .filter((r) => r.dateFrom && r.dateTo && r.isActive && r.id !== editingId)
       .map((r) => ({
-        from: new Date(r.dateFrom as string),
-        to:   new Date(r.dateTo  as string),
-        name: r.name,
+        from:     new Date(r.dateFrom as string),
+        to:       new Date(r.dateTo  as string),
+        name:     r.name,
+        priority: r.priority ?? 0,
       }));
   }, [seasonRules, editingId]);
 
