@@ -10,6 +10,32 @@ export async function PATCH(
 
     console.log("PATCH pricing body:", body); // DEBUG
 
+    // Átfedés-ellenőrzés kiemelt időszakok között (saját rekordot kizárva)
+    if (body.dateFrom && body.dateTo) {
+      const newFrom = new Date(body.dateFrom);
+      const newTo   = new Date(body.dateTo);
+
+      const overlap = await prisma.pricingRule.findFirst({
+        where: {
+          id:       { not: params.id },
+          isActive: true,
+          dateFrom: { not: null },
+          dateTo:   { not: null },
+          AND: [
+            { dateFrom: { lte: newTo   } },
+            { dateTo:   { gte: newFrom } },
+          ],
+        },
+      });
+
+      if (overlap) {
+        return NextResponse.json(
+          { success: false, error: `\u00C1tfed\u00E9s: "${overlap.name}" sz\u00E9zon m\u00E1r lefedi ezt az id\u0151szakot.` },
+          { status: 409 }
+        );
+      }
+    }
+
     const updated = await prisma.pricingRule.update({
       where: { id: params.id },
       data: {

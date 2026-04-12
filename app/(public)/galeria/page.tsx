@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { prisma }          from "@/lib/prisma";
 import GaleriaPage, { DEFAULT_CATEGORIES } from "@/components/sections/GaleriaPage";
 import type { GalleryCategory }            from "@/components/sections/GaleriaPage";

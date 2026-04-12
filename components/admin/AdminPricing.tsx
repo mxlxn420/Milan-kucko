@@ -108,6 +108,7 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
       });
       const data = await res.json();
       if (data.success) setRules((prev) => prev.map((r) => r.id === rule.id ? data.data : r));
+      else alert("Mentési hiba: " + data.error);
     } finally {
       setSaving(null);
     }
@@ -220,6 +221,8 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
         setNewRule(EMPTY_NEW);
         setShowNew(false);
         setDatePanel(null);
+      } else {
+        alert("Mentési hiba: " + data.error);
       }
     } finally {
       setCreating(false);
