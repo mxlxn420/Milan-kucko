@@ -158,6 +158,7 @@ export default function SeasonForm({
                 <DayPicker
                   mode="single"
                   selected={rule.dateFrom ?? undefined}
+                  defaultMonth={rule.dateFrom ?? new Date()}
                   onSelect={(d) => {
                     setRule({ ...rule, dateFrom: d ?? null, dateTo: null });
                     setDatePanel(null);
@@ -217,6 +218,7 @@ export default function SeasonForm({
                 <DayPicker
                   mode="single"
                   selected={rule.dateTo ?? undefined}
+                  defaultMonth={rule.dateTo ?? rule.dateFrom ?? new Date()}
                   onSelect={(d) => {
                     setRule({ ...rule, dateTo: d ?? null });
                     setDatePanel(null);

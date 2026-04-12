@@ -97,9 +97,9 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
   );
 
   function checkOverlap(from: Date | null, to: Date | null, featured: boolean): string | null {
-    if (!from || !to || featured) return null;
+    if (!from || !to || !featured) return null;
     for (const r of existingRanges) {
-      if (from < r.to && to > r.from) return r.name;
+      if (r.priority >= 10 && from < r.to && to > r.from) return r.name;
     }
     return null;
   }
