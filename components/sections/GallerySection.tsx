@@ -29,9 +29,9 @@ export default function GallerySection({ featured = DEFAULT_FEATURED }: { featur
       <div className="container-custom">
 
         <AnimatedSection className="text-center mb-14">
-          <div className="section-badge">Gal\u00E9ria</div>
+          <div className="section-badge">{"Gal\u00E9ria"}</div>
           <h2 className="font-serif text-display-lg font-light text-forest-900">
-            Tekintsen be a kuck\u00F3ba
+            {"Tekintsen be a kuck\u00F3ba"}
           </h2>
         </AnimatedSection>
 
@@ -50,7 +50,7 @@ export default function GallerySection({ featured = DEFAULT_FEATURED }: { featur
               <Image src={src} alt={alt} fill sizes="(max-width:768px) 50vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-110" />
               <div className="absolute inset-0 bg-forest-900/0 group-hover:bg-forest-900/30 transition-colors duration-300 flex items-center justify-center">
                 <span className="text-cream text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 tracking-widest uppercase">
-                  Megn\u00E9zem
+                  {"Megn\u00E9zem"}
                 </span>
               </div>
             </motion.div>
@@ -59,7 +59,7 @@ export default function GallerySection({ featured = DEFAULT_FEATURED }: { featur
 
         <div className="text-center mt-10">
           <Link href="/galeria" className="btn-secondary">
-            \u00D6sszes k\u00E9p megtekint\u00E9se \u2192
+            {"\u00D6sszes k\u00E9p megtekint\u00E9se \u2192"}
           </Link>
         </div>
 
