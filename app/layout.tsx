@@ -59,9 +59,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  width:      "device-width",
+  width:        "device-width",
   initialScale: 1,
-  themeColor: "#1a3a2a",
+  themeColor:   "#1a3a2a",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -72,13 +72,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type":    "LodgingBusiness",
-              name:       "Milán Kuckó",
+              "@context":  "https://schema.org",
+              "@type":     "LodgingBusiness",
+              name:        "Milán Kuckó",
               description: "Romantikus vendégház privát jacuzzival és kandallóval Miskolctapolcán",
-              url:        "https://milankucko.hu",
-              telephone:  "+36 30 845 4923",  // ← IDE ÍRD A VALÓDI SZÁMOT
-              email:      "milan.kucko117@gmail.com", // ← IDE ÍRD A VALÓDI EMAILT
+              url:         "https://milankucko.hu",
+              telephone:   "+36 30 845 4923",
+              email:       "milan.kucko117@gmail.com",
               address: {
                 "@type":         "PostalAddress",
                 streetAddress:   "Bencések útja 117/A",
@@ -87,23 +87,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 addressCountry:  "HU",
               },
               geo: {
-                "@type":     "GeoCoordinates",
-                latitude:    48.0731645,
-                longitude:   20.7470249,
+                "@type":    "GeoCoordinates",
+                latitude:   48.0731645,
+                longitude:  20.7470249,
               },
-              priceRange: "$$",
+              priceRange:   "$$",
               checkinTime:  "14:00",
               checkoutTime: "10:00",
               amenityFeature: [
-                { "@type": "LocationFeatureSpecification", name: "Privát jacuzzi",    value: true },
-                { "@type": "LocationFeatureSpecification", name: "Kandalló",          value: true },
-                { "@type": "LocationFeatureSpecification", name: "Wi-Fi",             value: true },
-                { "@type": "LocationFeatureSpecification", name: "Klíma",             value: true },
-                { "@type": "LocationFeatureSpecification", name: "Ingyenes parkoló",  value: true },
-                { "@type": "LocationFeatureSpecification", name: "Privát kert",       value: true },
+                { "@type": "LocationFeatureSpecification", name: "Privát jacuzzi",   value: true },
+                { "@type": "LocationFeatureSpecification", name: "Kandalló",         value: true },
+                { "@type": "LocationFeatureSpecification", name: "Wi-Fi",            value: true },
+                { "@type": "LocationFeatureSpecification", name: "Klíma",            value: true },
+                { "@type": "LocationFeatureSpecification", name: "Ingyenes parkoló", value: true },
+                { "@type": "LocationFeatureSpecification", name: "Privát kert",      value: true },
               ],
               sameAs: [
-                "https://www.facebook.com/profile.php?id=100070831690258",   // ← valódi FB link
+                "https://www.facebook.com/profile.php?id=100070831690258",
               ],
             }),
           }}

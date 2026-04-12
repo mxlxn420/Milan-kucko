@@ -78,8 +78,8 @@ export default function ContactSection() {
             <div className="bg-forest-900 rounded-2xl p-6 text-cream">
               <p className="text-xs tracking-[0.2em] uppercase text-cream/50 mb-4">Tudnivalók</p>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-cream/60">Bejelentkezés</span><span>14:00 – 20:00</span></div>
-                <div className="flex justify-between"><span className="text-cream/60">Kijelentkezés</span><span>10:00-ig</span></div>
+                <div className="flex justify-between"><span className="text-cream/60">Bejelentkezés</span><span>15:00 – 20:00</span></div>
+                <div className="flex justify-between"><span className="text-cream/60">Kijelentkezés</span><span>8:00 – 11:00</span></div>
                 <div className="flex justify-between"><span className="text-cream/60">Max. vendég</span><span>4 fő</span></div>
                 <div className="flex justify-between"><span className="text-cream/60">NTAK</span><span>MA25112258</span></div>
                 <div className="flex justify-between"><span className="text-cream/60">Háziállat</span><span>Nem tudunk fogadni</span></div>

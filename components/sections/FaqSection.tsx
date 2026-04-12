@@ -6,13 +6,13 @@ import { Plus, Minus } from "lucide-react";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
 const FAQS = [
-  { q: "Mikor van bejelentkezés és kijelentkezés?",          a: "Bejelentkezés: 14:00–20:00 között. Kijelentkezés: 10:00-ig. Eltérő időpont előzetesen egyeztethető." },
-  { q: "Hány fő tud elszállásolni a kuckóban?",              a: "A Milán Kuckó alapvetően 2 fő részére ideális, de maximum 4 fő számára biztosítható elhelyezés (extra pótágyakkal)." },
-  { q: "Szabad-e kisállatot hozni?",                         a: "Sajnos kisállatokat nem tudunk fogadni, hogy minden vendégünk számára allergiamentes és tiszta környezetet biztosíthassunk." },
-  { q: "Hogyan működik a jacuzzi?",                          a: "Érkezés előtt a jacuzzit a kívánt hőfokra (kb. 38-40°C) előkészítjük." },
-  { q: "Van-e lehetőség korai érkezésre vagy késői távozásra?", a: "Előzetes egyeztetés alapján igen, amennyiben a vemdégház szabad, felár ellenében. Kérjük, jelezze igényét foglaláskor a megjegyzés rovatban." },
-  { q: "Hogyan lehet lemondani a foglalást?",                 a: "A foglalás lemondása az érkezés előtt 7 napig ingyenes. 7 napon belüli lemondás esetén az előleg nem visszatérítendő. Részletek az ÁSZF-ben." },
-  { q: "Van-e a közelben étterem vagy bevásárlási lehetőség?",a: "Miskolctapolca és Miskolc belvárosa 5-10 percre található, ahol számos étterem és áruház elérhető. A kuckóban teljes felszereltségű konyha áll rendelkezésre." },
+  { q: "Mikor van bejelentkezés és kijelentkezés?",          a: "Bejelentkezés: 15:00–20:00 között. Kijelentkezés: 11:00-ig. Eltérő időpont előzetesen egyeztethető." },
+  { q: "Hány fő tud elszállásolni a kuckóban?",              a: "A Milán Kuckó maximum 2+2 fő részére biztosít elhelyezést." },
+  { q: "Szabad-e kisállatot hozni?",                         a: "Sajnos kisállatokat nem tudunk fogadni. Kérjük ennek tiszteletben tartását." },
+  { q: "Hogyan működik a jakuzzi?",                          a: "Érkezéskor a jakuzzit a vendégek felfűtött állapotban veszik át, melynek működtetését megmutatjuk érkezéskor. Szükség esetében a jakuzzi vizének mérését és vegyszerezését a vendégek tartókodása alatt is biztosítjuk, melynek időpontját a vendégeinkkel előre egyeztethetjük." },
+  { q: "Van-e lehetőség korai érkezésre vagy késői távozásra?", a: "Foglaltságtól függően, előzetes egyeztetés alapján van lehetőség korai érkezésre, illetve késői távozásra, esetlegesen felár ellenében." },
+  { q: "Hogyan lehet lemondani, vagy módosítani a foglalást?",                 a: "A foglalás lemondására, vagy módosítására minden esetben írásban van lehetőség." },
+  { q: "Van-e a közelben étterem vagy bevásárlási lehetőség?",a: "Legközelebb kb. 1,5 km távolságban találhatóak éttermek, de Miskolcon rengeteg helyről tudnak akár házhoz rendelni is. A közelben számos étterem kereshető fel, melyek között találnak Michelin ajánlásút is. Miskolctapolcán kb. 1,5 km-re található egy kisebb bolt, azonban 3,5 - 4 km távolságban található Lidl és Tesco is, illetve Miskolcon számtalan áruházból választhatnak. A Kuckóban jól felszerelt konyha áll rendelkezésre." },
 ];
 
 export default function FaqSection() {

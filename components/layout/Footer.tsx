@@ -25,8 +25,8 @@ export default function Footer() {
               <p className="text-xs text-cream/50 tracking-[0.25em] uppercase mt-1">Miskolctapolca</p>
             </Link>
             <p className="text-sm leading-relaxed text-cream/60 mb-6">
-              Romantikus vendégház privát jakuzzival,
-              Miskolctapolca szívében. A tökéletes kikapcsolódás helyszíne.
+              Romantikus vendégház privát és korlátlan jakuzzival, pároknak, kisebb családoknak, 
+              kisebb baráti társaságoknak Miskolctapolca csendes részén. A tökéletes kikapcsolódás helyszíne.
             </p>
 
             {/* Social média */}
@@ -93,7 +93,7 @@ export default function Footer() {
           <div>
             <h3 className="text-xs font-medium tracking-[0.2em] uppercase text-cream mb-6">Foglalás</h3>
             <p className="text-sm text-cream/60 mb-5 leading-relaxed">
-              Foglaljon közvetlenül tőlünk – nincsenek extra díjak.
+              Foglaljon közvetlenül nálunk a legalacsonyabb áron.
             </p>
             <Link href="/foglalas"
               className="inline-flex items-center gap-2 px-6 py-3 bg-terra-400 text-white text-xs font-medium tracking-[0.15em] uppercase rounded-full hover:bg-terra-500 transition-all hover:-translate-y-0.5"
@@ -102,10 +102,10 @@ export default function Footer() {
             </Link>
             <div className="mt-5 p-4 rounded-xl border border-cream/10 bg-white/5 text-sm">
               <div className="flex justify-between text-cream/60 mb-1">
-                <span>Érkezés</span><span className="text-cream">14:00–20:00</span>
+                <span>Érkezés</span><span className="text-cream">15:00–20:00</span>
               </div>
               <div className="flex justify-between text-cream/60">
-                <span>Távozás</span><span className="text-cream">10:00-ig</span>
+                <span>Távozás</span><span className="text-cream">8:00 – 11:00</span>
               </div>
             </div>
           </div>
