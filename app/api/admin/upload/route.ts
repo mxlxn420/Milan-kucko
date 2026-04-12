@@ -9,8 +9,8 @@ async function isAuthed() {
 }
 
 const ALLOWED_TYPES  = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-const MAX_SIZE_MB    = 5;
-const ALLOWED_BUCKETS = ["extra-services", "hero"];
+const MAX_SIZE_MB    = 20;
+const ALLOWED_BUCKETS = ["extra-services", "hero", "about", "gallery"];
 
 function getSupabase() {
   const url = process.env.SUPABASE_URL;

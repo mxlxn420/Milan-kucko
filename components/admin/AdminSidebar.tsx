@@ -12,6 +12,9 @@ import {
   Sparkles,
   Tag,
   Image,
+  Info,
+  CheckSquare,
+  Images,
 } from "lucide-react";
 
 const LINKS = [
@@ -23,6 +26,9 @@ const LINKS = [
   { href: "/admin/kedvezmenyek",           icon: Tag,             label: "Kedvezmények"         },
   { href: "/admin/extra-szolgaltatasok",   icon: Sparkles,        label: "Extra szolgáltatások" },
   { href: "/admin/hero",                   icon: Image,           label: "Kezdőlap"          },
+  { href: "/admin/rolunk",                 icon: Info,            label: "Rólunk"             },
+  { href: "/admin/felszereltseg",          icon: CheckSquare,     label: "Felszereltség"       },
+  { href: "/admin/galeria",               icon: Images,          label: "Galéria"              },
 ];
 
 export default function AdminSidebar() {

@@ -2,24 +2,35 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { MapPin, Users, Star } from "lucide-react";
 import AnimatedSection from "@/components/ui/AnimatedSection";
+import {
+  MapPin, Users, Waves, Home, TreePine, Flame, Coffee, Utensils, Wifi,
+  Star, Heart, Sun, Bath, Car, Wind, Flower2, ShieldCheck,
+  Bed, Mountain, Sparkles, Music, Bike,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const VALUES = [
-  { icon: MapPin, title: "Zsákutcai csend",    text: "Miskolctapolca csendes sarkában, zsákutcában – mégis mindenhez közel. Az Ellipsum, Barlangfürdő csak 1 km-re!" },
-  { icon: Users,  title: "Csak ti vagytok",    text: "Az egész kuckót kizárólag nektek tartjuk fenn. Nincs más vendég – teljes privát szféra, igazi intimszféra." },
-];
+const ICON_MAP: Record<string, LucideIcon> = {
+  MapPin, Users, Waves, Home, TreePine, Flame, Coffee, Utensils, Wifi,
+  Star, Heart, Sun, Bath, Car, Wind, Flower2, ShieldCheck,
+  Bed, Mountain, Sparkles, Music, Bike,
+};
 
-const NEARBY = [
-  "Ellipsum, Barlangfürdő – 1 km",
-  "Avalon Park / Maya Játszópark – 2,5 km",
-  "Miskolctapolcai Bobpálya",
-  "Erdei kisvasút – Lillafüred",
-  "Diósgyőri Vár",
-  "Hámori tó & Zsófia kilátó",
-];
+interface ImageField { src: string; alt: string; }
+interface Value      { icon: string; title: string; text: string; }
 
-export default function AboutSection() {
+interface AboutData {
+  heading1:     string;
+  heading2:     string;
+  description1: string;
+  description2: string;
+  mainImage:    ImageField;
+  floatImage:   ImageField;
+  values:       Value[];
+  nearby:       string[];
+}
+
+export default function AboutSection({ data }: { data: AboutData }) {
   return (
     <section id="rolunk" className="section-py bg-cream overflow-hidden">
       <div className="container-custom">
@@ -29,8 +40,8 @@ export default function AboutSection() {
           <AnimatedSection direction="left" className="relative">
             <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-luxury">
               <Image
-                src="/images/haz/Milán Kuckó vendégház kis.jpg"
-                alt="Milán Kuckó – vendégház kívülről"
+                src={data.mainImage.src}
+                alt={data.mainImage.alt}
                 fill sizes="(max-width:1024px) 100vw, 50vw"
                 className="object-cover"
               />
@@ -44,8 +55,8 @@ export default function AboutSection() {
               transition={{ duration: 0.7, delay: 0.3 }}
             >
               <Image
-                src="/images/belso/fürdő.jpg"
-                alt="Jacuzzi este"
+                src={data.floatImage.src}
+                alt={data.floatImage.alt}
                 fill sizes="176px"
                 className="object-cover"
               />
@@ -74,56 +85,53 @@ export default function AboutSection() {
           <AnimatedSection direction="right" delay={0.15} className="lg:pl-4">
             <div className="section-badge">Rólunk</div>
             <h2 className="font-serif text-display-lg font-light text-forest-900 mb-6">
-              Egy kis kuckó,<br />
-              <em className="italic">ahol az idő megáll.</em>
+              {data.heading1}<br />
+              <em className="italic">{data.heading2}</em>
             </h2>
-            <p className="text-stone-600 leading-relaxed mb-4">
-              A Milán Kuckó egy romantikus, gondosan berendezett vendégház Miskolctapolca
-              csendes zsákutcájában – <strong>maximum 4 fő</strong> részére. Hatalmas kert, privát
-              jacuzzi, kandalló és ajándék bor vár minden érkezőt.
-            </p>
-            <p className="text-stone-600 leading-relaxed mb-8">
-              Csak ti vagytok az egész „birtokon" – nincs más vendég, nincs zaj.
-              Ugyanakkor Magyarország egyik legkedveltebb üdülőhelyén, a Bükk lábánál
-              rengeteg program vár a közelben.
-            </p>
+            <p className="text-stone-600 leading-relaxed mb-4">{data.description1}</p>
+            <p className="text-stone-600 leading-relaxed mb-8">{data.description2}</p>
 
             {/* Értékek */}
             <div className="space-y-5 mb-10">
-              {VALUES.map(({ icon: Icon, title, text }, i) => (
-                <motion.div
-                  key={title}
-                  className="flex items-start gap-4"
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
-                >
-                  <div className="w-10 h-10 rounded-xl bg-forest-900/8 flex items-center justify-center shrink-0">
-                    <Icon size={18} className="text-forest-700" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-stone-800 mb-0.5">{title}</p>
-                    <p className="text-sm text-stone-500 leading-relaxed">{text}</p>
-                  </div>
-                </motion.div>
-              ))}
+              {data.values.map(({ icon, title, text }, i) => {
+                const Icon = ICON_MAP[icon] ?? Star;
+                return (
+                  <motion.div
+                    key={title + i}
+                    className="flex items-start gap-4"
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-forest-900/8 flex items-center justify-center shrink-0">
+                      <Icon size={18} className="text-forest-700" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-stone-800 mb-0.5">{title}</p>
+                      <p className="text-sm text-stone-500 leading-relaxed">{text}</p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
 
             {/* Közeli látnivalók */}
-            <div className="bg-forest-900/5 rounded-2xl p-5">
-              <p className="text-xs font-medium tracking-[0.15em] uppercase text-forest-700 mb-3">
-                Közeli látnivalók
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {NEARBY.map((item) => (
-                  <div key={item} className="flex items-center gap-2 text-sm text-stone-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-terra-400 shrink-0" />
-                    {item}
-                  </div>
-                ))}
+            {data.nearby.length > 0 && (
+              <div className="bg-forest-900/5 rounded-2xl p-5">
+                <p className="text-xs font-medium tracking-[0.15em] uppercase text-forest-700 mb-3">
+                  Közeli látnivalók
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {data.nearby.map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm text-stone-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-terra-400 shrink-0" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </AnimatedSection>
 
         </div>

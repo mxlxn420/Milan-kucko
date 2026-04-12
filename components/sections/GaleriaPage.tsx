@@ -5,7 +5,10 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
-const CATEGORIES = [
+export interface GalleryImage    { src: string; alt: string; }
+export interface GalleryCategory { id: string; label: string; desc: string; images: GalleryImage[]; }
+
+export const DEFAULT_CATEGORIES: GalleryCategory[] = [
     {
         id: "haz",
         label: "Ház & Exterior",
@@ -133,12 +136,11 @@ const CATEGORIES = [
     },
 ];
 
-// Összes kép flat listája lightboxhoz
-const ALL_IMAGES = CATEGORIES.flatMap((cat) =>
-    cat.images.map((img) => ({ ...img, category: cat.label }))
-);
+export default function GaleriaPage({ categories = DEFAULT_CATEGORIES }: { categories?: GalleryCategory[] }) {
+    const ALL_IMAGES = categories.flatMap((cat) =>
+        cat.images.map((img) => ({ ...img, category: cat.label }))
+    );
 
-export default function GaleriaPage() {
     const [lightbox, setLightbox] = useState<number | null>(null);
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -147,8 +149,8 @@ export default function GaleriaPage() {
 
     // Lightbox megnyitása – globális index alapján
     const openLightbox = (catId: string, imgIndex: number) => {
-        const catStartIndex = CATEGORIES
-            .slice(0, CATEGORIES.findIndex((c) => c.id === catId))
+        const catStartIndex = categories
+            .slice(0, categories.findIndex((c) => c.id === catId))
             .reduce((acc, cat) => acc + cat.images.length, 0);
         setLightbox(catStartIndex + imgIndex);
     };
@@ -180,7 +182,7 @@ export default function GaleriaPage() {
                     >
                         Összes
                     </button>
-                    {CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                         <button
                             key={cat.id}
                             onClick={() => {
@@ -201,7 +203,7 @@ export default function GaleriaPage() {
 
                 {/* Kategóriák szekciónként */}
                 <div className="space-y-20">
-                    {CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                         <section key={cat.id} id={cat.id}>
 
                             {/* Szekció fejléc */}

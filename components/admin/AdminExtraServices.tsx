@@ -290,7 +290,7 @@ function ServiceForm({
                 Kép eltávolítása
               </button>
             )}
-            <p className="text-xs text-stone-400">JPG, PNG vagy WebP, max. 5 MB</p>
+            <p className="text-xs text-stone-400">JPG, PNG vagy WebP, max. 20 MB</p>
             {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
           </div>
         </div>

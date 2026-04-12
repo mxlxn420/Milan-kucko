@@ -152,3 +152,32 @@ model HeroContent {
   slides        Json?
   updatedAt     DateTime @updatedAt
 }
+
+model AboutContent {
+  id           String   @id @default("singleton")
+  heading1     String
+  heading2     String
+  description1 String   @db.Text
+  description2 String   @db.Text
+  mainImage    Json
+  floatImage   Json
+  values       Json
+  nearby       Json
+  updatedAt    DateTime @updatedAt
+}
+
+model AmenitiesContent {
+  id          String   @id @default("singleton")
+  subtitle    String
+  heading     String
+  description String   @db.Text
+  items       Json
+  updatedAt   DateTime @updatedAt
+}
+
+model GalleryContent {
+  id         String   @id @default("singleton")
+  featured   Json
+  categories Json
+  updatedAt  DateTime @updatedAt
+}
