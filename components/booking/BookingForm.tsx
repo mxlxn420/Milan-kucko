@@ -192,11 +192,12 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
             <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-3">
               <CreditCard size={12} className="inline mr-1" />Fizetési mód *
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { value: "card",     label: "Bankkártya",    Icon: CreditCard  },
-                { value: "cash",     label: "Készpénz",      Icon: Banknote    },
-                { value: "transfer", label: "Átutalás",      Icon: Building2   },
+                { value: "card",     label: "Bankkártya",  Icon: CreditCard },
+                { value: "cash",     label: "Készpénz",    Icon: Banknote   },
+                { value: "transfer", label: "Átutalás",    Icon: Building2  },
+                { value: "szep",     label: "SZÉP kártya", Icon: CreditCard },
               ].map(({ value, label, Icon }) => (
                 <button
                   key={value}

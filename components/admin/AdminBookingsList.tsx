@@ -1130,6 +1130,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                           card:     "Bankkártya",
                           cash:     "Készpénz",
                           transfer: "Banki átutalás",
+                          szep:     "SZÉP kártya",
                         }[(selected as any).paymentMethod] ?? (selected as any).paymentMethod}
                       </p>
                     </section>
