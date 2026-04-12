@@ -143,7 +143,7 @@ export default function SeasonForm({
                   Szezon kezdete
                 </p>
                 {!rule.featured && existingRanges.length > 0 && (
-                  <p className="text-xs text-terra-500 mb-2">🔒 Áthúzott napok már foglaltak</p>
+                  <p className="text-xs text-terra-500 mb-2">🔒 Áthúzott napok már más szezonhoz tartoznak</p>
                 )}
                 <DayPicker
                   mode="single"
@@ -200,7 +200,7 @@ export default function SeasonForm({
                   Szezon vége
                 </p>
                 {!rule.featured && existingRanges.length > 0 && (
-                  <p className="text-xs text-terra-500 mb-2">🔒 Áthúzott napok már foglaltak</p>
+                  <p className="text-xs text-terra-500 mb-2">🔒 Áthúzott napok már más szezonhoz tartoznak</p>
                 )}
                 <DayPicker
                   mode="single"
