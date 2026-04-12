@@ -178,6 +178,7 @@ export async function POST(req: NextRequest) {
         depositAmount,
         extraServices:     extraServices     ?? null,
         extraServicesTotal: Number(extraServicesTotal) || 0,
+        paymentMethod:     body.paymentMethod ?? null,
         status: "PENDING",
       },
     });

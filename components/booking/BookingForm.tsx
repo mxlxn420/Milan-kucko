@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import {
   ArrowLeft, ArrowRight, User, Mail, Phone, MessageSquare,
-  Moon, CalendarCheck, Check, ImageOff, Plus, Minus,
+  Moon, CalendarCheck, Check, ImageOff, Plus, Minus, CreditCard, Banknote, Building2,
 } from "lucide-react";
 import { formatDateHu, formatCurrency } from "@/lib/utils";
 import type { BookingData, SelectedService } from "./BookingPage";
@@ -27,7 +27,7 @@ interface Props {
 }
 
 export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", notes: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", notes: "", paymentMethod: "card" });
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState<string | null>(null);
   const [services, setServices]       = useState<ExtraService[]>([]);
@@ -98,6 +98,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
           numberOfChildren2to6:  bookingData.children2to6,
           numberOfChildren6to12: bookingData.children6to12,
           notes:                form.notes || null,
+          paymentMethod:        form.paymentMethod,
           checkIn:              format(bookingData.checkIn,  "yyyy-MM-dd"),
           checkOut:             format(bookingData.checkOut, "yyyy-MM-dd"),
           basePrice:            bookingData.basePrice,
@@ -184,6 +185,34 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />
+          </div>
+
+          {/* Fizetési mód */}
+          <div>
+            <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-3">
+              <CreditCard size={12} className="inline mr-1" />Fizetési mód *
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { value: "card",     label: "Bankkártya",    Icon: CreditCard  },
+                { value: "cash",     label: "Készpénz",      Icon: Banknote    },
+                { value: "transfer", label: "Átutalás",      Icon: Building2   },
+              ].map(({ value, label, Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setForm({ ...form, paymentMethod: value })}
+                  className={`flex flex-col items-center gap-2 py-4 px-2 rounded-2xl border-2 transition-all text-sm font-medium ${
+                    form.paymentMethod === value
+                      ? "border-forest-600 bg-forest-50 text-forest-800"
+                      : "border-stone-200 text-stone-500 hover:border-stone-300"
+                  }`}
+                >
+                  <Icon size={20} className={form.paymentMethod === value ? "text-forest-600" : "text-stone-400"} />
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

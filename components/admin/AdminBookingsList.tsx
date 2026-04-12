@@ -1121,6 +1121,20 @@ export default function AdminBookingsList({ bookings }: Props) {
                     })()}
                   </section>
 
+                  {/* Fizetési mód */}
+                  {(selected as any).paymentMethod && (
+                    <section>
+                      <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Fizetési mód</h3>
+                      <p className="text-sm text-stone-700 bg-stone-50 rounded-xl px-3 py-2">
+                        {{
+                          card:     "Bankkártya",
+                          cash:     "Készpénz",
+                          transfer: "Banki átutalás",
+                        }[(selected as any).paymentMethod] ?? (selected as any).paymentMethod}
+                      </p>
+                    </section>
+                  )}
+
                   {/* Megjegyzés */}
                   {selected.notes && (
                     <section>

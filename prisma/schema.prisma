@@ -34,6 +34,7 @@ model Booking {
   extraServicesTotal    Float         @default(0)
   discountPercent       Float         @default(0)
   discountAmount        Float         @default(0)
+  paymentMethod         String?
   status                BookingStatus @default(PENDING)
   paymentIntentId       String?       @unique
   paidAt                DateTime?
