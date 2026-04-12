@@ -1127,10 +1127,13 @@ export default function AdminBookingsList({ bookings }: Props) {
                       <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Fizetési mód</h3>
                       <p className="text-sm text-stone-700 bg-stone-50 rounded-xl px-3 py-2">
                         {{
-                          card:     "Bankkártya",
-                          cash:     "Készpénz",
-                          transfer: "Banki átutalás",
-                          szep:     "SZÉP kártya",
+                          card:                  "Bankkártya",
+                          cash:                  "Készpénz",
+                          transfer:              "Banki átutalás",
+                          szep:                  "SZÉP kártya",
+                          "szep-otp":            "OTP SZÉP kártya",
+                          "szep-mbh":            "MBH SZÉP kártya",
+                          "szep-kh":             "K&H SZÉP kártya",
                         }[(selected as any).paymentMethod] ?? (selected as any).paymentMethod}
                       </p>
                     </section>

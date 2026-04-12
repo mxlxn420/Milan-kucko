@@ -27,7 +27,7 @@ interface Props {
 }
 
 export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", notes: "", paymentMethod: "card" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", notes: "", paymentMethod: "card", szepType: "" });
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState<string | null>(null);
   const [services, setServices]       = useState<ExtraService[]>([]);
@@ -98,7 +98,9 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
           numberOfChildren2to6:  bookingData.children2to6,
           numberOfChildren6to12: bookingData.children6to12,
           notes:                form.notes || null,
-          paymentMethod:        form.paymentMethod,
+          paymentMethod:        form.paymentMethod === "szep" && form.szepType
+                                  ? `szep-${form.szepType}`
+                                  : form.paymentMethod,
           checkIn:              format(bookingData.checkIn,  "yyyy-MM-dd"),
           checkOut:             format(bookingData.checkOut, "yyyy-MM-dd"),
           basePrice:            bookingData.basePrice,
@@ -202,7 +204,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                 <button
                   key={value}
                   type="button"
-                  onClick={() => setForm({ ...form, paymentMethod: value })}
+                  onClick={() => setForm({ ...form, paymentMethod: value, szepType: value === "szep" ? (form.szepType || "otp") : "" })}
                   className={`flex flex-col items-center gap-2 py-4 px-2 rounded-2xl border-2 transition-all text-sm font-medium ${
                     form.paymentMethod === value
                       ? "border-forest-600 bg-forest-50 text-forest-800"
@@ -214,6 +216,30 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                 </button>
               ))}
             </div>
+
+            {/* SZÉP kártya bank választó */}
+            {form.paymentMethod === "szep" && (
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {[
+                  { value: "otp", label: "OTP" },
+                  { value: "mbh", label: "MBH" },
+                  { value: "kh",  label: "K&H" },
+                ].map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setForm({ ...form, szepType: value })}
+                    className={`py-2.5 px-3 rounded-xl border-2 text-xs font-medium transition-all ${
+                      form.szepType === value
+                        ? "border-forest-600 bg-forest-50 text-forest-800"
+                        : "border-stone-200 text-stone-500 hover:border-stone-300"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
