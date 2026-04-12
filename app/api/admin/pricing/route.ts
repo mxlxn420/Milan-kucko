@@ -5,16 +5,17 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Átfedés-ellenőrzés kiemelt időszakok között
-    if (body.dateFrom && body.dateTo) {
+    // Átfedés-ellenőrzés: csak kiemelt időszakok (priority >= 10) ne fedhessék egymást
+    if (body.dateFrom && body.dateTo && Number(body.priority) >= 10) {
       const newFrom = new Date(body.dateFrom);
       const newTo   = new Date(body.dateTo);
 
       const overlap = await prisma.pricingRule.findFirst({
         where: {
-          isActive: true,
-          dateFrom: { not: null },
-          dateTo:   { not: null },
+          isActive:  true,
+          priority:  { gte: 10 },
+          dateFrom:  { not: null },
+          dateTo:    { not: null },
           AND: [
             { dateFrom: { lte: newTo   } },
             { dateTo:   { gte: newFrom } },
@@ -32,20 +33,24 @@ export async function POST(req: NextRequest) {
 
     const rule = await prisma.pricingRule.create({
       data: {
-        name:           body.name,
-        pricePerNight:  Number(body.pricePerNight),
-        weekendPrice:   Number(body.weekendPrice)    || 0,
-        childPrice2to6: Number(body.childPrice2to6)  || 0,
-        childPrice6to12:Number(body.childPrice6to12) || 0,
-        dateFrom:       body.dateFrom ? new Date(body.dateFrom) : null,
-        dateTo:         body.dateTo   ? new Date(body.dateTo)   : null,
-        minNights:      Number(body.minNights)       || 2,
-        minAdvanceDays: Number(body.minAdvanceDays) ?? 2,
-        extraGuestFee:  0,
-        extraGuestFrom: 3,
-        isActive:       body.isActive ?? true,
-        priority:       Number(body.priority)        || 5,
-        policyId:       body.policyId ?? null,
+        name:            body.name,
+        pricePerNight:   Number(body.pricePerNight),
+        price3:          Number(body.price3)          || 0,
+        price4:          Number(body.price4)          || 0,
+        weekendPrice:    Number(body.weekendPrice)    || 0,
+        weekendPrice3:   Number(body.weekendPrice3)   || 0,
+        weekendPrice4:   Number(body.weekendPrice4)   || 0,
+        childPrice2to6:  Number(body.childPrice2to6)  || 0,
+        childPrice6to12: Number(body.childPrice6to12) || 0,
+        dateFrom:        body.dateFrom ? new Date(body.dateFrom) : null,
+        dateTo:          body.dateTo   ? new Date(body.dateTo)   : null,
+        minNights:       Number(body.minNights)       || 2,
+        minAdvanceDays:  Number(body.minAdvanceDays) ?? 2,
+        extraGuestFee:   0,
+        extraGuestFrom:  3,
+        isActive:        body.isActive ?? true,
+        priority:        Number(body.priority)        || 5,
+        policyId:        body.policyId ?? null,
       },
     });
 
@@ -53,7 +58,11 @@ export async function POST(req: NextRequest) {
       success: true,
       data: {
         ...rule,
+        price3:          (rule as any).price3          ?? 0,
+        price4:          (rule as any).price4          ?? 0,
         weekendPrice:    (rule as any).weekendPrice    ?? 0,
+        weekendPrice3:   (rule as any).weekendPrice3   ?? 0,
+        weekendPrice4:   (rule as any).weekendPrice4   ?? 0,
         childPrice2to6:  (rule as any).childPrice2to6  ?? 0,
         childPrice6to12: (rule as any).childPrice6to12 ?? 0,
         dateFrom: rule.dateFrom?.toISOString() ?? null,

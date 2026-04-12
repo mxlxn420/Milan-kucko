@@ -11,7 +11,11 @@ import "react-day-picker/dist/style.css";
 interface SeasonFormRule {
   name:            string;
   pricePerNight:   number;
+  price3:          number;
+  price4:          number;
   weekendPrice:    number;
+  weekendPrice3:   number;
+  weekendPrice4:   number;
   childPrice2to6:  number;
   childPrice6to12: number;
   dateFrom:        Date | null;
@@ -242,10 +246,17 @@ export default function SeasonForm({
           }
         </div>
 
-        {/* Hétköznapi ár */}
+        {/* Árak szekció fejléc */}
+        <div className="md:col-span-2">
+          <p className="text-xs text-cream/60 uppercase tracking-wider mb-1 pt-2 border-t border-white/10">
+            Hétköznapi árak (Ft/éj)
+          </p>
+        </div>
+
+        {/* Hétköznapi 1-2 fő */}
         <div>
           <label className="text-xs text-cream/60 uppercase tracking-wider block mb-1.5">
-            Hétköznapi ár/éj (Ft) *
+            1–2 fő *
           </label>
           <input
             type="number"
@@ -256,11 +267,45 @@ export default function SeasonForm({
           <p className="text-xs text-cream/40 mt-1">Alap ár: {formatCurrency(basePrice)}</p>
         </div>
 
-        {/* Hétvégi ár */}
+        {/* Hétköznapi 3 fő */}
         <div>
           <label className="text-xs text-cream/60 uppercase tracking-wider block mb-1.5">
-            Hétvégi ár/éj (Ft)
-            <span className="text-cream/40 ml-1 normal-case">(P–Szo)</span>
+            3 fő
+          </label>
+          <input
+            type="number"
+            className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-cream text-sm focus:outline-none focus:border-white/50"
+            placeholder="Ha üres = 1–2 fő ár"
+            value={rule.price3 || ""}
+            onChange={(e) => setRule({ ...rule, price3: Number(e.target.value) })}
+          />
+        </div>
+
+        {/* Hétköznapi 4 fő */}
+        <div>
+          <label className="text-xs text-cream/60 uppercase tracking-wider block mb-1.5">
+            4 fő
+          </label>
+          <input
+            type="number"
+            className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-cream text-sm focus:outline-none focus:border-white/50"
+            placeholder="Ha üres = 3 fő ár"
+            value={rule.price4 || ""}
+            onChange={(e) => setRule({ ...rule, price4: Number(e.target.value) })}
+          />
+        </div>
+
+        {/* Hétvégi árak fejléc */}
+        <div className="md:col-span-2">
+          <p className="text-xs text-cream/60 uppercase tracking-wider mb-1 pt-2 border-t border-white/10">
+            {"H\u00E9tv\u00E9gi \u00E1rak (P\u2013Szo, Ft/\u00E9j)"}
+          </p>
+        </div>
+
+        {/* Hétvégi 1-2 fő */}
+        <div>
+          <label className="text-xs text-cream/60 uppercase tracking-wider block mb-1.5">
+            1–2 fő
           </label>
           <input
             type="number"
@@ -268,6 +313,34 @@ export default function SeasonForm({
             placeholder="Ha üres = hétköznapi"
             value={rule.weekendPrice || ""}
             onChange={(e) => setRule({ ...rule, weekendPrice: Number(e.target.value) })}
+          />
+        </div>
+
+        {/* Hétvégi 3 fő */}
+        <div>
+          <label className="text-xs text-cream/60 uppercase tracking-wider block mb-1.5">
+            3 fő
+          </label>
+          <input
+            type="number"
+            className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-cream text-sm focus:outline-none focus:border-white/50"
+            placeholder="Ha üres = 1–2 fő hétvégi"
+            value={rule.weekendPrice3 || ""}
+            onChange={(e) => setRule({ ...rule, weekendPrice3: Number(e.target.value) })}
+          />
+        </div>
+
+        {/* Hétvégi 4 fő */}
+        <div>
+          <label className="text-xs text-cream/60 uppercase tracking-wider block mb-1.5">
+            4 fő
+          </label>
+          <input
+            type="number"
+            className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-cream text-sm focus:outline-none focus:border-white/50"
+            placeholder="Ha üres = 3 fő hétvégi"
+            value={rule.weekendPrice4 || ""}
+            onChange={(e) => setRule({ ...rule, weekendPrice4: Number(e.target.value) })}
           />
         </div>
 

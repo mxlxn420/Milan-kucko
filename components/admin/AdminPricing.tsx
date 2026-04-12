@@ -21,7 +21,11 @@ interface EditableRule {
   id:              string;
   name:            string;
   pricePerNight:   number;
+  price3:          number;
+  price4:          number;
   weekendPrice:    number;
+  weekendPrice3:   number;
+  weekendPrice4:   number;
   childPrice2to6:  number;
   childPrice6to12: number;
   dateFrom:        Date | null;
@@ -50,7 +54,11 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
   const EMPTY_NEW = {
     name:            "",
     pricePerNight:   basePrice,
+    price3:          0,
+    price4:          0,
     weekendPrice:    0,
+    weekendPrice3:   0,
+    weekendPrice4:   0,
     childPrice2to6:  0,
     childPrice6to12: 0,
     dateFrom:        null as Date | null,
@@ -125,7 +133,11 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
       id:              rule.id,
       name:            rule.name,
       pricePerNight:   rule.pricePerNight,
+      price3:          (rule as any).price3          ?? 0,
+      price4:          (rule as any).price4          ?? 0,
       weekendPrice:    (rule as any).weekendPrice    ?? 0,
+      weekendPrice3:   (rule as any).weekendPrice3   ?? 0,
+      weekendPrice4:   (rule as any).weekendPrice4   ?? 0,
       childPrice2to6:  (rule as any).childPrice2to6  ?? 0,
       childPrice6to12: (rule as any).childPrice6to12 ?? 0,
       dateFrom:        rule.dateFrom ? new Date(rule.dateFrom as string) : null,
@@ -151,7 +163,11 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
         body:    JSON.stringify({
           name:            editRule.name,
           pricePerNight:   editRule.pricePerNight,
+          price3:          editRule.price3,
+          price4:          editRule.price4,
           weekendPrice:    editRule.weekendPrice,
+          weekendPrice3:   editRule.weekendPrice3,
+          weekendPrice4:   editRule.weekendPrice4,
           childPrice2to6:  editRule.childPrice2to6,
           childPrice6to12: editRule.childPrice6to12,
           dateFrom:        editRule.dateFrom?.toISOString() ?? null,
@@ -170,7 +186,11 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
             ...r,
             name:            editRule.name,
             pricePerNight:   editRule.pricePerNight,
+            price3:          editRule.price3,
+            price4:          editRule.price4,
             weekendPrice:    editRule.weekendPrice,
+            weekendPrice3:   editRule.weekendPrice3,
+            weekendPrice4:   editRule.weekendPrice4,
             childPrice2to6:  editRule.childPrice2to6,
             childPrice6to12: editRule.childPrice6to12,
             dateFrom:        editRule.dateFrom?.toISOString() ?? null,
@@ -252,15 +272,39 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">Hétköznapi ár/éj</label>
+              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">1–2 fő / éj (hétköznap)</label>
               <input type="number" className="input-base" value={baseRule.pricePerNight}
                 onChange={(e) => handleChange(baseRule.id, "pricePerNight", Number(e.target.value))} />
             </div>
             <div>
-              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">Hétvégi ár/éj</label>
+              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">3 fő / éj (hétköznap)</label>
+              <input type="number" className="input-base" placeholder="Ha üres = 1–2 fő ár"
+                value={(baseRule as any).price3 || ""}
+                onChange={(e) => handleChange(baseRule.id, "price3" as any, Number(e.target.value))} />
+            </div>
+            <div>
+              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">4 fő / éj (hétköznap)</label>
+              <input type="number" className="input-base" placeholder="Ha üres = 3 fő ár"
+                value={(baseRule as any).price4 || ""}
+                onChange={(e) => handleChange(baseRule.id, "price4" as any, Number(e.target.value))} />
+            </div>
+            <div>
+              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">1–2 fő / éj (hétvégi)</label>
               <input type="number" className="input-base" placeholder="Ha üres = hétköznapi"
                 value={(baseRule as any).weekendPrice || ""}
                 onChange={(e) => handleChange(baseRule.id, "weekendPrice" as any, Number(e.target.value))} />
+            </div>
+            <div>
+              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">3 fő / éj (hétvégi)</label>
+              <input type="number" className="input-base" placeholder="Ha üres = 1–2 fő hétvégi"
+                value={(baseRule as any).weekendPrice3 || ""}
+                onChange={(e) => handleChange(baseRule.id, "weekendPrice3" as any, Number(e.target.value))} />
+            </div>
+            <div>
+              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">4 fő / éj (hétvégi)</label>
+              <input type="number" className="input-base" placeholder="Ha üres = 3 fő hétvégi"
+                value={(baseRule as any).weekendPrice4 || ""}
+                onChange={(e) => handleChange(baseRule.id, "weekendPrice4" as any, Number(e.target.value))} />
             </div>
             <div>
               <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">Min. éjszaka</label>

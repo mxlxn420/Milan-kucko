@@ -10,17 +10,18 @@ export async function PATCH(
 
     console.log("PATCH pricing body:", body); // DEBUG
 
-    // Átfedés-ellenőrzés kiemelt időszakok között (saját rekordot kizárva)
-    if (body.dateFrom && body.dateTo) {
+    // Átfedés-ellenőrzés: csak kiemelt időszakok (priority >= 10) ne fedhessék egymást
+    if (body.dateFrom && body.dateTo && Number(body.priority) >= 10) {
       const newFrom = new Date(body.dateFrom);
       const newTo   = new Date(body.dateTo);
 
       const overlap = await prisma.pricingRule.findFirst({
         where: {
           id:       { not: params.id },
-          isActive: true,
-          dateFrom: { not: null },
-          dateTo:   { not: null },
+          isActive:  true,
+          priority:  { gte: 10 },
+          dateFrom:  { not: null },
+          dateTo:    { not: null },
           AND: [
             { dateFrom: { lte: newTo   } },
             { dateTo:   { gte: newFrom } },
@@ -41,7 +42,11 @@ export async function PATCH(
       data: {
         name:            body.name,
         pricePerNight:   Number(body.pricePerNight),
+        price3:          Number(body.price3)          || 0,
+        price4:          Number(body.price4)          || 0,
         weekendPrice:    Number(body.weekendPrice)    || 0,
+        weekendPrice3:   Number(body.weekendPrice3)   || 0,
+        weekendPrice4:   Number(body.weekendPrice4)   || 0,
         childPrice2to6:  Number(body.childPrice2to6)  || 0,
         childPrice6to12: Number(body.childPrice6to12) || 0,
         dateFrom:        body.dateFrom ? new Date(body.dateFrom) : null,
@@ -60,7 +65,11 @@ export async function PATCH(
       success: true,
       data: {
         ...updated,
+        price3:          (updated as any).price3          ?? 0,
+        price4:          (updated as any).price4          ?? 0,
         weekendPrice:    (updated as any).weekendPrice    ?? 0,
+        weekendPrice3:   (updated as any).weekendPrice3   ?? 0,
+        weekendPrice4:   (updated as any).weekendPrice4   ?? 0,
         childPrice2to6:  (updated as any).childPrice2to6  ?? 0,
         childPrice6to12: (updated as any).childPrice6to12 ?? 0,
         dateFrom: updated.dateFrom?.toISOString() ?? null,

@@ -46,19 +46,33 @@ function getApplicableRule(checkIn: Date, rules: PricingRule[]): PricingRule | n
   return sorted.find((r) => !r.dateFrom && !r.dateTo) ?? null;
 }
 
-function getPriceForNight(date: Date, rule: PricingRule): number {
-  if (rule.weekendPrice > 0 && [5, 6].includes(getDay(date))) return rule.weekendPrice;
-  return rule.pricePerNight;
+function getPriceForNight(date: Date, rule: PricingRule, personCount: number): number {
+  const isWeekend = [5, 6].includes(getDay(date));
+
+  let tier1to2: number, tier3: number, tier4: number;
+  if (isWeekend) {
+    tier1to2 = rule.weekendPrice  > 0 ? rule.weekendPrice  : rule.pricePerNight;
+    tier3    = (rule as any).weekendPrice3 > 0 ? (rule as any).weekendPrice3 : tier1to2;
+    tier4    = (rule as any).weekendPrice4 > 0 ? (rule as any).weekendPrice4 : tier3;
+  } else {
+    tier1to2 = rule.pricePerNight;
+    tier3    = (rule as any).price3 > 0 ? (rule as any).price3 : tier1to2;
+    tier4    = (rule as any).price4 > 0 ? (rule as any).price4 : tier3;
+  }
+
+  if (personCount >= 4) return tier4;
+  if (personCount >= 3) return tier3;
+  return tier1to2;
 }
 
 function calcBaseTotal(checkIn: Date, checkOut: Date, rule: PricingRule, personCount: number): number {
   let nightlyTotal = 0;
   const cur = new Date(checkIn);
   while (cur < checkOut) {
-    nightlyTotal += getPriceForNight(cur, rule);
+    nightlyTotal += getPriceForNight(cur, rule, personCount);
     cur.setDate(cur.getDate() + 1);
   }
-  return nightlyTotal * personCount;
+  return nightlyTotal;
 }
 
 function isRangeOverlapping(from: Date, to: Date, bookedRanges: BookedRange[]): boolean {
@@ -194,8 +208,22 @@ export default function BookingCalendar({ onNext }: Props) {
   const currentRule = checkIn ? getApplicableRule(checkIn, rules) : null;
   const minNights   = currentRule?.minNights ?? 2;
 
+  const personCount = adults + teens;
+  const effectiveWeekdayRate = currentRule ? (() => {
+    const t2 = currentRule.pricePerNight;
+    const t3 = (currentRule as any).price3 > 0 ? (currentRule as any).price3 : t2;
+    const t4 = (currentRule as any).price4 > 0 ? (currentRule as any).price4 : t3;
+    return personCount >= 4 ? t4 : personCount >= 3 ? t3 : t2;
+  })() : 0;
+  const effectiveWeekendRate = currentRule ? (() => {
+    const t2 = (currentRule as any).weekendPrice > 0 ? (currentRule as any).weekendPrice : currentRule.pricePerNight;
+    const t3 = (currentRule as any).weekendPrice3 > 0 ? (currentRule as any).weekendPrice3 : t2;
+    const t4 = (currentRule as any).weekendPrice4 > 0 ? (currentRule as any).weekendPrice4 : t3;
+    return personCount >= 4 ? t4 : personCount >= 3 ? t3 : t2;
+  })() : 0;
+
   const baseTotal       = checkIn && checkOut && nights > 0 && currentRule
-    ? calcBaseTotal(checkIn, checkOut, currentRule, adults + teens)
+    ? calcBaseTotal(checkIn, checkOut, currentRule, personCount)
     : 0;
   const child2to6Price  = currentRule?.childPrice2to6  ?? 0;
   const child6to12Price = currentRule?.childPrice6to12 ?? 0;
@@ -252,8 +280,8 @@ export default function BookingCalendar({ onNext }: Props) {
       nights,
       weekdayNights,
       weekendNights,
-      weekdayRate:     currentRule?.pricePerNight ?? 0,
-      weekendRate:     (currentRule?.weekendPrice ?? 0) > 0 ? (currentRule?.weekendPrice ?? 0) : (currentRule?.pricePerNight ?? 0),
+      weekdayRate:     effectiveWeekdayRate,
+      weekendRate:     effectiveWeekendRate,
       totalPrice:      total,
       basePrice:       baseTotal,
       childPrice2to6:  child2to6Price,
@@ -468,22 +496,22 @@ export default function BookingCalendar({ onNext }: Props) {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-stone-700 font-medium">Szállás</p>
-                    {currentRule.weekendPrice > 0 && weekendNights > 0 && weekdayNights > 0 ? (
+                    {effectiveWeekendRate !== effectiveWeekdayRate && weekendNights > 0 && weekdayNights > 0 ? (
                       <>
                         <p className="text-xs text-stone-400 mt-0.5">
-                          {adults + teens} fő × {weekdayNights} hétköznap × {formatCurrency(currentRule.pricePerNight)}/éj
+                          {weekdayNights} hétköznap × {formatCurrency(effectiveWeekdayRate)}/éj
                         </p>
                         <p className="text-xs text-stone-400">
-                          {adults + teens} fő × {weekendNights} hétvégi éj × {formatCurrency(currentRule.weekendPrice)}/éj
+                          {weekendNights} hétvégi éj × {formatCurrency(effectiveWeekendRate)}/éj
                         </p>
                       </>
-                    ) : currentRule.weekendPrice > 0 && weekendNights === nights ? (
+                    ) : effectiveWeekendRate !== effectiveWeekdayRate && weekendNights === nights ? (
                       <p className="text-xs text-stone-400 mt-0.5">
-                        {adults + teens} fő × {nights} hétvégi éj × {formatCurrency(currentRule.weekendPrice)}/éj
+                        {nights} hétvégi éj × {formatCurrency(effectiveWeekendRate)}/éj
                       </p>
                     ) : (
                       <p className="text-xs text-stone-400 mt-0.5">
-                        {adults + teens} fő × {nights} éj × {formatCurrency(currentRule.pricePerNight)}/éj
+                        {nights} éj × {formatCurrency(effectiveWeekdayRate)}/éj
                       </p>
                     )}
                   </div>

@@ -65,14 +65,25 @@ function calcPriceBreakdown(
   const nights = differenceInCalendarDays(checkOut, checkIn);
   if (nights <= 0) return null;
 
-  // Szállásdíj: felnőtt + fiatal (12–18) × éjszakánként, hétvégi árral
+  // Szállásdíj: vendégszám alapján sávos ár × éjszakánként
   const personCount = adults + teens;
   let basePrice = 0;
   const cur = new Date(checkIn);
   while (cur < checkOut) {
     const dow = getDay(cur);
-    const nightRate = rule.weekendPrice > 0 && [5, 6].includes(dow) ? rule.weekendPrice : rule.pricePerNight;
-    basePrice += nightRate * personCount;
+    const isWeekend = [5, 6].includes(dow);
+    let tier1to2: number, tier3: number, tier4: number;
+    if (isWeekend) {
+      tier1to2 = rule.weekendPrice  > 0 ? rule.weekendPrice  : rule.pricePerNight;
+      tier3    = (rule as any).weekendPrice3 > 0 ? (rule as any).weekendPrice3 : tier1to2;
+      tier4    = (rule as any).weekendPrice4 > 0 ? (rule as any).weekendPrice4 : tier3;
+    } else {
+      tier1to2 = rule.pricePerNight;
+      tier3    = (rule as any).price3 > 0 ? (rule as any).price3 : tier1to2;
+      tier4    = (rule as any).price4 > 0 ? (rule as any).price4 : tier3;
+    }
+    const nightRate = personCount >= 4 ? tier4 : personCount >= 3 ? tier3 : tier1to2;
+    basePrice += nightRate;
     cur.setDate(cur.getDate() + 1);
   }
 

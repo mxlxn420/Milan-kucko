@@ -57,7 +57,11 @@ model PricingRule {
   id              String         @id @default(cuid())
   name            String
   pricePerNight   Float
+  price3          Float          @default(0)
+  price4          Float          @default(0)
   weekendPrice    Float          @default(0)
+  weekendPrice3   Float          @default(0)
+  weekendPrice4   Float          @default(0)
   childPrice2to6  Float          @default(0)
   childPrice6to12 Float          @default(0)
   dateFrom        DateTime?
