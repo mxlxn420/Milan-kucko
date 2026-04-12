@@ -76,11 +76,15 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
   }, [seasonRules, editingId]);
 
   const disabledDaysNew  = useMemo(() =>
-    newRule.featured  ? [] : existingRanges.map((r) => ({ from: r.from, to: r.to })),
+    existingRanges
+      .filter((r) => newRule.featured ? r.priority >= 10 : true)
+      .map((r) => ({ from: r.from, to: r.to })),
     [existingRanges, newRule.featured]
   );
   const disabledDaysEdit = useMemo(() =>
-    editRule?.featured ? [] : existingRanges.map((r) => ({ from: r.from, to: r.to })),
+    existingRanges
+      .filter((r) => editRule?.featured ? r.priority >= 10 : true)
+      .map((r) => ({ from: r.from, to: r.to })),
     [existingRanges, editRule?.featured]
   );
 
