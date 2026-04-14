@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion }    from "framer-motion";
+import { motion } from "framer-motion";
 import { DayPicker, DateRange } from "react-day-picker";
 import { differenceInCalendarDays, getDay, startOfDay, addDays, format } from "date-fns";
-import { hu }        from "date-fns/locale";
+import { hu } from "date-fns/locale";
 import {
   Users, Baby, ArrowRight, AlertCircle,
   ChevronDown, ChevronUp, Loader2,
@@ -15,22 +15,22 @@ import type { BookingData } from "./BookingPage";
 import "react-day-picker/dist/style.css";
 
 interface PricingRule {
-  id:              string;
-  name:            string;
-  pricePerNight:   number;
-  weekendPrice:    number;
-  childPrice2to6:  number;
+  id: string;
+  name: string;
+  pricePerNight: number;
+  weekendPrice: number;
+  childPrice2to6: number;
   childPrice6to12: number;
-  dateFrom:        string | null;
-  dateTo:          string | null;
-  minNights:       number;
-  isActive:        boolean;
-  priority:        number;
+  dateFrom: string | null;
+  dateTo: string | null;
+  minNights: number;
+  isActive: boolean;
+  priority: number;
 }
 
 interface BookedRange {
   from: Date;
-  to:   Date;
+  to: Date;
 }
 
 function getApplicableRule(checkIn: Date, rules: PricingRule[]): PricingRule | null {
@@ -39,7 +39,7 @@ function getApplicableRule(checkIn: Date, rules: PricingRule[]): PricingRule | n
   for (const rule of sorted) {
     if (rule.dateFrom && rule.dateTo) {
       const from = new Date(rule.dateFrom);
-      const to   = new Date(rule.dateTo);
+      const to = new Date(rule.dateTo);
       if (checkIn >= from && checkIn <= to) return rule;
     }
   }
@@ -51,13 +51,13 @@ function getPriceForNight(date: Date, rule: PricingRule, personCount: number): n
 
   let tier1to2: number, tier3: number, tier4: number;
   if (isWeekend) {
-    tier1to2 = rule.weekendPrice  > 0 ? rule.weekendPrice  : rule.pricePerNight;
-    tier3    = (rule as any).weekendPrice3 > 0 ? (rule as any).weekendPrice3 : tier1to2;
-    tier4    = (rule as any).weekendPrice4 > 0 ? (rule as any).weekendPrice4 : tier3;
+    tier1to2 = rule.weekendPrice > 0 ? rule.weekendPrice : rule.pricePerNight;
+    tier3 = (rule as any).weekendPrice3 > 0 ? (rule as any).weekendPrice3 : tier1to2;
+    tier4 = (rule as any).weekendPrice4 > 0 ? (rule as any).weekendPrice4 : tier3;
   } else {
     tier1to2 = rule.pricePerNight;
-    tier3    = (rule as any).price3 > 0 ? (rule as any).price3 : tier1to2;
-    tier4    = (rule as any).price4 > 0 ? (rule as any).price4 : tier3;
+    tier3 = (rule as any).price3 > 0 ? (rule as any).price3 : tier1to2;
+    tier4 = (rule as any).price4 > 0 ? (rule as any).price4 : tier3;
   }
 
   if (personCount >= 4) return tier4;
@@ -117,7 +117,7 @@ interface Props {
 export default function BookingCalendar({ onNext }: Props) {
   const store = useBookingStore();
 
-  const storeCheckIn  = store.checkIn  ? new Date(store.checkIn)  : null;
+  const storeCheckIn = store.checkIn ? new Date(store.checkIn) : null;
   const storeCheckOut = store.checkOut ? new Date(store.checkOut) : null;
 
   const [range, setRange] = useState<DateRange | undefined>(
@@ -128,25 +128,25 @@ export default function BookingCalendar({ onNext }: Props) {
   const storeTotal = (store.adults ?? 0) + (store.teens ?? 0) + (store.babies ?? 0) + (store.children2to6 ?? 0) + (store.children6to12 ?? 0);
   const validStore = storeTotal <= 4;
 
-  const [adults, setAdults]               = useState(validStore && store.adults > 0 ? store.adults : 2);
-  const [teens, setTeens]                 = useState(validStore ? (store.teens ?? 0) : 0);
-  const [babies, setBabies]               = useState(validStore ? (store.babies ?? 0) : 0);
-  const [children2to6, setChildren2to6]   = useState(validStore ? (store.children2to6 ?? 0) : 0);
+  const [adults, setAdults] = useState(validStore && store.adults > 0 ? store.adults : 2);
+  const [teens, setTeens] = useState(validStore ? (store.teens ?? 0) : 0);
+  const [babies, setBabies] = useState(validStore ? (store.babies ?? 0) : 0);
+  const [children2to6, setChildren2to6] = useState(validStore ? (store.children2to6 ?? 0) : 0);
   const [children6to12, setChildren6to12] = useState(validStore ? (store.children6to12 ?? 0) : 0);
-  const [error, setError]                 = useState<string | null>(null);
-  const [showChildren, setShowChildren]   = useState(
+  const [error, setError] = useState<string | null>(null);
+  const [showChildren, setShowChildren] = useState(
     (store.teens + store.babies + store.children2to6 + store.children6to12) > 0
   );
-  const [rules, setRules]                 = useState<PricingRule[]>([]);
-  const [loadingRules, setLoadingRules]   = useState(true);
-  const [bookedRanges, setBookedRanges]   = useState<BookedRange[]>([]);
+  const [rules, setRules] = useState<PricingRule[]>([]);
+  const [loadingRules, setLoadingRules] = useState(true);
+  const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
   const [minAdvanceDays, setMinAdvanceDays] = useState(2);
-  const [discount, setDiscount]           = useState<{ name: string; discountPercent: number } | null>(null);
+  const [discount, setDiscount] = useState<{ name: string; discountPercent: number } | null>(null);
 
   useEffect(() => {
     const loadPricing = async () => {
       try {
-        const res  = await fetch("/api/pricing");
+        const res = await fetch("/api/pricing");
         const data = await res.json();
         if (data.success && data.data.length > 0) {
           setRules(data.data);
@@ -163,11 +163,11 @@ export default function BookingCalendar({ onNext }: Props) {
   useEffect(() => {
     if (!range?.from || !range?.to) { setDiscount(null); return; }
     const ci = format(range.from, "yyyy-MM-dd");
-    const co = format(range.to,   "yyyy-MM-dd");
+    const co = format(range.to, "yyyy-MM-dd");
     fetch(`/api/discounts?checkIn=${ci}&checkOut=${co}`)
       .then((r) => r.json())
       .then((d) => { if (d.success) setDiscount(d.data); })
-      .catch(() => {});
+      .catch(() => { });
   }, [range]);
 
   useEffect(() => {
@@ -180,7 +180,7 @@ export default function BookingCalendar({ onNext }: Props) {
             ...data.data.blocked,
           ].map((b: any) => ({
             from: new Date(b.checkIn),
-            to:   new Date(b.checkOut),
+            to: new Date(b.checkOut),
           }));
           setBookedRanges(ranges);
           setMinAdvanceDays(data.data.minAdvanceDays ?? 2);
@@ -189,9 +189,9 @@ export default function BookingCalendar({ onNext }: Props) {
       .catch(console.error);
   }, []);
 
-  const checkIn  = range?.from ?? null;
-  const checkOut = range?.to   ?? null;
-  const nights   = checkIn && checkOut ? differenceInCalendarDays(checkOut, checkIn) : 0;
+  const checkIn = range?.from ?? null;
+  const checkOut = range?.to ?? null;
+  const nights = checkIn && checkOut ? differenceInCalendarDays(checkOut, checkIn) : 0;
 
   const weekendNights = checkIn && checkOut ? (() => {
     let count = 0;
@@ -201,12 +201,12 @@ export default function BookingCalendar({ onNext }: Props) {
   })() : 0;
   const weekdayNights = nights - weekendNights;
 
-  const MAX_GUESTS  = 4;
+  const MAX_GUESTS = 4;
   const totalGuests = adults + teens + babies + children2to6 + children6to12;
-  const paidGuests  = adults + teens + babies + children2to6 + children6to12;
+  const paidGuests = adults + teens + babies + children2to6 + children6to12;
   const hasChildren = teens + babies + children2to6 + children6to12 > 0;
   const currentRule = checkIn ? getApplicableRule(checkIn, rules) : null;
-  const minNights   = currentRule?.minNights ?? 2;
+  const minNights = currentRule?.minNights ?? 2;
 
   const personCount = adults + teens;
   const effectiveWeekdayRate = currentRule ? (() => {
@@ -222,17 +222,17 @@ export default function BookingCalendar({ onNext }: Props) {
     return personCount >= 4 ? t4 : personCount >= 3 ? t3 : t2;
   })() : 0;
 
-  const baseTotal       = checkIn && checkOut && nights > 0 && currentRule
+  const baseTotal = checkIn && checkOut && nights > 0 && currentRule
     ? calcBaseTotal(checkIn, checkOut, currentRule, personCount)
     : 0;
-  const child2to6Price  = currentRule?.childPrice2to6  ?? 0;
+  const child2to6Price = currentRule?.childPrice2to6 ?? 0;
   const child6to12Price = currentRule?.childPrice6to12 ?? 0;
-  const childTotal2to6  = child2to6Price  * children2to6  * nights;
+  const childTotal2to6 = child2to6Price * children2to6 * nights;
   const childTotal6to12 = child6to12Price * children6to12 * nights;
-  const touristTax         = 450 * adults * nights;
+  const touristTax = 450 * adults * nights;
   const accommodationTotal = baseTotal + childTotal2to6 + childTotal6to12;
-  const discountAmount     = discount ? Math.round(accommodationTotal * discount.discountPercent / 100) : 0;
-  const total              = accommodationTotal + touristTax - discountAmount;
+  const discountAmount = discount ? Math.round(accommodationTotal * discount.discountPercent / 100) : 0;
+  const total = accommodationTotal + touristTax - discountAmount;
 
   const handleSelect = (r: DateRange | undefined) => {
     setError(null);
@@ -271,7 +271,7 @@ export default function BookingCalendar({ onNext }: Props) {
     onNext({
       checkIn,
       checkOut,
-      guests:          totalGuests,
+      guests: totalGuests,
       adults,
       teens,
       babies,
@@ -280,17 +280,17 @@ export default function BookingCalendar({ onNext }: Props) {
       nights,
       weekdayNights,
       weekendNights,
-      weekdayRate:     effectiveWeekdayRate,
-      weekendRate:     effectiveWeekendRate,
-      totalPrice:      total,
-      basePrice:       baseTotal,
-      childPrice2to6:  child2to6Price,
+      weekdayRate: effectiveWeekdayRate,
+      weekendRate: effectiveWeekendRate,
+      totalPrice: total,
+      basePrice: baseTotal,
+      childPrice2to6: child2to6Price,
       childPrice6to12: child6to12Price,
-      guestSurcharge:  0,
+      guestSurcharge: 0,
       touristTax,
       discountPercent: discount?.discountPercent ?? 0,
       discountAmount,
-      discountName:    discount?.name ?? "",
+      discountName: discount?.name ?? "",
     });
   };
 
@@ -304,13 +304,15 @@ export default function BookingCalendar({ onNext }: Props) {
           mode="range"
           selected={range}
           onSelect={handleSelect}
-          fromDate={startOfDay(addDays(new Date(), minAdvanceDays))}
+          startMonth={startOfDay(addDays(new Date(), minAdvanceDays))}
+          endMonth={startOfDay(addDays(new Date(), 365))}
           numberOfMonths={2}
           locale={hu}
           disabled={(day) => {
             const d = startOfDay(day);
             const earliest = startOfDay(addDays(new Date(), minAdvanceDays));
-            if (d < earliest) return true;
+            const latest   = startOfDay(addDays(new Date(), 365));
+            if (d < earliest || d > latest) return true;
             return bookedRanges.some((r) => d >= startOfDay(r.from) && d < startOfDay(r.to));
           }}
           modifiers={{
@@ -371,7 +373,7 @@ export default function BookingCalendar({ onNext }: Props) {
 
           <GuestCounter
             label="Felnőtt (18+ év)"
-            sublabel="Szobadíj/fő + IFA (450 Ft/éj)"
+            sublabel="Felnőtt ár + IFA (450 Ft/éj)"
             value={adults}
             min={1}
             atMax={totalGuests >= MAX_GUESTS}
@@ -406,7 +408,7 @@ export default function BookingCalendar({ onNext }: Props) {
                 <p>• 0–2 éves: <strong>ingyenes</strong></p>
                 <p>• 2–6 éves: <strong>{child2to6Price > 0 ? formatCurrency(child2to6Price) : "–"}/éj</strong></p>
                 <p>• 6–12 éves: <strong>{child6to12Price > 0 ? formatCurrency(child6to12Price) : "–"}/éj</strong></p>
-                <p>• 12–18 éves: <strong>szobadíj/fő, IFA nélkül</strong></p>
+                <p>• 12–18 éves: <strong>felnőtt ár, IFA nélkül</strong></p>
                 <p>• IFA: <strong>450 Ft/felnőtt/éj</strong></p>
               </div>
 

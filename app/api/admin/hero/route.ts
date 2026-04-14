@@ -13,6 +13,8 @@ const DEFAULTS = {
     { src: "/images/haz/IMG_8519 kicsi.jpg", alt: "Milán Kuckó – vendégház kívülről" },
     { src: "/images/jacuzzi/jacuzzikivilag.jpg", alt: "Privát jacuzzi" },
     { src: "/images/kert/kert.jpg", alt: "Hatalmas privát kert" },
+    { src: "", alt: "" },
+    { src: "", alt: "" },
   ],
 };
 

@@ -11,6 +11,7 @@ model Booking {
   guestName             String
   guestEmail            String
   guestPhone            String
+  guestAddress          String?
   numberOfGuests        Int           @default(2)
   numberOfAdults        Int  @default(2)
   numberOfTeens         Int  @default(0)   

@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Upload, X, ImageOff,
+import { Upload, X, ImageOff, Plus,
   Waves, Home, TreePine, Flame, Coffee, Utensils, Wifi,
   Star, Heart, Sun, Bath, Car, Wind, Flower2, ShieldCheck,
   Bed, Mountain, Sparkles, Music, Bike,
@@ -64,10 +64,14 @@ function SlideUploader({
   slide,
   index,
   onChange,
+  onRemove,
+  canRemove,
 }: {
-  slide:    Slide;
-  index:    number;
-  onChange: (key: keyof Slide, val: string) => void;
+  slide:     Slide;
+  index:     number;
+  onChange:  (key: keyof Slide, val: string) => void;
+  onRemove:  () => void;
+  canRemove: boolean;
 }) {
   const fileInputRef                    = useRef<HTMLInputElement>(null);
   const [uploading, setUploading]       = useState(false);
@@ -107,7 +111,14 @@ function SlideUploader({
       </div>
 
       <div className="flex-1 space-y-2">
-        <p className="text-xs font-medium text-stone-500 uppercase tracking-wide">{index + 1}. kép</p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-medium text-stone-500 uppercase tracking-wide">{index + 1}. kép</p>
+          {canRemove && (
+            <button type="button" onClick={onRemove} className="text-red-400 hover:text-red-600 transition-colors" title="Slot törlése">
+              <X size={14} />
+            </button>
+          )}
+        </div>
 
         {/* Feltöltő gomb */}
         <button
@@ -212,7 +223,16 @@ export default function AdminHero({ initial }: Props) {
 
       {/* Slideshow képek */}
       <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
-        <h2 className="font-medium text-stone-700">Slideshow képek</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-medium text-stone-700">Slideshow képek ({form.slides.length})</h2>
+          <button
+            type="button"
+            onClick={() => setForm((f) => ({ ...f, slides: [...f.slides, { src: "", alt: "" }] }))}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 text-stone-600 text-xs hover:bg-stone-50 transition-colors"
+          >
+            <Plus size={13} /> Új slot
+          </button>
+        </div>
 
         {form.slides.map((slide, i) => (
           <SlideUploader
@@ -220,6 +240,8 @@ export default function AdminHero({ initial }: Props) {
             slide={slide}
             index={i}
             onChange={(key, val) => setSlide(i, key, val)}
+            onRemove={() => setForm((f) => ({ ...f, slides: f.slides.filter((_, idx) => idx !== i) }))}
+            canRemove={form.slides.length > 1}
           />
         ))}
       </div>

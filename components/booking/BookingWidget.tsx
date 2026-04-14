@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Users, ArrowRight, ChevronDown } from "lucide-react";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { hu }     from "date-fns/locale";
 import { DayPicker } from "react-day-picker";
 import { useBookingStore } from "@/store/bookingStore";
@@ -197,7 +197,9 @@ export default function BookingWidget() {
                 storeSetCheckOut(to);
                 if (from && to) setPanel("none");
               }}
-              fromDate={new Date()}
+              startMonth={new Date()}
+              endMonth={addDays(new Date(), 365)}
+              disabled={{ before: new Date(), after: addDays(new Date(), 365) }}
               numberOfMonths={2}
               locale={hu}
             />

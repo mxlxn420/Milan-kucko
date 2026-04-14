@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
       guestName,
       guestEmail,
       guestPhone,
+      guestAddress,
       numberOfGuests,
       notes,
       checkIn,
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
     } = body;
 
     // Validáció
-    if (!guestName || !guestEmail || !guestPhone || !checkIn || !checkOut) {
+    if (!guestName || !guestEmail || !guestPhone || !guestAddress || !checkIn || !checkOut) {
       return NextResponse.json(
         { success: false, error: "Hiányzó kötelező mezők" },
         { status: 400 }
@@ -138,8 +139,10 @@ export async function POST(req: NextRequest) {
 
     const discountPercent = applicableDiscount?.discountPercent ?? 0;
     const rawTotal        = Number(totalPrice);
+    // Kedvezmény csak a szállásdíjra vonatkozik (IFA és extra szolgáltatások nélkül)
+    const discountBase    = rawTotal - Number(touristTax) - Number(extraServicesTotal);
     const discountAmount  = discountPercent > 0
-      ? Math.round(rawTotal * discountPercent / 100)
+      ? Math.round(discountBase * discountPercent / 100)
       : 0;
     const finalTotal = rawTotal - discountAmount;
 
@@ -156,6 +159,7 @@ export async function POST(req: NextRequest) {
         guestName,
         guestEmail,
         guestPhone,
+        guestAddress: guestAddress || null,
         numberOfGuests:        Number(numberOfGuests)              || 2,
         numberOfAdults:        Number(body.numberOfAdults)        || 2,
         numberOfTeens:         Number(body.numberOfTeens)         || 0,

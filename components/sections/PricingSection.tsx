@@ -4,8 +4,15 @@ import { Check, ArrowRight } from "lucide-react";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
 export default async function PricingSection() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const rules = await prisma.pricingRule.findMany({
-    where:   { isActive: true },
+    where: {
+      isActive: true,
+      dateFrom:  { not: null },
+      dateTo:    { gte: today },
+    },
     orderBy: { priority: "asc" },
   });
 

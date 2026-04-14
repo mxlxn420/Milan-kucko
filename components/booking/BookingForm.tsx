@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import {
-  ArrowLeft, ArrowRight, User, Mail, Phone, MessageSquare,
+  ArrowLeft, ArrowRight, User, Mail, Phone, MessageSquare, MapPin,
   Moon, CalendarCheck, Check, ImageOff, Plus, Minus, CreditCard, Banknote, Building2,
 } from "lucide-react";
 import { formatDateHu, formatCurrency } from "@/lib/utils";
@@ -27,7 +27,7 @@ interface Props {
 }
 
 export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", notes: "", paymentMethod: "card", szepType: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", address: "", notes: "", paymentMethod: "cash", szepType: "" });
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState<string | null>(null);
   const [services, setServices]       = useState<ExtraService[]>([]);
@@ -91,6 +91,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
           guestName:            form.name,
           guestEmail:           form.email,
           guestPhone:           form.phone,
+          guestAddress:         form.address,
           numberOfGuests:        bookingData.guests,
           numberOfAdults:        bookingData.adults,
           numberOfTeens:         bookingData.teens,
@@ -178,6 +179,19 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
 
           <div>
             <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">
+              <MapPin size={12} className="inline mr-1" />Lakcím *
+            </label>
+            <input
+              className="input-base"
+              placeholder="1234 Budapest, Példa utca 1."
+              required
+              value={form.address}
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">
               <MessageSquare size={12} className="inline mr-1" />Megjegyzés
             </label>
             <textarea
@@ -194,9 +208,8 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
             <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-3">
               <CreditCard size={12} className="inline mr-1" />Fizetési mód *
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {[
-                { value: "card",     label: "Bankkártya",  Icon: CreditCard },
                 { value: "cash",     label: "Készpénz",    Icon: Banknote   },
                 { value: "transfer", label: "Átutalás",    Icon: Building2  },
                 { value: "szep",     label: "SZÉP kártya", Icon: CreditCard },

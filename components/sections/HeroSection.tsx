@@ -34,7 +34,9 @@ interface Props {
 export default function HeroSection({ data }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
-  const slides = data.slides.length > 0 ? data.slides : [{ src: "", alt: "" }];
+  const slides = data.slides.filter((s) => s.src).length > 0
+    ? data.slides.filter((s) => s.src)
+    : [{ src: "", alt: "" }];
 
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Save, Plus, Trash2, Lock, Star, Pencil } from "lucide-react";
+import { Plus, Trash2, Star, Pencil } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { PricingRule } from "@/types";
 import SeasonForm from "@/components/admin/SeasonForm";
@@ -111,21 +111,7 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
     setRules((prev) => prev.map((r) => r.id === id ? { ...r, [field]: value } : r));
   };
 
-  const updateBaseRule = async (rule: PricingRule) => {
-    setSaving(rule.id);
-    try {
-      const res  = await fetch(`/api/admin/pricing/${rule.id}`, {
-        method:  "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(rule),
-      });
-      const data = await res.json();
-      if (data.success) setRules((prev) => prev.map((r) => r.id === rule.id ? data.data : r));
-      else alert("Mentési hiba: " + data.error);
-    } finally {
-      setSaving(null);
-    }
-  };
+
 
   const openEdit = (rule: PricingRule) => {
     setEditingId(rule.id);
@@ -257,70 +243,7 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
   return (
     <div className="space-y-4">
 
-      {/* Alap ár */}
-      {baseRule && (
-        <div className="bg-white rounded-2xl shadow-card p-6 border-2 border-forest-100">
-          <div className="flex items-center gap-2 mb-4">
-            <Lock size={15} className="text-forest-700" />
-            <h3 className="font-medium text-stone-800">Alap ár</h3>
-            <span className="text-xs bg-forest-100 text-forest-700 px-2 py-0.5 rounded-full">
-              Nem törölhető
-            </span>
-          </div>
-          <p className="text-xs text-stone-400 mb-4">
-            Ez az ár érvényes minden olyan napra, amelyre nincs szezon megadva.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">1–2 fő / éj (hétköznap)</label>
-              <input type="number" className="input-base" value={baseRule.pricePerNight}
-                onChange={(e) => handleChange(baseRule.id, "pricePerNight", Number(e.target.value))} />
-            </div>
-            <div>
-              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">3 fő / éj (hétköznap)</label>
-              <input type="number" className="input-base" placeholder="Ha üres = 1–2 fő ár"
-                value={(baseRule as any).price3 || ""}
-                onChange={(e) => handleChange(baseRule.id, "price3" as any, Number(e.target.value))} />
-            </div>
-            <div>
-              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">4 fő / éj (hétköznap)</label>
-              <input type="number" className="input-base" placeholder="Ha üres = 3 fő ár"
-                value={(baseRule as any).price4 || ""}
-                onChange={(e) => handleChange(baseRule.id, "price4" as any, Number(e.target.value))} />
-            </div>
-            <div>
-              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">1–2 fő / éj (hétvégi)</label>
-              <input type="number" className="input-base" placeholder="Ha üres = hétköznapi"
-                value={(baseRule as any).weekendPrice || ""}
-                onChange={(e) => handleChange(baseRule.id, "weekendPrice" as any, Number(e.target.value))} />
-            </div>
-            <div>
-              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">3 fő / éj (hétvégi)</label>
-              <input type="number" className="input-base" placeholder="Ha üres = 1–2 fő hétvégi"
-                value={(baseRule as any).weekendPrice3 || ""}
-                onChange={(e) => handleChange(baseRule.id, "weekendPrice3" as any, Number(e.target.value))} />
-            </div>
-            <div>
-              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">4 fő / éj (hétvégi)</label>
-              <input type="number" className="input-base" placeholder="Ha üres = 3 fő hétvégi"
-                value={(baseRule as any).weekendPrice4 || ""}
-                onChange={(e) => handleChange(baseRule.id, "weekendPrice4" as any, Number(e.target.value))} />
-            </div>
-            <div>
-              <label className="text-xs text-stone-400 uppercase tracking-wider block mb-1">Min. éjszaka</label>
-              <input type="number" className="input-base" value={baseRule.minNights}
-                onChange={(e) => handleChange(baseRule.id, "minNights", Number(e.target.value))} />
-            </div>
-          </div>
-          <div className="flex justify-end mt-4 pt-4 border-t border-stone-100">
-            <button onClick={() => updateBaseRule(baseRule)} disabled={saving === baseRule.id}
-              className="btn-primary py-2 px-5 text-xs">
-              <Save size={13} />
-              {saving === baseRule.id ? "Mentés..." : "Mentés"}
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Szezonok fejléc */}
       <div className="flex justify-between items-center pt-2">
