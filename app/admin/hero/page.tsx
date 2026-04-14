@@ -39,7 +39,7 @@ export default async function AdminHeroPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="font-serif text-3xl text-stone-800">Hero szekció</h1>
+        <h1 className="font-serif text-3xl text-stone-800">Kezdőlap</h1>
         <p className="text-stone-500 text-sm mt-1">
           A főoldal fejlécének képei, szövegei és kiemelt jellemzői
         </p>

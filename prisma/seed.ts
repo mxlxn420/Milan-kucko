@@ -1,12 +1,12 @@
+require("dotenv").config({ path: ".env.local" });
 const { Pool } = require("pg");
 
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+if (!connectionString) throw new Error("DATABASE_URL vagy DIRECT_URL nincs beállítva a .env.local fájlban!");
+
 const pool = new Pool({
-  host:     "aws-1-eu-west-2.pooler.supabase.com",
-  port:     5432,
-  database: "postgres",
-  user:     "postgres.vofoqouomsbcnmqcecpp",
-  password: "Ds4tt8JXkWyMSTln",
-  ssl:      { rejectUnauthorized: false },
+  connectionString,
+  ssl: { rejectUnauthorized: false },
 });
 
 async function main() {

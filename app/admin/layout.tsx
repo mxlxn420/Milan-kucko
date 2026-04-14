@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 
 export default async function AdminLayout({
   children,
@@ -15,9 +16,10 @@ export default async function AdminLayout({
   // de a /admin/login-t ki kell venni
   
   return (
-    <div className="min-h-screen bg-stone-100 flex">
+    <div className="min-h-screen bg-stone-100 flex flex-col md:flex-row">
+      <ScrollToTop />
       {token && <AdminSidebar />}
-      <main className={token ? "flex-1 ml-64 p-8" : "flex-1 p-8"}>
+      <main className={token ? "flex-1 md:ml-64 p-4 md:p-8 min-w-0" : "flex-1 p-4 md:p-8"}>
         {children}
       </main>
     </div>

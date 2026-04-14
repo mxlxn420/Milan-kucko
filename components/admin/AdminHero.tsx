@@ -333,43 +333,49 @@ export default function AdminHero({ initial }: Props) {
         {form.highlights.map((hl, i) => {
           const IconComp = ICON_MAP[hl.icon] ?? Star;
           return (
-            <div key={i} className="flex items-start gap-3 p-4 bg-stone-50 rounded-xl">
+            <div key={i} className="p-4 bg-stone-50 rounded-xl">
+              <div className="flex items-start gap-3">
+                {/* Törlés gomb – jobb felső sarok */}
+                <div className="flex-1 flex flex-col sm:flex-row gap-3">
 
-              <div className="flex-shrink-0">
-                <label className="block text-xs font-medium text-stone-500 mb-1.5">Ikon</label>
-                <div className="relative">
-                  <select
-                    value={hl.icon}
-                    onChange={(e) => setHighlight(i, "icon", e.target.value)}
-                    className="appearance-none border border-stone-200 rounded-lg pl-8 pr-6 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-forest-500/30 cursor-pointer"
-                  >
-                    {ICON_OPTIONS.map((opt) => (
-                      <option key={opt.name} value={opt.name}>{opt.label}</option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-stone-500">
-                    <IconComp size={14} />
+                  <div className="flex-shrink-0">
+                    <label className="block text-xs font-medium text-stone-500 mb-1.5">Ikon</label>
+                    <div className="relative">
+                      <select
+                        value={hl.icon}
+                        onChange={(e) => setHighlight(i, "icon", e.target.value)}
+                        className="appearance-none border border-stone-200 rounded-lg pl-8 pr-6 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-forest-500/30 cursor-pointer w-full sm:w-auto"
+                      >
+                        {ICON_OPTIONS.map((opt) => (
+                          <option key={opt.name} value={opt.name}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-stone-500">
+                        <IconComp size={14} />
+                      </div>
+                    </div>
                   </div>
+
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-stone-500 mb-1.5">Szöveg</label>
+                    <input
+                      value={hl.label}
+                      onChange={(e) => setHighlight(i, "label", e.target.value)}
+                      placeholder="pl. Privát jacuzzi"
+                      className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-forest-500/30"
+                    />
+                  </div>
+
                 </div>
-              </div>
 
-              <div className="flex-1">
-                <label className="block text-xs font-medium text-stone-500 mb-1.5">Szöveg</label>
-                <input
-                  value={hl.label}
-                  onChange={(e) => setHighlight(i, "label", e.target.value)}
-                  placeholder="pl. Privát jacuzzi"
-                  className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-forest-500/30"
-                />
+                <button
+                  onClick={() => removeHighlight(i)}
+                  className="mt-5 flex-shrink-0 w-7 h-7 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors flex items-center justify-center text-base leading-none"
+                  title="Törlés"
+                >
+                  ×
+                </button>
               </div>
-
-              <button
-                onClick={() => removeHighlight(i)}
-                className="mt-5 flex-shrink-0 text-red-400 hover:text-red-600 transition-colors"
-                title="Törlés"
-              >
-                ×
-              </button>
             </div>
           );
         })}

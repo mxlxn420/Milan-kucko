@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const token = req.cookies.get("admin_token")?.value;
+  const token         = req.cookies.get("admin_token")?.value;
+  const expectedToken = process.env.ADMIN_SESSION_TOKEN;
 
-  if (!token || token !== "authenticated") {
+  if (!token || !expectedToken || token !== expectedToken) {
     return NextResponse.json(
       { success: false, error: "Nincs jogosultság" },
       { status: 401 }

@@ -12,6 +12,7 @@
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
   body {
     background-color: #f5f0e8;
@@ -23,6 +24,10 @@
   ::-webkit-scrollbar-thumb { background: #264f2d; border-radius: 3px; }
   ::selection { background: #1a3a2a; color: #f5f0e8; }
   :target { scroll-margin-top: calc(var(--navbar-h) + 1.5rem); }
+  /* iOS Safari auto-zoom megelőzése: input fókuszkor nem nagyít ha font >= 16px */
+  @media (max-width: 768px) {
+    input, select, textarea { font-size: 16px !important; }
+  }
   h1, h2, h3 {
     font-family: var(--font-serif);
     font-weight: 400;
@@ -78,6 +83,13 @@
 }
 
 @layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
   .bg-hero-overlay {
     background: linear-gradient(
       to bottom,
@@ -128,6 +140,12 @@ html .rdp-root .rdp-selected .rdp-day_button {
   background-color: #1a3a2a !important;
   color: #f5f0e8 !important;
   font-weight: 600 !important;
+}
+
+/* iOS sticky hover fix – kiválasztott nap hover-on is sötétzöld marad */
+html .rdp-root .rdp-selected .rdp-day_button:hover {
+  background-color: #1a3a2a !important;
+  color: #f5f0e8 !important;
 }
 
 /* Mai nap */

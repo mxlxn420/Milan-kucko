@@ -318,9 +318,9 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
                   exit={{ opacity: 0 }}
                   className="bg-white rounded-2xl shadow-card p-6"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         {rule.priority >= 10 && <Star size={13} className="text-terra-400 fill-terra-400" />}
                         <h3 className="font-medium text-stone-800">{rule.name}</h3>
                         {!rule.isActive && (
@@ -344,7 +344,7 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="text-right">
+                      <div className="sm:text-right">
                         <span className="font-serif text-xl text-forest-900">
                           {formatCurrency(rule.pricePerNight)}
                         </span>

@@ -149,7 +149,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">
                 <Mail size={12} className="inline mr-1" />E-mail *
@@ -393,6 +393,55 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
           </div>
         )}
 
+        {/* Mobil összefoglaló – csak mobilon látszik */}
+        <div className="lg:hidden bg-forest-900 rounded-3xl shadow-card p-5 text-cream space-y-2.5 text-sm">
+          <h3 className="font-serif text-lg text-cream mb-3">Foglalás összefoglalója</h3>
+          <div className="flex justify-between">
+            <span className="text-cream/60">Érkezés</span>
+            <span>{formatDateHu(bookingData.checkIn)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-cream/60">Távozás</span>
+            <span>{formatDateHu(bookingData.checkOut)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-cream/60">Éjszakák</span>
+            <span>{bookingData.nights} éj</span>
+          </div>
+          {bookingData.weekdayNights > 0 && (
+            <div className="flex justify-between">
+              <span className="text-cream/60">{bookingData.weekendNights > 0 ? "Szállás – hétköznap" : "Szállás"}</span>
+              <span>{formatCurrency(bookingData.weekdayNights * bookingData.weekdayRate)}</span>
+            </div>
+          )}
+          {bookingData.weekendNights > 0 && (
+            <div className="flex justify-between">
+              <span className="text-cream/60">{bookingData.weekdayNights > 0 ? "Szállás – hétvége" : "Szállás"}</span>
+              <span>{formatCurrency(bookingData.weekendNights * bookingData.weekendRate)}</span>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <span className="text-cream/60">IFA</span>
+            <span>{formatCurrency(bookingData.touristTax)}</span>
+          </div>
+          {bookingData.discountAmount > 0 && (
+            <div className="flex justify-between text-green-300">
+              <span>Kedvezmény ({bookingData.discountPercent}%)</span>
+              <span>−{formatCurrency(bookingData.discountAmount)}</span>
+            </div>
+          )}
+          {selected.length > 0 && selected.map((s) => (
+            <div key={s.id} className="flex justify-between">
+              <span className="text-cream/60">{s.name}</span>
+              <span>{formatCurrency(s.total)}</span>
+            </div>
+          ))}
+          <div className="border-t border-white/10 pt-3 flex justify-between items-center">
+            <span className="font-medium">Végösszeg</span>
+            <span className="font-serif text-xl">{formatCurrency(grandTotal)}</span>
+          </div>
+        </div>
+
         {/* ÁSZF + Beküldés */}
         <div className="bg-white rounded-3xl shadow-card p-8 space-y-5">
           <div className="flex items-start gap-3">
@@ -415,8 +464,8 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
             </p>
           )}
 
-          <div className="flex gap-3">
-            <button type="button" onClick={onBack} className="btn-secondary flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button type="button" onClick={onBack} className="btn-secondary flex items-center justify-center gap-2">
               <ArrowLeft size={15} /> Vissza
             </button>
             <button type="submit" disabled={loading} className="btn-primary flex-1 justify-center">
@@ -439,8 +488,8 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
         </div>
       </form>
 
-      {/* Összefoglaló */}
-      <div className="bg-forest-900 rounded-3xl shadow-card p-6 text-cream h-fit sticky top-8">
+      {/* Összefoglaló – csak desktopon */}
+      <div className="hidden lg:block bg-forest-900 rounded-3xl shadow-card p-6 text-cream h-fit sticky top-8">
         <h3 className="font-serif text-xl mb-6 text-cream">Foglalás összefoglalója</h3>
 
         <div className="space-y-3 text-sm mb-6">
@@ -477,10 +526,10 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                   {bookingData.weekendNights > 0 ? "Szállás – hétköznap" : `Szállás (${bookingData.nights} éj)`}
                 </p>
                 <p className="text-xs text-cream/40 mt-0.5">
-                  {bookingData.adults + bookingData.teens} fő × {bookingData.weekdayNights} éj × {formatCurrency(bookingData.weekdayRate)}/éj
+                  {bookingData.weekdayNights} éj × {formatCurrency(bookingData.weekdayRate)}/éj
                 </p>
               </div>
-              <span className="shrink-0 ml-3">{formatCurrency((bookingData.adults + bookingData.teens) * bookingData.weekdayNights * bookingData.weekdayRate)}</span>
+              <span className="shrink-0 ml-3">{formatCurrency(bookingData.weekdayNights * bookingData.weekdayRate)}</span>
             </div>
           )}
 
@@ -492,10 +541,10 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                   {bookingData.weekdayNights > 0 ? "Szállás – hétvége" : `Szállás (${bookingData.nights} éj)`}
                 </p>
                 <p className="text-xs text-cream/40 mt-0.5">
-                  {bookingData.adults + bookingData.teens} fő × {bookingData.weekendNights} éj × {formatCurrency(bookingData.weekendRate)}/éj
+                  {bookingData.weekendNights} éj × {formatCurrency(bookingData.weekendRate)}/éj
                 </p>
               </div>
-              <span className="shrink-0 ml-3">{formatCurrency((bookingData.adults + bookingData.teens) * bookingData.weekendNights * bookingData.weekendRate)}</span>
+              <span className="shrink-0 ml-3">{formatCurrency(bookingData.weekendNights * bookingData.weekendRate)}</span>
             </div>
           )}
 
@@ -505,7 +554,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
               <div>
                 <p className="text-cream/80">Szállás ({bookingData.nights} éj)</p>
                 <p className="text-xs text-cream/40 mt-0.5">
-                  {bookingData.adults + bookingData.teens} fő × {bookingData.nights} éj × {formatCurrency(bookingData.weekdayRate)}/éj
+                  {bookingData.nights} éj × {formatCurrency(bookingData.weekdayRate)}/éj
                 </p>
               </div>
               <span className="shrink-0 ml-3">{formatCurrency(bookingData.basePrice)}</span>

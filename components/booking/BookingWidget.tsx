@@ -58,9 +58,17 @@ export default function BookingWidget() {
   const [children2to6, setChildren2to6]   = useState(0);
   const [children6to12, setChildren6to12] = useState(0);
   const [panel, setPanel]                 = useState<Panel>("none");
+  const [isMobile, setIsMobile]           = useState(false);
 
   const widgetRef = useRef<HTMLDivElement>(null);
   const [panelPos, setPanelPos] = useState({ bottom: 0, left: 0, width: 0 });
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const toggle = (p: Panel) => setPanel((prev) => (prev === p ? "none" : p));
   const fmt    = (d: Date | null) => d ? format(d, "MMM d.", { locale: hu }) : null;
@@ -106,9 +114,22 @@ export default function BookingWidget() {
   return (
     <div className="relative max-w-3xl" ref={widgetRef}>
 
-      {/* Widget sáv */}
-      <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/50">
-        <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-stone-100">
+      {/* Mobil gomb */}
+      <div className="sm:hidden">
+        <motion.a
+          href="/foglalas"
+          whileTap={{ scale: 0.97 }}
+          className="flex items-center justify-center gap-3 w-full px-8 py-4 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/50 text-forest-900 font-medium text-sm tracking-wide"
+        >
+          <Calendar size={18} className="text-forest-700" />
+          Foglaljon most
+          <ArrowRight size={16} className="text-terra-400" />
+        </motion.a>
+      </div>
+
+      {/* Desktop widget sáv */}
+      <div className="hidden sm:block bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/50">
+        <div className="flex flex-row divide-x divide-stone-100">
 
           {/* Check-in */}
           <button
@@ -154,12 +175,12 @@ export default function BookingWidget() {
           </button>
 
           {/* CTA */}
-          <div className="flex items-center px-4 py-3 sm:py-0">
+          <div className="flex items-center px-4 py-4">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={handleBooking}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-forest-900 text-cream text-xs font-medium tracking-[0.15em] uppercase rounded-xl hover:bg-forest-700 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-forest-900 text-cream text-xs font-medium tracking-[0.15em] uppercase rounded-xl hover:bg-forest-700 transition-colors"
             >
               Foglalás <ArrowRight size={14} />
             </motion.button>
@@ -180,7 +201,8 @@ export default function BookingWidget() {
             style={{
               position: "fixed",
               bottom:   panelPos.bottom,
-              left:     panelPos.left,
+              left:     isMobile ? 8 : panelPos.left,
+              right:    isMobile ? 8 : "auto",
               zIndex:   9999,
             }}
             className="bg-white rounded-2xl shadow-2xl border border-stone-100 p-4"
@@ -200,7 +222,7 @@ export default function BookingWidget() {
               startMonth={new Date()}
               endMonth={addDays(new Date(), 365)}
               disabled={{ before: new Date(), after: addDays(new Date(), 365) }}
-              numberOfMonths={2}
+              numberOfMonths={isMobile ? 1 : 2}
               locale={hu}
             />
           </motion.div>
@@ -216,7 +238,8 @@ export default function BookingWidget() {
             style={{
               position: "fixed",
               bottom:   panelPos.bottom,
-              left:     Math.max(8, panelPos.left + panelPos.width - 300),
+              left:     isMobile ? 8 : Math.max(8, panelPos.left + panelPos.width - 300),
+              right:    isMobile ? 8 : "auto",
               zIndex:   9999,
             }}
             className="bg-white rounded-2xl shadow-2xl border border-stone-100 p-5 w-[300px]"

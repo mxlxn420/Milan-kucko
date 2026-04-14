@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { differenceInCalendarDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+
+async function isAuthed(): Promise<boolean> {
+  const store         = await cookies();
+  const token         = store.get("admin_token")?.value;
+  const expectedToken = process.env.ADMIN_SESSION_TOKEN;
+  return !!token && !!expectedToken && token === expectedToken;
+}
 
 // ─── GET – egy foglalás adatai ───────────────────────────────
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  if (!(await isAuthed())) {
+    return NextResponse.json({ success: false, error: "Nincs jogosultság" }, { status: 401 });
+  }
   try {
     const booking = await prisma.booking.findUnique({ where: { id: params.id } });
     if (!booking) {
@@ -23,6 +34,9 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  if (!(await isAuthed())) {
+    return NextResponse.json({ success: false, error: "Nincs jogosultság" }, { status: 401 });
+  }
   try {
     const body = await req.json();
 
@@ -36,6 +50,26 @@ export async function PATCH(
         where: { id: params.id },
         data: { status: body.status },
       });
+
+      // Törlési email küldése
+      if (body.status === "CANCELLED") {
+        try {
+          const { sendCancellationEmail } = await import("@/lib/email");
+          const { format } = await import("date-fns");
+          await sendCancellationEmail({
+            guestName:  updated.guestName,
+            guestEmail: updated.guestEmail,
+            checkIn:    format(new Date(updated.checkIn),  "yyyy. MM. dd."),
+            checkOut:   format(new Date(updated.checkOut), "yyyy. MM. dd."),
+            nights:     updated.nights,
+            bookingId:  updated.id,
+            adminNote:  body.adminNote ?? undefined,
+          });
+        } catch (emailErr) {
+          console.error("Törlési email hiba (státusz mentve):", emailErr);
+        }
+      }
+
       return NextResponse.json({ success: true, data: updated });
     }
 
@@ -113,6 +147,9 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  if (!(await isAuthed())) {
+    return NextResponse.json({ success: false, error: "Nincs jogosultság" }, { status: 401 });
+  }
   try {
     await prisma.booking.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });

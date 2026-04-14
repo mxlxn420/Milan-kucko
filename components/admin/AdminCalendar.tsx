@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DayPicker } from "react-day-picker";
 import { hu }        from "date-fns/locale";
 import { motion }    from "framer-motion";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X, RefreshCw } from "lucide-react";
 import { formatDateHu }    from "@/lib/utils";
 import "react-day-picker/dist/style.css";
 
@@ -34,6 +34,16 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
   const [reason, setReason]     = useState("");
   const [loading, setLoading]   = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [isMobile, setIsMobile]   = useState(false);
+  const [syncing, setSyncing]     = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   // Foglalt napok
   const bookedDays = bookings.flatMap(({ checkIn, checkOut }) => {
@@ -93,6 +103,27 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
     }
   };
 
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res  = await fetch("/api/admin/ical-sync", { method: "POST" });
+      const data = await res.json();
+      if (!data.success) throw new Error("Szinkron hiba");
+      const summary = data.results
+        .map((r: any) => r.error
+          ? `${r.source}: hiba (${r.error})`
+          : `${r.source}: +${r.added} / -${r.removed}`
+        )
+        .join(", ");
+      setSyncResult(summary || "Nincs beállított iCal forrás");
+    } catch {
+      setSyncResult("Hiba történt a szinkronizálás során");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -105,7 +136,7 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
             setRange({ from: r?.from, to: r?.to });
             if (r?.from) setShowForm(true);
           }}
-          numberOfMonths={2}
+          numberOfMonths={isMobile ? 1 : 2}
           locale={hu}
           modifiers={{
             booked:  bookedDays,
@@ -134,6 +165,22 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
 
       {/* Jobb panel */}
       <div className="space-y-4">
+
+        {/* iCal szinkron */}
+        <div className="bg-white rounded-2xl shadow-card p-5">
+          <h3 className="font-medium text-stone-800 mb-3">iCal szinkron</h3>
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="flex items-center gap-2 w-full justify-center px-4 py-2.5 rounded-xl bg-forest-800 text-cream text-sm font-medium hover:bg-forest-700 transition-colors disabled:opacity-60"
+          >
+            <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
+            {syncing ? "Szinkronizálás..." : "Szinkronizálás most"}
+          </button>
+          {syncResult && (
+            <p className="text-xs text-stone-500 mt-2 text-center">{syncResult}</p>
+          )}
+        </div>
 
         {/* Blokkolás form */}
         {showForm && range.from && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
@@ -143,6 +143,20 @@ export default function GaleriaPage({ categories = DEFAULT_CATEGORIES }: { categ
 
     const [lightbox, setLightbox] = useState<number | null>(null);
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
+    const touchStartX = useRef<number | null>(null);
+    const [navFixed, setNavFixed] = useState(false);
+    const sentinelRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const el = sentinelRef.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => setNavFixed(!entry.isIntersecting),
+            { threshold: 0, rootMargin: "-80px 0px 0px 0px" }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
 
     const prev = () => setLightbox((i) => i !== null ? (i - 1 + ALL_IMAGES.length) % ALL_IMAGES.length : null);
     const next = () => setLightbox((i) => i !== null ? (i + 1) % ALL_IMAGES.length : null);
@@ -170,8 +184,49 @@ export default function GaleriaPage({ categories = DEFAULT_CATEGORIES }: { categ
                     </p>
                 </div>
 
-                {/* Kategória navigáció */}
-                <div className="flex flex-wrap items-center justify-center gap-2 mb-16 sticky top-20 z-10 bg-cream/90 backdrop-blur-sm py-4 rounded-2xl">
+                {/* Sentinel – megfigyeljük mikor tűnik el a nézőmezőből */}
+                <div ref={sentinelRef} className="h-0" />
+
+                {/* Fixed nav – csak amikor a sentinel eltűnt (iOS sticky fix) */}
+                {navFixed && (
+                    <div className="fixed top-20 left-0 right-0 z-50 px-4 sm:px-8 lg:px-12">
+                        <div className="max-w-[1280px] mx-auto">
+                            <div className="flex overflow-x-auto scrollbar-none items-center gap-2 bg-cream/95 backdrop-blur-md py-3 px-4 rounded-2xl shadow-card border border-stone-100">
+                                <button
+                                    onClick={() => setActiveCategory(null)}
+                                    className={"shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 " + (
+                                        activeCategory === null
+                                            ? "bg-forest-900 text-cream shadow-luxury"
+                                            : "bg-white text-stone-600 hover:bg-forest-50 shadow-card"
+                                    )}
+                                >
+                                    Összes
+                                </button>
+                                {categories.map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => {
+                                            setActiveCategory(cat.id);
+                                            setTimeout(() => {
+                                                document.getElementById(cat.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                            }, 50);
+                                        }}
+                                        className={"shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 " + (
+                                            activeCategory === cat.id
+                                                ? "bg-forest-900 text-cream shadow-luxury"
+                                                : "bg-white text-stone-600 hover:bg-forest-50 shadow-card"
+                                        )}
+                                    >
+                                        {cat.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Kategória navigáció (inline) */}
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-16 py-4 rounded-2xl">
                     <button
                         onClick={() => setActiveCategory(null)}
                         className={"px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 " + (
@@ -204,7 +259,7 @@ export default function GaleriaPage({ categories = DEFAULT_CATEGORIES }: { categ
                 {/* Kategóriák szekciónként */}
                 <div className="space-y-20">
                     {categories.map((cat) => (
-                        <section key={cat.id} id={cat.id}>
+                        <section key={cat.id} id={cat.id} style={{ scrollMarginTop: "140px" }}>
 
                             {/* Szekció fejléc */}
                             <div className="flex items-end justify-between mb-6">
@@ -265,6 +320,13 @@ export default function GaleriaPage({ categories = DEFAULT_CATEGORIES }: { categ
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setLightbox(null)}
+                        onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+                        onTouchEnd={(e) => {
+                            if (touchStartX.current === null) return;
+                            const diff = touchStartX.current - e.changedTouches[0].clientX;
+                            if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
+                            touchStartX.current = null;
+                        }}
                     >
                         {/* Kategória label */}
                         <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/40 text-xs tracking-widest uppercase">
@@ -281,18 +343,18 @@ export default function GaleriaPage({ categories = DEFAULT_CATEGORIES }: { categ
 
                         {/* Előző */}
                         <button
-                            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
                             onClick={(e) => { e.stopPropagation(); prev(); }}
                         >
-                            <ChevronLeft size={24} />
+                            <ChevronLeft size={20} />
                         </button>
 
                         {/* Következő */}
                         <button
-                            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
                             onClick={(e) => { e.stopPropagation(); next(); }}
                         >
-                            <ChevronRight size={24} />
+                            <ChevronRight size={20} />
                         </button>
 
                         {/* Kép */}
@@ -301,7 +363,7 @@ export default function GaleriaPage({ categories = DEFAULT_CATEGORIES }: { categ
                             initial={{ opacity: 0, scale: 0.96 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.2 }}
-                            className="relative max-w-5xl w-full mx-20"
+                            className="relative max-w-5xl w-full mx-12 sm:mx-20"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <Image

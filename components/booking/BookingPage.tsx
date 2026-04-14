@@ -101,6 +101,7 @@ export default function BookingPage() {
                 onNext={(data) => {
                   setBookingData(data);
                   setStep("form");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               />
             </motion.div>
@@ -116,11 +117,12 @@ export default function BookingPage() {
             >
               <BookingForm
                 bookingData={bookingData}
-                onBack={() => setStep("calendar")}
+                onBack={() => { setStep("calendar"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 onSuccess={(id) => {
                   setBookingId(id);
                   setStep("success");
-                  store.reset(); // ← store törlése sikeres foglalás után
+                  store.reset();
+                  window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               />
             </motion.div>

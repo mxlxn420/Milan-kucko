@@ -162,56 +162,61 @@ export default function AdminAmenities({ initial }: { initial: AmenitiesData }) 
           {form.items.map((item, i) => {
             const IconComp = ICON_MAP[item.icon] ?? Star;
             return (
-              <div key={i} className="flex items-start gap-3 p-4 bg-stone-50 rounded-xl">
+              <div key={i} className="p-4 bg-stone-50 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 flex flex-col sm:flex-row gap-3">
 
-                {/* Ikon */}
-                <div className="flex-shrink-0">
-                  <label className="block text-xs font-medium text-stone-500 mb-1">Ikon</label>
-                  <div className="relative">
-                    <select
-                      value={item.icon}
-                      onChange={(e) => setItem(i, "icon", e.target.value)}
-                      className="appearance-none border border-stone-200 rounded-lg pl-8 pr-6 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-forest-500/30 cursor-pointer"
-                    >
-                      {ICON_OPTIONS.map((opt) => (
-                        <option key={opt.name} value={opt.name}>{opt.label}</option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-stone-500">
-                      <IconComp size={14} />
+                    {/* Ikon */}
+                    <div className="flex-shrink-0">
+                      <label className="block text-xs font-medium text-stone-500 mb-1">Ikon</label>
+                      <div className="relative">
+                        <select
+                          value={item.icon}
+                          onChange={(e) => setItem(i, "icon", e.target.value)}
+                          className="appearance-none border border-stone-200 rounded-lg pl-8 pr-6 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-forest-500/30 cursor-pointer w-full sm:w-auto"
+                        >
+                          {ICON_OPTIONS.map((opt) => (
+                            <option key={opt.name} value={opt.name}>{opt.label}</option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-stone-500">
+                          <IconComp size={14} />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Név + leírás */}
-                <div className="flex-1 space-y-2">
-                  <div>
-                    <label className="block text-xs font-medium text-stone-500 mb-1">Név</label>
-                    <input
-                      value={item.label}
-                      onChange={(e) => setItem(i, "label", e.target.value)}
-                      placeholder="pl. Jacuzzi"
-                      className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-forest-500/30"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-stone-500 mb-1">Alcím</label>
-                    <input
-                      value={item.desc}
-                      onChange={(e) => setItem(i, "desc", e.target.value)}
-                      placeholder="pl. Privát, korlátlan használat"
-                      className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-forest-500/30"
-                    />
-                  </div>
-                </div>
+                    {/* Név + leírás */}
+                    <div className="flex-1 space-y-2">
+                      <div>
+                        <label className="block text-xs font-medium text-stone-500 mb-1">Név</label>
+                        <input
+                          value={item.label}
+                          onChange={(e) => setItem(i, "label", e.target.value)}
+                          placeholder="pl. Jacuzzi"
+                          className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-forest-500/30"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-stone-500 mb-1">Alcím</label>
+                        <input
+                          value={item.desc}
+                          onChange={(e) => setItem(i, "desc", e.target.value)}
+                          placeholder="pl. Privát, korlátlan használat"
+                          className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-forest-500/30"
+                        />
+                      </div>
+                    </div>
 
-                <button
-                  onClick={() => removeItem(i)}
-                  className="mt-5 flex-shrink-0 text-red-400 hover:text-red-600 transition-colors"
-                  title="Törlés"
-                >
-                  <Trash2 size={15} />
-                </button>
+                  </div>
+
+                  <button
+                    onClick={() => removeItem(i)}
+                    className="mt-5 flex-shrink-0 w-7 h-7 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors flex items-center justify-center"
+                    title="Törlés"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
               </div>
             );
           })}

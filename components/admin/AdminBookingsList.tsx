@@ -119,6 +119,8 @@ export default function AdminBookingsList({ bookings }: Props) {
   const [availableServices, setAvailableServices] = useState<AvailableService[]>([]);
   const [showAddPanel, setShowAddPanel]     = useState(false);
   const [confirmDelete, setConfirmDelete]   = useState(false);
+  const [cancelModal, setCancelModal]       = useState(false);
+  const [cancelNote, setCancelNote]         = useState("");
   const [saveError, setSaveError]           = useState<string | null>(null);
   const [rules, setRules]                   = useState<PricingRule[]>([]);
 
@@ -203,13 +205,13 @@ export default function AdminBookingsList({ bookings }: Props) {
   };
 
   // ─── Státusz módosítás (olvasó nézetből) ────────────────────
-  const updateStatus = async (id: string, status: BookingStatus) => {
+  const updateStatus = async (id: string, status: BookingStatus, adminNote?: string) => {
     setLoading(id);
     try {
       const res  = await fetch(`/api/bookings/${id}`, {
         method:  "PATCH",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ status }),
+        body:    JSON.stringify({ status, ...(adminNote ? { adminNote } : {}) }),
       });
       const data = await res.json();
       if (data.success) {
@@ -289,8 +291,36 @@ export default function AdminBookingsList({ bookings }: Props) {
 
   return (
     <>
-      {/* ─── Táblázat ─────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl shadow-card overflow-hidden">
+      {/* ─── Mobil kártya lista ───────────────────────────────── */}
+      <div className="md:hidden space-y-3">
+        {list.map((booking) => {
+          const statusCfg = STATUS_CONFIG[booking.status as BookingStatus];
+          return (
+            <div
+              key={booking.id}
+              onClick={() => openModal(booking)}
+              className="bg-white rounded-2xl shadow-card p-4 cursor-pointer active:bg-stone-50 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="min-w-0">
+                  <p className="font-medium text-stone-800 truncate">{booking.guestName}</p>
+                  <p className="text-xs text-stone-400 font-mono">{booking.id}</p>
+                </div>
+                <span className={`shrink-0 inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusCfg.color}`}>
+                  {statusCfg.label}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-stone-500">{formatDateHu(booking.checkIn)} – {formatDateHu(booking.checkOut)}</span>
+                <span className="font-semibold text-stone-800">{formatCurrency(booking.totalPrice)}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ─── Asztali táblázat ─────────────────────────────────── */}
+      <div className="hidden md:block bg-white rounded-2xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-stone-50 border-b border-stone-100">
@@ -325,7 +355,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                     </td>
                     <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-2">
-                        {booking.depositAmount > 0 && !booking.depositPaidAt && (
+                        {booking.depositAmount > 0 && !booking.depositPaidAt && booking.status !== "CANCELLED" && (
                           <button
                             onClick={() => markDepositPaid(booking.id)}
                             disabled={loading === booking.id}
@@ -361,11 +391,11 @@ export default function AdminBookingsList({ bookings }: Props) {
       {/* ─── Modal ────────────────────────────────────────────── */}
       {selected && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:p-4"
           onClick={closeModal}
         >
           <div
-            className="bg-white rounded-3xl shadow-luxury w-full max-w-lg max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-t-3xl sm:rounded-3xl shadow-luxury w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Fejléc */}
@@ -435,14 +465,14 @@ export default function AdminBookingsList({ bookings }: Props) {
                   {/* Tartózkodás */}
                   <section>
                     <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-3">Tartózkodás</h3>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <label className="text-xs text-stone-400 mb-1 block">Érkezés</label>
                         <input
                           type="date"
                           value={editForm.checkIn}
                           onChange={(e) => setField("checkIn", e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+                          className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400 appearance-none"
                         />
                       </div>
                       <div>
@@ -451,7 +481,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                           type="date"
                           value={editForm.checkOut}
                           onChange={(e) => setField("checkOut", e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+                          className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400 appearance-none"
                         />
                       </div>
                     </div>
@@ -465,7 +495,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                   {/* Vendégek */}
                   <section>
                     <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-3">Vendégek</h3>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {([
                         ["Felnőtt (18+)", "numberOfAdults"],
                         ["Fiatal (12–18)", "numberOfTeens"],
@@ -916,7 +946,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                   {/* Dátumok */}
                   <section>
                     <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Tartózkodás</h3>
-                    <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                       <div className="bg-stone-50 rounded-xl p-3">
                         <p className="text-xs text-stone-400 mb-0.5">Érkezés</p>
                         <p className="font-medium text-stone-800">{formatDateHu(selected.checkIn)}</p>
@@ -935,7 +965,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                   {/* Vendégek */}
                   <section>
                     <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Vendégek</h3>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       <div className="flex justify-between bg-stone-50 rounded-xl px-3 py-2">
                         <span className="text-stone-500">Felnőtt (18+)</span>
                         <span className="font-medium text-stone-800">{selected.numberOfAdults} fő</span>
@@ -1175,7 +1205,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                   )}
 
                   {/* Előleg befizetve */}
-                  {selected.depositAmount > 0 && (
+                  {selected.depositAmount > 0 && selected.status !== "CANCELLED" && (
                     <section>
                       {selected.depositPaidAt ? (
                         <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
@@ -1213,7 +1243,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                             Jóváhagyás
                           </button>
                           <button
-                            onClick={() => updateStatus(selected.id, "CANCELLED")}
+                            onClick={() => { setCancelNote(""); setCancelModal(true); }}
                             disabled={loading === selected.id}
                             className="flex-1 py-2.5 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 text-sm font-medium transition-colors"
                           >
@@ -1225,6 +1255,46 @@ export default function AdminBookingsList({ bookings }: Props) {
                   )}
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Törlés / elutasítás modal */}
+      {cancelModal && selected && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl p-6 w-full sm:max-w-md">
+            <h3 className="font-serif text-lg text-stone-800 mb-1">Foglalás elutasítása</h3>
+            <p className="text-sm text-stone-500 mb-4">
+              <strong>{selected.guestName}</strong> foglalása törlésre kerül, és automatikus email érkezik a vendégnek.
+            </p>
+            <label className="block text-xs font-medium text-stone-500 uppercase tracking-wider mb-1.5">
+              Megjegyzés a vendégnek (opcionális)
+            </label>
+            <textarea
+              rows={4}
+              className="w-full border border-stone-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none mb-4"
+              placeholder="pl. Az időszak sajnos már nem elérhető, elnézést kérünk..."
+              value={cancelNote}
+              onChange={(e) => setCancelNote(e.target.value)}
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCancelModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-600 text-sm font-medium hover:bg-stone-50 transition-colors"
+              >
+                Mégsem
+              </button>
+              <button
+                onClick={async () => {
+                  setCancelModal(false);
+                  await updateStatus(selected.id, "CANCELLED", cancelNote || undefined);
+                }}
+                disabled={loading === selected.id}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-60"
+              >
+                Elutasítás + email küldés
+              </button>
             </div>
           </div>
         </div>

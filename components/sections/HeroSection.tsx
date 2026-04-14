@@ -50,7 +50,7 @@ export default function HeroSection({ data }: Props) {
   }, [slides.length]);
 
   return (
-    <section id="hero" ref={ref} className="relative h-screen min-h-[640px] overflow-hidden">
+    <section id="hero" ref={ref} className="relative h-screen min-h-[640px] overflow-hidden" style={{ touchAction: "pan-y" }}>
 
       {/* Slideshow */}
       <AnimatePresence initial={false}>
@@ -79,10 +79,10 @@ export default function HeroSection({ data }: Props) {
 
       {/* Tartalom */}
       <motion.div
-        className="relative z-10 h-full flex flex-col justify-center"
+        className="relative z-10 h-full flex flex-col justify-start lg:justify-center"
         style={{ y: textY, opacity }}
       >
-        <div className="container-custom pt-20 pb-8">
+        <div className="container-custom pt-24 pb-4 lg:pt-20 lg:pb-8">
           {/* text-shadow az egész szövegblokkra öröklődik */}
           <div className="max-w-3xl [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]">
 
@@ -138,7 +138,7 @@ export default function HeroSection({ data }: Props) {
 
         {/* Booking widget */}
         <motion.div
-          className="container-custom"
+          className="container-custom pb-16 lg:pb-0"
           initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.6 }}
         >

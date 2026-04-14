@@ -46,7 +46,7 @@ export default function AdminDiscounts({ discounts: initial }: Props) {
   const [deleting, setDeleting]   = useState<string | null>(null);
 
   const formatDate = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleDateString("hu-HU") : null;
+    iso ? format(parseISO(iso), "yyyy. MM. dd.") : null;
 
   const openEdit = (d: Discount) => {
     setEditingId(d.id);
@@ -198,57 +198,56 @@ export default function AdminDiscounts({ discounts: initial }: Props) {
                   exit={{ opacity: 0 }}
                   className="bg-white rounded-2xl shadow-card p-5"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-terra-50 flex items-center justify-center shrink-0 mt-0.5">
-                        <Tag size={16} className="text-terra-500" />
+                  {/* Fejléc: név + százalék + gombok */}
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-terra-50 flex items-center justify-center shrink-0">
+                        <Tag size={15} className="text-terra-500" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-medium text-stone-800">{d.name}</h3>
+                          <h3 className="font-medium text-stone-800 truncate">{d.name}</h3>
                           {!d.isActive && (
-                            <span className="text-xs bg-stone-100 text-stone-500 px-2 py-0.5 rounded-full">Inaktív</span>
+                            <span className="text-xs bg-stone-100 text-stone-500 px-2 py-0.5 rounded-full shrink-0">Inaktív</span>
                           )}
                         </div>
-                        <div className="mt-1.5 space-y-0.5">
-                          <p className="text-xs text-stone-500 flex items-center gap-1.5">
-                            <CalendarDays size={11} className="text-forest-500" />
-                            <span className="text-stone-400">Szállás:</span>
-                            {formatDate(d.stayFrom)} – {formatDate(d.stayTo)}
-                          </p>
-                          {(d.bookingFrom || d.bookingTo) && (
-                            <p className="text-xs text-stone-500 flex items-center gap-1.5">
-                              <Calendar size={11} className="text-terra-400" />
-                              <span className="text-stone-400">Foglalási ablak:</span>
-                              {d.bookingFrom ? formatDate(d.bookingFrom) : "—"}
-                              {" – "}
-                              {d.bookingTo ? formatDate(d.bookingTo) : "—"}
-                            </p>
-                          )}
-                        </div>
+                        <span className="font-serif text-lg text-terra-600">{d.discountPercent}% kedvezmény</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <div className="text-right">
-                        <span className="font-serif text-2xl text-terra-600">{d.discountPercent}%</span>
-                        <p className="text-xs text-stone-400">kedvezmény</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => openEdit(d)}
-                          className="w-9 h-9 rounded-xl bg-forest-50 text-forest-700 hover:bg-forest-100 flex items-center justify-center transition-colors"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          onClick={() => deleteDiscount(d.id)}
-                          disabled={deleting === d.id}
-                          className="w-9 h-9 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        onClick={() => openEdit(d)}
+                        className="w-9 h-9 rounded-xl bg-forest-50 text-forest-700 hover:bg-forest-100 flex items-center justify-center transition-colors"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        onClick={() => deleteDiscount(d.id)}
+                        disabled={deleting === d.id}
+                        className="w-9 h-9 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
+                  </div>
+                  {/* Dátumok */}
+                  <div className="space-y-0.5 pl-12">
+                    <p className="text-xs text-stone-500 flex items-center gap-1.5 flex-wrap">
+                      <CalendarDays size={11} className="text-forest-500 shrink-0" />
+                      <span className="text-stone-400 shrink-0">Szállás:</span>
+                      <span className="whitespace-nowrap">{formatDate(d.stayFrom)} – {formatDate(d.stayTo)}</span>
+                    </p>
+                    {(d.bookingFrom || d.bookingTo) && (
+                      <p className="text-xs text-stone-500 flex items-center gap-1.5 flex-wrap">
+                        <Calendar size={11} className="text-terra-400 shrink-0" />
+                        <span className="text-stone-400 shrink-0">Foglalási ablak:</span>
+                        <span className="whitespace-nowrap">
+                          {d.bookingFrom ? formatDate(d.bookingFrom) : "—"}
+                          {" – "}
+                          {d.bookingTo ? formatDate(d.bookingTo) : "—"}
+                        </span>
+                      </p>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -388,7 +387,7 @@ function DiscountFormFields({ form, setForm }: { form: any; setForm: (f: any) =>
           Szállás időszaka <span className="text-red-400">*</span>
         </p>
         <p className="text-xs text-stone-400 mb-3">Milyen dátumra szóló foglalásokra érvényes a kedvezmény?</p>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <DatePickerField
             label="Ettől"
             value={form.stayFrom}
@@ -412,7 +411,7 @@ function DiscountFormFields({ form, setForm }: { form: any; setForm: (f: any) =>
         <p className="text-xs text-stone-400 mb-3">
           Ha meg van adva, csak ebben az időszakban foglalva érvényes a kedvezmény.
         </p>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <DatePickerField
             label="Foglalás ettől"
             value={form.bookingFrom ?? ""}

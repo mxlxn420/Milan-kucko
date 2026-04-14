@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { differenceInCalendarDays } from "date-fns";
+import { cookies } from "next/headers";
 
 // Prisma-t try-catch-ben importálunk
 async function getPrisma() {
@@ -7,8 +8,18 @@ async function getPrisma() {
   return prisma;
 }
 
+async function isAuthed(): Promise<boolean> {
+  const store         = await cookies();
+  const token         = store.get("admin_token")?.value;
+  const expectedToken = process.env.ADMIN_SESSION_TOKEN;
+  return !!token && !!expectedToken && token === expectedToken;
+}
+
 // ─── GET ────────────────────────────────────────────────────
 export async function GET() {
+  if (!(await isAuthed())) {
+    return NextResponse.json({ success: false, error: "Nincs jogosultság" }, { status: 401 });
+  }
   try {
     const prisma = await getPrisma();
     const bookings = await prisma.booking.findMany({
