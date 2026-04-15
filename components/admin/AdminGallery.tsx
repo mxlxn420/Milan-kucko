@@ -312,7 +312,7 @@ export default function AdminGallery({ initial }: { initial: GalleryData }) {
                   <div className="border-t border-stone-100 p-4 space-y-4">
 
                     {/* Meta */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-stone-500 mb-1">Kategória neve</label>
                         <input

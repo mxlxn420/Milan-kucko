@@ -135,8 +135,8 @@ function guestEmailHtml(data: BookingEmailData): string {
                     <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 12px;">
                       Tudnivalók
                     </p>
-                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">🕑 Bejelentkezés: 14:00 – 20:00</p>
-                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">🕙 Kijelentkezés: 10:00-ig</p>
+                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">🕑 Bejelentkezés: 15:00 – 20:00</p>
+                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">🕙 Kijelentkezés: 8:00 – 11:00</p>
                     <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">📍 3519 Miskolctapolca, Bencések útja 117/A</p>
                     <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">📞 +36 30 845 4923</p>
                     <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">💳 Fizetés helyszínen vagy előre utalással</p>
@@ -169,7 +169,7 @@ function guestEmailHtml(data: BookingEmailData): string {
             <p style="font-family:sans-serif;font-size:13px;color:rgba(245,240,232,0.7);margin:0 0 6px;">Bankszámlaszám</p>
             <p style="font-family:monospace;font-size:15px;color:#f5f0e8;font-weight:600;margin:0 0 12px;letter-spacing:0.05em;">12345678-12345678-12345678</p>
             <p style="font-family:sans-serif;font-size:13px;color:rgba(245,240,232,0.7);margin:0 0 6px;">Közlemény</p>
-            <p style="font-family:monospace;font-size:14px;color:#d4a878;font-weight:600;margin:0;">${data.bookingId}</p>
+            <p style="font-family:monospace;font-size:14px;color:#d4a878;font-weight:600;margin:0;">${data.guestName}</p>
           </td>
         </tr>
       </table>
@@ -191,7 +191,7 @@ function guestEmailHtml(data: BookingEmailData): string {
       <p style="font-family:sans-serif;font-size:13px;color:#8a4e25;margin:4px 0;">✓ Előleg utalása 48 órán belül (${formatHuf(Math.round(data.totalPrice * 0.3))})</p>
       <p style="font-family:sans-serif;font-size:13px;color:#8a4e25;margin:4px 0;">✓ Előleg beérkezése után végleges a foglalás</p>
       <p style="font-family:sans-serif;font-size:13px;color:#8a4e25;margin:4px 0;">✓ Maradék összeg (${formatHuf(data.totalPrice - Math.round(data.totalPrice * 0.3))}) helyszínen fizetendő</p>
-      <p style="font-family:sans-serif;font-size:13px;color:#8a4e25;margin:4px 0;">✓ Bejelentkezési instrukciók e-mailben</p>
+      <p style="font-family:sans-serif;font-size:13px;color:#8a4e25;margin:4px 0;">✓ Bejelentkezési instrukciók e-mailben érkezés előtt</p>
     </td>
   </tr>
 </table>
@@ -482,5 +482,124 @@ export async function sendBookingEmails(data: BookingEmailData): Promise<void> {
   if (!adminRes.ok) {
     const err = await adminRes.text();
     console.error("Admin email hiba:", err);
+  }
+}
+
+// ─── TÖRLÉSI / ELUTASÍTÁSI EMAIL ─────────────────────────────
+
+function cancellationEmailHtml(data: {
+  guestName: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  bookingId: string;
+  adminNote?: string;
+}): string {
+  return `<!DOCTYPE html>
+<html lang="hu">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Foglalás törlése</title></head>
+<body style="margin:0;padding:0;background:#f5f0e8;font-family:sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;padding:32px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+      <!-- Fejléc -->
+      <tr><td style="background:#1a3a2a;border-radius:16px 16px 0 0;padding:32px;text-align:center;">
+        <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:rgba(245,240,232,0.5);text-transform:uppercase;letter-spacing:0.2em;margin:0 0 8px;">Milán Kuckó</p>
+        <h1 style="font-family:Georgia,serif;font-size:26px;font-weight:300;color:#f5f0e8;margin:0;">Foglalás törölve</h1>
+      </td></tr>
+
+      <!-- Tartalom -->
+      <tr><td style="background:#ffffff;padding:32px;">
+        <p style="font-family:sans-serif;font-size:15px;color:#3d3d3d;margin:0 0 16px;">
+          Kedves <strong>${data.guestName}</strong>!
+        </p>
+        <p style="font-family:sans-serif;font-size:14px;color:#666;margin:0 0 24px;line-height:1.6;">
+          Sajnálattal értesítjük, hogy az alábbi foglalása törlésre került.
+        </p>
+
+        <!-- Foglalás adatai -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;border-radius:12px;margin-bottom:24px;">
+          <tr><td style="padding:20px;">
+            <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#8a7a6a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 12px;">Foglalás részletei</p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="font-family:sans-serif;font-size:13px;color:#8a7a6a;padding:4px 0;">Érkezés</td>
+                <td style="font-family:sans-serif;font-size:13px;color:#3d3d3d;font-weight:600;text-align:right;padding:4px 0;">${data.checkIn}</td>
+              </tr>
+              <tr>
+                <td style="font-family:sans-serif;font-size:13px;color:#8a7a6a;padding:4px 0;">Távozás</td>
+                <td style="font-family:sans-serif;font-size:13px;color:#3d3d3d;font-weight:600;text-align:right;padding:4px 0;">${data.checkOut}</td>
+              </tr>
+              <tr>
+                <td style="font-family:sans-serif;font-size:13px;color:#8a7a6a;padding:4px 0;">Éjszakák</td>
+                <td style="font-family:sans-serif;font-size:13px;color:#3d3d3d;font-weight:600;text-align:right;padding:4px 0;">${data.nights} éj</td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+
+        ${data.adminNote ? `
+        <!-- Admin megjegyzés -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff8f0;border-left:3px solid #d4a878;border-radius:0 8px 8px 0;margin-bottom:24px;">
+          <tr><td style="padding:16px 20px;">
+            <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#a86435;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 8px;">Megjegyzés</p>
+            <p style="font-family:sans-serif;font-size:14px;color:#3d3d3d;margin:0;line-height:1.6;">${data.adminNote}</p>
+          </td></tr>
+        </table>
+        ` : ""}
+
+        <p style="font-family:sans-serif;font-size:14px;color:#666;margin:0 0 8px;line-height:1.6;">
+          Ha kérdése van, kérjük vegye fel velünk a kapcsolatot.
+        </p>
+      </td></tr>
+
+      <!-- Lábléc -->
+      <tr><td style="background:#f0ebe3;border-radius:0 0 16px 16px;padding:20px;text-align:center;">
+        <p style="font-family:sans-serif;font-size:12px;color:#a8a8a8;margin:0;">Milán Kuckó · Miskolctapolca, Bencések útja 117/A</p>
+        <p style="font-family:sans-serif;font-size:11px;color:#c0c0c0;margin:6px 0 0;">Azonosító: ${data.bookingId}</p>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+}
+
+export async function sendCancellationEmail(params: {
+  guestName: string;
+  guestEmail: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  bookingId: string;
+  adminNote?: string;
+}): Promise<void> {
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  const FROM_EMAIL = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
+
+  if (!RESEND_API_KEY || RESEND_API_KEY === "re_xxxxxxxxxxxx") {
+    console.log("📧 [DEV] Törlési email szimulálva:", { to: params.guestEmail, note: params.adminNote });
+    return;
+  }
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${RESEND_API_KEY}`,
+    },
+    body: JSON.stringify({
+      from: `Milán Kuckó <${FROM_EMAIL}>`,
+      to: [params.guestEmail],
+      subject: `Foglalás törölve – ${params.bookingId}`,
+      html: cancellationEmailHtml(params),
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("Törlési email hiba:", err);
   }
 }

@@ -8,7 +8,7 @@ import type { BookingData } from "./BookingPage";
 
 interface Props {
   bookingData: BookingData;
-  bookingId:   string;
+  bookingId: string;
 }
 
 export default function BookingSuccess({ bookingData, bookingId }: Props) {
@@ -71,8 +71,9 @@ export default function BookingSuccess({ bookingData, bookingId }: Props) {
         <p className="font-medium mb-1">Mi történik ezután?</p>
         <ul className="space-y-1 text-terra-600">
           <li>✓ E-mail visszaigazolás 24 órán belül</li>
+          <li>✓ Előleg fizetése 48 órán belül</li>
           <li>✓ Fizetés helyszínen vagy előre utalással</li>
-          <li>✓ Bejelentkezési instrukciók e-mailben</li>
+          <li>✓ Bejelentkezési instrukciók e-mailben érkezés előtt</li>
         </ul>
       </div>
 
