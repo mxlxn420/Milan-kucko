@@ -1,13 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.fixedWindow(5, "60 m"),
+  prefix: "contact",
+});
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? req.headers.get("x-real-ip") ?? "unknown";
+  const { success } = await ratelimit.limit(ip);
+  if (!success) {
+    return NextResponse.json(
+      { success: false, error: "Túl sok üzenet. Próbáld újra később." },
+      { status: 429 }
+    );
+  }
+
   try {
-    const { name, email, phone, message } = await req.json();
+    const body = await req.json();
+
+    const name    = typeof body.name    === "string" ? body.name.trim().slice(0, 100)    : "";
+    const email   = typeof body.email   === "string" ? body.email.trim().slice(0, 200)   : "";
+    const phone   = typeof body.phone   === "string" ? body.phone.trim().slice(0, 30)    : "";
+    const message = typeof body.message === "string" ? body.message.trim().slice(0, 2000) : "";
 
     if (!name || !email || !message) {
       return NextResponse.json(
         { success: false, error: "Hiányzó mezők" },
+        { status: 400 }
+      );
+    }
+
+    if (!EMAIL_REGEX.test(email)) {
+      return NextResponse.json(
+        { success: false, error: "Érvénytelen e-mail cím" },
         { status: 400 }
       );
     }
@@ -32,7 +72,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           from:    "Milán Kuckó <" + FROM_EMAIL + ">",
           to:      [ADMIN_EMAIL],
-          subject: "Új üzenet: " + name,
+          subject: "Új üzenet: " + escapeHtml(name),
           html: `
             <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:20px;">
               <div style="background:#1a3a2a;padding:24px;border-radius:12px 12px 0 0;text-align:center;">
@@ -42,28 +82,28 @@ export async function POST(req: NextRequest) {
                 <table style="width:100%;font-size:14px;border-collapse:collapse;">
                   <tr>
                     <td style="padding:8px 0;color:#737373;border-bottom:1px solid #f0f0f0;">Név</td>
-                    <td style="padding:8px 0;font-weight:600;border-bottom:1px solid #f0f0f0;">${name}</td>
+                    <td style="padding:8px 0;font-weight:600;border-bottom:1px solid #f0f0f0;">${escapeHtml(name)}</td>
                   </tr>
                   <tr>
                     <td style="padding:8px 0;color:#737373;border-bottom:1px solid #f0f0f0;">E-mail</td>
                     <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;">
-                      <a href="mailto:${email}" style="color:#1a3a2a;">${email}</a>
+                      <a href="mailto:${escapeHtml(email)}" style="color:#1a3a2a;">${escapeHtml(email)}</a>
                     </td>
                   </tr>
                   ${phone ? `
                   <tr>
                     <td style="padding:8px 0;color:#737373;border-bottom:1px solid #f0f0f0;">Telefon</td>
                     <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;">
-                      <a href="tel:${phone}" style="color:#1a3a2a;">${phone}</a>
+                      <a href="tel:${escapeHtml(phone)}" style="color:#1a3a2a;">${escapeHtml(phone)}</a>
                     </td>
                   </tr>` : ""}
                   <tr>
                     <td style="padding:8px 0;color:#737373;vertical-align:top;">Üzenet</td>
-                    <td style="padding:8px 0;line-height:1.6;">${message.replace(/\n/g, "<br>")}</td>
+                    <td style="padding:8px 0;line-height:1.6;">${escapeHtml(message).replace(/\n/g, "<br>")}</td>
                   </tr>
                 </table>
                 <div style="margin-top:20px;padding-top:20px;border-top:1px solid #f0f0f0;text-align:center;">
-                  <a href="mailto:${email}" style="background:#1a3a2a;color:#f5f0e8;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:13px;">
+                  <a href="mailto:${escapeHtml(email)}" style="background:#1a3a2a;color:#f5f0e8;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:13px;">
                     Válasz küldése
                   </a>
                 </div>

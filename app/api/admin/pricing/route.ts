@@ -31,9 +31,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (!body.name || typeof body.name !== "string" || body.name.trim().length === 0) {
+      return NextResponse.json({ success: false, error: "A szezon neve kötelező" }, { status: 400 });
+    }
+    if (body.name.length > 100) {
+      return NextResponse.json({ success: false, error: "A szezon neve maximum 100 karakter lehet" }, { status: 400 });
+    }
+
+    const priceFields = ["pricePerNight", "price3", "price4", "weekendPrice", "weekendPrice3", "weekendPrice4", "childPrice2to6", "childPrice6to12"];
+    for (const field of priceFields) {
+      const val = Number(body[field]);
+      if (body[field] !== undefined && body[field] !== null && body[field] !== "" && val < 0) {
+        return NextResponse.json({ success: false, error: "Az ár nem lehet negatív" }, { status: 400 });
+      }
+    }
+    if (!body.pricePerNight || Number(body.pricePerNight) <= 0) {
+      return NextResponse.json({ success: false, error: "Az alap éjszakadíj kötelező és pozitív kell legyen" }, { status: 400 });
+    }
+
     const rule = await prisma.pricingRule.create({
       data: {
-        name:            body.name,
+        name:            body.name.trim(),
         pricePerNight:   Number(body.pricePerNight),
         price3:          Number(body.price3)          || 0,
         price4:          Number(body.price4)          || 0,

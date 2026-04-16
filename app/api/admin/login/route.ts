@@ -1,10 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.fixedWindow(3, "60 m"),
+  prefix: "admin_login",
+});
+
+function getClientIp(req: NextRequest): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown"
+  );
+}
 
 export async function POST(req: NextRequest) {
-  try {
-    const { password } = await req.json();
+  const ip = getClientIp(req);
 
-    const ADMIN_PASSWORD    = process.env.ADMIN_PASSWORD;
+  const { success, remaining, reset } = await ratelimit.limit(ip);
+
+  if (!success) {
+    const retryAfterMin = Math.ceil((reset - Date.now()) / 60000);
+    return NextResponse.json(
+      {
+        success: false,
+        error: `Túl sok sikertelen próbálkozás. Próbáld újra ${retryAfterMin} perc múlva.`,
+      },
+      { status: 429 }
+    );
+  }
+
+  try {
+    const body = await req.json();
+    const password = typeof body?.password === "string" ? body.password.slice(0, 200) : "";
+
+    const ADMIN_PASSWORD      = process.env.ADMIN_PASSWORD;
     const ADMIN_SESSION_TOKEN = process.env.ADMIN_SESSION_TOKEN;
 
     if (!ADMIN_PASSWORD || !ADMIN_SESSION_TOKEN) {
@@ -15,8 +47,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (password !== ADMIN_PASSWORD) {
+      const errorMsg =
+        remaining === 0
+          ? "Túl sok sikertelen próbálkozás. Próbáld újra 1 óra múlva."
+          : `Hibás jelszó. Még ${remaining} próbálkozás maradt.`;
+
       return NextResponse.json(
-        { success: false, error: "Hibás jelszó" },
+        { success: false, error: errorMsg },
         { status: 401 }
       );
     }

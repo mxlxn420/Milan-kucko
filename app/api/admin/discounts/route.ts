@@ -23,6 +23,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (typeof body.name === "string" && body.name.length > 100) {
+      return NextResponse.json({ success: false, error: "A kedvezmény neve maximum 100 karakter lehet" }, { status: 400 });
+    }
+
+    const discountPercent = Number(body.discountPercent);
+    if (!Number.isFinite(discountPercent) || discountPercent < 1 || discountPercent > 100) {
+      return NextResponse.json({ success: false, error: "A kedvezmény mértéke 1 és 100 közé kell essen" }, { status: 400 });
+    }
+
     const discount = await prisma.discount.create({
       data: {
         name:            body.name,

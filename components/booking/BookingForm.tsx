@@ -144,6 +144,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
               className="input-base"
               placeholder="Kovács Anna"
               required
+              maxLength={100}
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
@@ -159,6 +160,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                 type="email"
                 placeholder="email@example.com"
                 required
+                maxLength={200}
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
@@ -171,6 +173,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                 className="input-base"
                 placeholder="+36 30 123 4567"
                 required
+                maxLength={30}
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
               />
@@ -185,6 +188,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
               className="input-base"
               placeholder="1234 Budapest, Példa utca 1."
               required
+              maxLength={200}
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
             />
@@ -198,6 +202,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
               className="input-base resize-none"
               rows={4}
               placeholder="Pl. késői érkezés, különleges kérés, babakiságy igény..."
+              maxLength={1000}
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />

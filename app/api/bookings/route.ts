@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { differenceInCalendarDays } from "date-fns";
 import { cookies } from "next/headers";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.fixedWindow(3, "60 m"),
+  prefix: "bookings",
+});
 
 // Prisma-t try-catch-ben importálunk
 async function getPrisma() {
@@ -37,6 +45,15 @@ export async function GET() {
 
 // ─── POST ───────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? req.headers.get("x-real-ip") ?? "unknown";
+  const { success } = await ratelimit.limit(ip);
+  if (!success) {
+    return NextResponse.json(
+      { success: false, error: "Túl sok foglalási kísérlet. Próbáld újra 1 óra múlva." },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await req.json();
 
@@ -58,10 +75,25 @@ export async function POST(req: NextRequest) {
       extraServicesTotal,
     } = body;
 
+    // Hossz- és típus-validáció
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (typeof guestName    === "string" && guestName.length    > 100) return NextResponse.json({ success: false, error: "A név maximum 100 karakter lehet" },     { status: 400 });
+    if (typeof guestEmail   === "string" && guestEmail.length   > 200) return NextResponse.json({ success: false, error: "Az e-mail maximum 200 karakter lehet" }, { status: 400 });
+    if (typeof guestPhone   === "string" && guestPhone.length   > 30)  return NextResponse.json({ success: false, error: "A telefon maximum 30 karakter lehet" },  { status: 400 });
+    if (typeof guestAddress === "string" && guestAddress.length > 200) return NextResponse.json({ success: false, error: "A lakcím maximum 200 karakter lehet" },  { status: 400 });
+    if (typeof notes        === "string" && notes.length        > 1000) return NextResponse.json({ success: false, error: "A megjegyzés maximum 1000 karakter lehet" }, { status: 400 });
+
     // Validáció
     if (!guestName || !guestEmail || !guestPhone || !guestAddress || !checkIn || !checkOut) {
       return NextResponse.json(
         { success: false, error: "Hiányzó kötelező mezők" },
+        { status: 400 }
+      );
+    }
+
+    if (!EMAIL_REGEX.test(guestEmail)) {
+      return NextResponse.json(
+        { success: false, error: "Érvénytelen e-mail cím" },
         { status: 400 }
       );
     }

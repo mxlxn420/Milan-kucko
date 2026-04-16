@@ -34,6 +34,27 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Hi\u00E1nyz\u00F3 k\u00F6telez\u0151 mez\u0151k" }, { status: 400 });
     }
 
+    if (!Array.isArray(featured)) {
+      return NextResponse.json({ success: false, error: "A featured mező tömb kell legyen" }, { status: 400 });
+    }
+    for (const item of featured) {
+      if (typeof item?.src !== "string" || typeof item?.alt !== "string") {
+        return NextResponse.json({ success: false, error: "Minden featured elemnek van src és alt mezője (string)" }, { status: 400 });
+      }
+    }
+
+    if (!Array.isArray(categories)) {
+      return NextResponse.json({ success: false, error: "A categories mező tömb kell legyen" }, { status: 400 });
+    }
+    for (const cat of categories) {
+      if (typeof cat?.name !== "string") {
+        return NextResponse.json({ success: false, error: "Minden kategóriának van name mezője (string)" }, { status: 400 });
+      }
+      if (cat.images !== undefined && !Array.isArray(cat.images)) {
+        return NextResponse.json({ success: false, error: "A kategória images mezője tömb kell legyen" }, { status: 400 });
+      }
+    }
+
     const row = await prisma.galleryContent.upsert({
       where:  { id: "singleton" },
       update: { featured, categories },
