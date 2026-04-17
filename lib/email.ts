@@ -406,7 +406,8 @@ export async function sendDepositConfirmationEmail(params: {
   bookingId: string;
 }): Promise<void> {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
-  const FROM_EMAIL = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
+  const FROM_EMAIL  = process.env.FROM_EMAIL  ?? "onboarding@resend.dev";
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? FROM_EMAIL;
 
   const remaining = params.totalPrice - params.depositAmount;
   const html = depositConfirmationHtml({ ...params, remaining });
@@ -426,9 +427,10 @@ export async function sendDepositConfirmationEmail(params: {
       "Authorization": `Bearer ${RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: `Milán Kuckó <${FROM_EMAIL}>`,
-      to: [params.guestEmail],
-      subject: `✅ Előleg befizetve – ${params.bookingId}`,
+      from:     `Milán Kuckó <${FROM_EMAIL}>`,
+      to:       [params.guestEmail],
+      reply_to: ADMIN_EMAIL,
+      subject:  `✅ Előleg befizetve – ${params.bookingId}`,
       html,
     }),
   });
@@ -461,10 +463,11 @@ export async function sendBookingEmails(data: BookingEmailData): Promise<void> {
       "Authorization": `Bearer ${RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: `Milán Kuckó <${FROM_EMAIL}>`,
-      to: [data.guestEmail],
-      subject: `✓ Foglalás visszaigazolása – ${data.bookingId}`,
-      html: guestEmailHtml(data),
+      from:     `Milán Kuckó <${FROM_EMAIL}>`,
+      to:       [data.guestEmail],
+      reply_to: ADMIN_EMAIL,
+      subject:  `✓ Foglalás visszaigazolása – ${data.bookingId}`,
+      html:     guestEmailHtml(data),
     }),
   });
 
@@ -586,7 +589,8 @@ export async function sendCancellationEmail(params: {
   adminNote?: string;
 }): Promise<void> {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
-  const FROM_EMAIL = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
+  const FROM_EMAIL  = process.env.FROM_EMAIL  ?? "onboarding@resend.dev";
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? FROM_EMAIL;
 
   if (!RESEND_API_KEY || RESEND_API_KEY === "re_xxxxxxxxxxxx") {
     console.log("📧 [DEV] Törlési email szimulálva:", { to: params.guestEmail, note: params.adminNote });
@@ -600,10 +604,11 @@ export async function sendCancellationEmail(params: {
       "Authorization": `Bearer ${RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: `Milán Kuckó <${FROM_EMAIL}>`,
-      to: [params.guestEmail],
-      subject: `Foglalás törölve – ${params.bookingId}`,
-      html: cancellationEmailHtml(params),
+      from:     `Milán Kuckó <${FROM_EMAIL}>`,
+      to:       [params.guestEmail],
+      reply_to: ADMIN_EMAIL,
+      subject:  `Foglalás törölve – ${params.bookingId}`,
+      html:     cancellationEmailHtml(params),
     }),
   });
 

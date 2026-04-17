@@ -70,9 +70,10 @@ export async function POST(req: NextRequest) {
           "Authorization": "Bearer " + RESEND_API_KEY,
         },
         body: JSON.stringify({
-          from:    "Milán Kuckó <" + FROM_EMAIL + ">",
-          to:      [ADMIN_EMAIL],
-          subject: "Új üzenet: " + escapeHtml(name),
+          from:     "Milán Kuckó <" + FROM_EMAIL + ">",
+          to:       [ADMIN_EMAIL],
+          reply_to: email,
+          subject:  "Új üzenet: " + escapeHtml(name),
           html: `
             <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:20px;">
               <div style="background:#1a3a2a;padding:24px;border-radius:12px 12px 0 0;text-align:center;">
