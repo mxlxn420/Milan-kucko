@@ -23,6 +23,7 @@ export async function GET() {
       dateFrom:        r.dateFrom?.toISOString()  ?? null,
       dateTo:          r.dateTo?.toISOString()    ?? null,
       minNights:       r.minNights,
+      minAdvanceDays:  r.minAdvanceDays,
       isActive:        r.isActive,
       priority:        r.priority,
       depositPercent:  (r as any).policy?.depositPercent ?? 30,

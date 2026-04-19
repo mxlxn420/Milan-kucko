@@ -24,6 +24,7 @@ interface PricingRule {
   dateFrom: string | null;
   dateTo: string | null;
   minNights: number;
+  minAdvanceDays: number;
   isActive: boolean;
   priority: number;
 }
@@ -140,7 +141,6 @@ export default function BookingCalendar({ onNext }: Props) {
   const [rules, setRules] = useState<PricingRule[]>([]);
   const [loadingRules, setLoadingRules] = useState(true);
   const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
-  const [minAdvanceDays, setMinAdvanceDays] = useState(2);
   const [discount, setDiscount] = useState<{ name: string; discountPercent: number } | null>(null);
 
   useEffect(() => {
@@ -183,7 +183,6 @@ export default function BookingCalendar({ onNext }: Props) {
             to: new Date(b.checkOut),
           }));
           setBookedRanges(ranges);
-          setMinAdvanceDays(data.data.minAdvanceDays ?? 2);
         }
       })
       .catch(console.error);
@@ -304,14 +303,15 @@ export default function BookingCalendar({ onNext }: Props) {
           mode="range"
           selected={range}
           onSelect={handleSelect}
-          startMonth={startOfDay(addDays(new Date(), minAdvanceDays))}
+          startMonth={startOfDay(new Date())}
           endMonth={startOfDay(addDays(new Date(), 365))}
           numberOfMonths={2}
           locale={hu}
           disabled={(day) => {
             const d = startOfDay(day);
-            const earliest = startOfDay(addDays(new Date(), minAdvanceDays));
-            const latest   = startOfDay(addDays(new Date(), 365));
+            const latest = startOfDay(addDays(new Date(), 365));
+            const advance = getApplicableRule(d, rules)?.minAdvanceDays ?? 2;
+            const earliest = startOfDay(addDays(new Date(), advance));
             if (d < earliest || d > latest) return true;
             return bookedRanges.some((r) => d >= startOfDay(r.from) && d < startOfDay(r.to));
           }}
@@ -323,7 +323,8 @@ export default function BookingCalendar({ onNext }: Props) {
               }),
             tooSoon: (day) => {
               const d = startOfDay(day);
-              const earliest = startOfDay(addDays(new Date(), minAdvanceDays));
+              const advance = getApplicableRule(d, rules)?.minAdvanceDays ?? 2;
+              const earliest = startOfDay(addDays(new Date(), advance));
               return d >= startOfDay(new Date()) && d < earliest;
             },
           }}
