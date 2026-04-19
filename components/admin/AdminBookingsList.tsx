@@ -1199,6 +1199,15 @@ export default function AdminBookingsList({ bookings }: Props) {
                             const depositBase = grandTotal - (selected.touristTax ?? 0);
                             return (
                               <>
+                                {(selected.discountAmount ?? 0) > 0 && (
+                                  <div className="flex justify-between items-center text-green-700 bg-green-50 border border-green-200 rounded-xl px-3 py-2 mt-1">
+                                    <div>
+                                      <p className="text-xs font-semibold">Kedvezmény</p>
+                                      <p className="text-[10px] text-green-600">{selected.discountPercent ?? 0}% a szállásdíjból</p>
+                                    </div>
+                                    <span className="font-semibold text-sm">− {formatCurrency(selected.discountAmount ?? 0)}</span>
+                                  </div>
+                                )}
                                 <div className="flex justify-between font-semibold text-stone-800 border-t border-stone-100 pt-2 mt-1">
                                   <span>Végösszeg</span>
                                   <span>{formatCurrency(grandTotal)}</span>
