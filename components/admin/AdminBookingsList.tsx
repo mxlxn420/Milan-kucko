@@ -192,7 +192,10 @@ export default function AdminBookingsList({ bookings }: Props) {
     const breakdown = calcPriceBreakdown(ci, co, form.numberOfAdults, form.numberOfTeens, form.numberOfChildren2to6, form.numberOfChildren6to12, rules);
     if (!breakdown) return form;
     const extrasTotal = editExtras.reduce((sum, s) => sum + (s.total ?? 0), 0);
-    return { ...form, ...breakdown, totalPrice: breakdown.totalPrice + extrasTotal };
+    const totalPrice  = breakdown.totalPrice + extrasTotal;
+    const depositPercent = (rules.find((r) => r.dateFrom && r.dateTo && new Date(r.dateFrom) <= ci && ci <= new Date(r.dateTo)) ?? rules.find((r) => !r.dateFrom))?.depositPercent ?? 30;
+    const depositAmount  = Math.round((totalPrice - breakdown.touristTax) * depositPercent / 100);
+    return { ...form, ...breakdown, totalPrice, depositAmount };
   }, [rules, editExtras]);
 
   const setField = <K extends keyof EditForm>(key: K, value: EditForm[K]) => {
