@@ -177,15 +177,24 @@ export default function AdminPriceCalendar({ rules }: Props) {
             const isToday = isSameDay(day, today);
             const booked  = isBooked(day);
             return (
-              <div key={day.toISOString()} className={`rounded-2xl border p-3 flex flex-col gap-1.5 ${booked ? "opacity-60" : ""} ${colors.bg} ${colors.border} ${isToday ? "ring-2 ring-forest-500 ring-offset-1" : ""}`}>
+              <div
+                key={day.toISOString()}
+                className={`rounded-2xl border p-3 flex flex-col gap-1.5 relative overflow-hidden ${booked ? "border-red-300" : colors.border} ${booked ? "bg-red-50" : colors.bg} ${isToday ? "ring-2 ring-forest-500 ring-offset-1" : ""}`}
+              >
+                {booked && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ backgroundImage: "repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(239,68,68,0.08) 6px, rgba(239,68,68,0.08) 12px)" }}
+                  />
+                )}
                 <div className="flex items-center justify-between">
                   <span className={`text-xs font-semibold ${weekend ? "text-red-500" : "text-stone-500"}`}>
                     {format(day, "EEE", { locale: hu }).toUpperCase()}
                   </span>
-                  <span className={`text-sm font-bold ${colors.text}`}>{format(day, "d")}</span>
+                  <span className={`text-sm font-bold ${booked ? "text-red-700" : colors.text}`}>{format(day, "d")}</span>
                 </div>
                 {booked && (
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 w-fit">Foglalt</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white w-fit z-10">Foglalt</span>
                 )}
                 {rule ? (
                   <>
