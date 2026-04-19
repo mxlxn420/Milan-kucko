@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { differenceInCalendarDays } from "date-fns";
+import { differenceInCalendarDays, format } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
@@ -153,6 +153,24 @@ export async function DELETE(
     return NextResponse.json({ success: false, error: "Nincs jogosultság" }, { status: 401 });
   }
   try {
+    const body = await req.json().catch(() => ({}));
+    const booking = await prisma.booking.findUnique({ where: { id: params.id } });
+    if (booking) {
+      try {
+        const { sendCancellationEmail } = await import("@/lib/email");
+        await sendCancellationEmail({
+          guestName:  booking.guestName,
+          guestEmail: booking.guestEmail,
+          checkIn:    format(new Date(booking.checkIn),  "yyyy-MM-dd"),
+          checkOut:   format(new Date(booking.checkOut), "yyyy-MM-dd"),
+          nights:     booking.nights,
+          bookingId:  booking.id,
+          adminNote:  body.adminNote,
+        });
+      } catch (emailErr) {
+        console.error("Törlési email hiba:", emailErr);
+      }
+    }
     await prisma.booking.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
   } catch (error: any) {

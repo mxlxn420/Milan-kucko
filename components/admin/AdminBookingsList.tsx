@@ -307,10 +307,15 @@ export default function AdminBookingsList({ bookings }: Props) {
     if (!selected) return;
     setLoading(selected.id);
     try {
-      const res  = await fetch(`/api/bookings/${selected.id}`, { method: "DELETE" });
+      const res  = await fetch(`/api/bookings/${selected.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminNote: cancelNote || undefined }),
+      });
       const data = await res.json();
       if (data.success) {
         setList((prev) => prev.filter((b) => b.id !== selected.id));
+        setCancelNote("");
         closeModal();
       }
     } finally {
@@ -953,13 +958,6 @@ export default function AdminBookingsList({ bookings }: Props) {
                     {confirmDelete ? (
                       <div className="space-y-2">
                         <p className="text-sm text-red-600 text-center">Biztosan törlöd a foglalást? Ez nem visszavonható.</p>
-                        <textarea
-                          value={cancelNote}
-                          onChange={(e) => setCancelNote(e.target.value)}
-                          placeholder="Megjegyzés a törlés okáról (opcionális)"
-                          rows={2}
-                          className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
-                        />
                         <div className="flex gap-2">
                           <button
                             onClick={deleteBooking}
@@ -969,7 +967,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                             Igen, törlöm
                           </button>
                           <button
-                            onClick={() => { setConfirmDelete(false); setCancelNote(""); }}
+                            onClick={() => setConfirmDelete(false)}
                             className="flex-1 py-2.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 text-sm font-medium transition-colors"
                           >
                             Mégse
@@ -978,7 +976,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                       </div>
                     ) : (
                       <button
-                        onClick={() => setConfirmDelete(true)}
+                        onClick={() => { setCancelNote(""); setConfirmDelete(true); setCancelModal(true); }}
                         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors"
                       >
                         <Trash2 size={14} />
@@ -1412,9 +1410,11 @@ export default function AdminBookingsList({ bookings }: Props) {
       {cancelModal && selected && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
           <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl p-6 w-full sm:max-w-md">
-            <h3 className="font-serif text-lg text-stone-800 mb-1">Foglalás elutasítása</h3>
+            <h3 className="font-serif text-lg text-stone-800 mb-1">
+              {confirmDelete ? "Foglalás törlése" : "Foglalás elutasítása"}
+            </h3>
             <p className="text-sm text-stone-500 mb-4">
-              <strong>{selected.guestName}</strong> foglalása törlésre kerül, és automatikus email érkezik a vendégnek.
+              <strong>{selected.guestName}</strong> foglalása {confirmDelete ? "véglegesen törlésre kerül" : "elutasításra kerül"}, és automatikus email érkezik a vendégnek.
             </p>
             <label className="block text-xs font-medium text-stone-500 uppercase tracking-wider mb-1.5">
               Megjegyzés a vendégnek (opcionális)
@@ -1428,7 +1428,7 @@ export default function AdminBookingsList({ bookings }: Props) {
             />
             <div className="flex gap-3">
               <button
-                onClick={() => setCancelModal(false)}
+                onClick={() => { setCancelModal(false); setConfirmDelete(false); }}
                 className="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-600 text-sm font-medium hover:bg-stone-50 transition-colors"
               >
                 Mégsem
@@ -1436,12 +1436,17 @@ export default function AdminBookingsList({ bookings }: Props) {
               <button
                 onClick={async () => {
                   setCancelModal(false);
-                  await updateStatus(selected.id, "CANCELLED", cancelNote || undefined);
+                  if (confirmDelete) {
+                    setConfirmDelete(false);
+                    await deleteBooking();
+                  } else {
+                    await updateStatus(selected.id, "CANCELLED", cancelNote || undefined);
+                  }
                 }}
                 disabled={loading === selected.id}
                 className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-60"
               >
-                Elutasítás + email küldés
+                {confirmDelete ? "Törlés + email küldés" : "Elutasítás + email küldés"}
               </button>
             </div>
           </div>
