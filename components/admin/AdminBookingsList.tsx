@@ -172,7 +172,7 @@ export default function AdminBookingsList({ bookings }: Props) {
       cleaningFee:           booking.cleaningFee,
       touristTax:            booking.touristTax,
       guestSurcharge:        booking.guestSurcharge,
-      totalPrice:            booking.totalPrice,
+      totalPrice:            booking.basePrice + booking.childPrice2to6 + booking.childPrice6to12 + booking.guestSurcharge + booking.cleaningFee + booking.touristTax + (booking.extraServicesTotal ?? 0),
       depositAmount:         booking.depositAmount ?? 0,
       status:                booking.status as BookingStatus,
     };
