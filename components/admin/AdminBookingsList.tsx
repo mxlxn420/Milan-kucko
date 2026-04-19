@@ -1252,7 +1252,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                   {/* Fizetési mód */}
                   {(selected as any).paymentMethod && (
                     <section>
-                      <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Fizetési mód</h3>
+                      <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Előleg fizetési módja</h3>
                       <p className="text-sm text-stone-700 bg-stone-50 rounded-xl px-3 py-2">
                         {{
                           card:                  "Bankkártya",
@@ -1359,7 +1359,7 @@ export default function AdminBookingsList({ bookings }: Props) {
             </div>
 
             <div>
-              <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">Fizetési mód</label>
+              <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">Előleg fizetési módja</label>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { value: "transfer", label: "Átutalás" },
