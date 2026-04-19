@@ -30,6 +30,8 @@ export interface Booking {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extraServices?: any;
   extraServicesTotal?: number;
+  discountPercent?: number;
+  discountAmount?: number;
   status: BookingStatus;
   paymentIntentId?: string | null;
   paidAt?: Date | string | null;
