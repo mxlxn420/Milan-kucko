@@ -873,6 +873,23 @@ export default function AdminBookingsList({ bookings }: Props) {
                             return (
                               <div className="border-t border-stone-100 pt-3 mt-1 space-y-2">
                                 <div>
+                                  <label className="text-xs text-green-700 font-medium mb-1.5 block">Kedvezmény (%)</label>
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      max={100}
+                                      value={editForm.discountPercent}
+                                      onChange={(e) => setField("discountPercent", Number(e.target.value))}
+                                      className="flex-1 px-3 py-2 rounded-xl border border-green-200 bg-green-50 text-sm font-semibold text-green-800 focus:outline-none focus:ring-2 focus:ring-green-400"
+                                    />
+                                    <span className="text-sm text-stone-400">%</span>
+                                  </div>
+                                  {editForm.discountPercent > 0 && (
+                                    <p className="text-xs text-green-600 mt-1">− {formatCurrency(editForm.discountAmount)} a szállásdíjból</p>
+                                  )}
+                                </div>
+                                <div>
                                   <label className="text-xs text-stone-400 mb-1.5 block">Végösszeg (szerkeszthető)</label>
                                   <div className="flex items-center gap-2">
                                     <input
@@ -911,6 +928,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                                   </div>
                                 )}
                               </div>
+
                             );
                           })()}
                         </div>
