@@ -23,7 +23,7 @@ interface ExtraService {
 interface Props {
   bookingData: BookingData;
   onBack: () => void;
-  onSuccess: (bookingId: string) => void;
+  onSuccess: (bookingId: string, finalTotal: number) => void;
 }
 
 export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
@@ -118,7 +118,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
 
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Ismeretlen hiba");
-      onSuccess(data.data.id);
+      onSuccess(data.data.id, grandTotal);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Hiba történt. Kérjük próbálja újra!");
     } finally {

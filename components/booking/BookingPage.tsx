@@ -118,8 +118,9 @@ export default function BookingPage() {
               <BookingForm
                 bookingData={bookingData}
                 onBack={() => { setStep("calendar"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                onSuccess={(id) => {
+                onSuccess={(id, finalTotal) => {
                   setBookingId(id);
+                  setBookingData((prev) => prev ? { ...prev, totalPrice: finalTotal } : prev);
                   setStep("success");
                   store.reset();
                   window.scrollTo({ top: 0, behavior: "smooth" });
