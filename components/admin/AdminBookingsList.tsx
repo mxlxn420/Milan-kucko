@@ -232,6 +232,7 @@ export default function AdminBookingsList({ bookings }: Props) {
   // ─── Előleg befizetve ────────────────────────────────────────
   const markDepositPaid = async (id: string) => {
     setLoading(id);
+    setSaveError(null);
     try {
       const res  = await fetch(`/api/admin/bookings/${id}/deposit`, {
         method:  "POST",
@@ -248,7 +249,11 @@ export default function AdminBookingsList({ bookings }: Props) {
         setList((prev) => prev.map((b) => b.id === id ? { ...b, ...updated } : b));
         setSelected((prev) => prev ? { ...prev, ...updated } : prev);
         setDepositModal(null);
+      } else {
+        setSaveError(data.error ?? "Ismeretlen hiba");
       }
+    } catch {
+      setSaveError("Hálózati hiba");
     } finally {
       setLoading(null);
     }
@@ -1363,9 +1368,13 @@ export default function AdminBookingsList({ bookings }: Props) {
               </div>
             </div>
 
+            {saveError && (
+              <p className="text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2">{saveError}</p>
+            )}
+
             <div className="flex gap-2 pt-1">
               <button
-                onClick={() => setDepositModal(null)}
+                onClick={() => { setDepositModal(null); setSaveError(null); }}
                 className="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-600 text-sm font-medium hover:bg-stone-50 transition-colors"
               >
                 Mégse
