@@ -1342,11 +1342,10 @@ export default function AdminBookingsList({ bookings }: Props) {
 
             <div>
               <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">Fizetési mód</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {[
                   { value: "transfer", label: "Átutalás" },
                   { value: "szep",     label: "SZÉP kártya" },
-                  { value: "cash",     label: "Készpénz" },
                 ].map(({ value, label }) => (
                   <button
                     key={value}

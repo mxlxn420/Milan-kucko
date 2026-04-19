@@ -44,7 +44,8 @@ export async function POST(
         nights:        booking.nights,
         guests:        booking.numberOfGuests,
         totalPrice:    booking.totalPrice,
-        depositAmount: booking.depositAmount,
+        depositAmount: depositPaidAmount ?? booking.depositAmount,
+        depositMethod: depositPaidMethod,
         bookingId:     booking.id,
       });
       emailSent = true;
