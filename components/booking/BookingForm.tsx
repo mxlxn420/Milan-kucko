@@ -12,32 +12,32 @@ import { formatDateHu, formatCurrency } from "@/lib/utils";
 import type { BookingData, SelectedService } from "./BookingPage";
 
 interface ExtraService {
-  id:          string;
-  name:        string;
+  id: string;
+  name: string;
   description: string;
   pricingType: "PER_NIGHT" | "PER_BOOKING";
-  price:       number | null;
-  imageUrl:    string | null;
+  price: number | null;
+  imageUrl: string | null;
 }
 
 interface Props {
   bookingData: BookingData;
-  onBack:      () => void;
-  onSuccess:   (bookingId: string) => void;
+  onBack: () => void;
+  onSuccess: (bookingId: string) => void;
 }
 
 export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", address: "", notes: "", paymentMethod: "cash", szepType: "" });
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState<string | null>(null);
-  const [services, setServices]       = useState<ExtraService[]>([]);
-  const [selected, setSelected]       = useState<SelectedService[]>([]);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", address: "", notes: "", paymentMethod: "transfer", szepType: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [services, setServices] = useState<ExtraService[]>([]);
+  const [selected, setSelected] = useState<SelectedService[]>([]);
 
   useEffect(() => {
     fetch("/api/extra-services")
       .then((r) => r.json())
       .then((d) => { if (d.success) setServices(d.data); })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const calcTotal = (svc: { price: number | null; pricingType: string }, quantity: number, nights: number) => {
@@ -52,13 +52,13 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
     if (already) {
       setSelected((prev) => prev.filter((s) => s.id !== svc.id));
     } else {
-      const nights   = svc.pricingType === "PER_NIGHT" ? bookingData.nights : 1;
+      const nights = svc.pricingType === "PER_NIGHT" ? bookingData.nights : 1;
       const quantity = 1;
       setSelected((prev) => [...prev, {
-        id:          svc.id,
-        name:        svc.name,
+        id: svc.id,
+        name: svc.name,
         pricingType: svc.pricingType,
-        price:       svc.price,
+        price: svc.price,
         quantity,
         nights,
         total: calcTotal(svc, quantity, nights),
@@ -70,13 +70,13 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
     setSelected((prev) => prev.map((s) => {
       if (s.id !== id) return s;
       const quantity = patch.quantity ?? s.quantity;
-      const nights   = patch.nights   ?? s.nights;
+      const nights = patch.nights ?? s.nights;
       return { ...s, quantity, nights, total: calcTotal(s, quantity, nights) };
     }));
   };
 
-  const extrasTotal    = selected.reduce((sum, s) => sum + s.total, 0);
-  const grandTotal     = bookingData.totalPrice + extrasTotal;
+  const extrasTotal = selected.reduce((sum, s) => sum + s.total, 0);
+  const grandTotal = bookingData.totalPrice + extrasTotal;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,34 +85,34 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
 
     try {
       const res = await fetch("/api/bookings", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          guestName:            form.name,
-          guestEmail:           form.email,
-          guestPhone:           form.phone,
-          guestAddress:         form.address,
-          numberOfGuests:        bookingData.guests,
-          numberOfAdults:        bookingData.adults,
-          numberOfTeens:         bookingData.teens,
-          numberOfBabies:        bookingData.babies,
-          numberOfChildren2to6:  bookingData.children2to6,
+          guestName: form.name,
+          guestEmail: form.email,
+          guestPhone: form.phone,
+          guestAddress: form.address,
+          numberOfGuests: bookingData.guests,
+          numberOfAdults: bookingData.adults,
+          numberOfTeens: bookingData.teens,
+          numberOfBabies: bookingData.babies,
+          numberOfChildren2to6: bookingData.children2to6,
           numberOfChildren6to12: bookingData.children6to12,
-          notes:                form.notes || null,
-          paymentMethod:        form.paymentMethod === "szep" && form.szepType
-                                  ? `szep-${form.szepType}`
-                                  : form.paymentMethod,
-          checkIn:              format(bookingData.checkIn,  "yyyy-MM-dd"),
-          checkOut:             format(bookingData.checkOut, "yyyy-MM-dd"),
-          basePrice:            bookingData.basePrice,
-          childPrice2to6:       bookingData.childPrice2to6,
-          childPrice6to12:      bookingData.childPrice6to12,
-          guestSurcharge:       0,
-          cleaningFee:          0,
-          touristTax:           bookingData.touristTax,
-          totalPrice:           grandTotal,
-          extraServices:        selected,
-          extraServicesTotal:   extrasTotal,
+          notes: form.notes || null,
+          paymentMethod: form.paymentMethod === "szep" && form.szepType
+            ? `szep-${form.szepType}`
+            : form.paymentMethod,
+          checkIn: format(bookingData.checkIn, "yyyy-MM-dd"),
+          checkOut: format(bookingData.checkOut, "yyyy-MM-dd"),
+          basePrice: bookingData.basePrice,
+          childPrice2to6: bookingData.childPrice2to6,
+          childPrice6to12: bookingData.childPrice6to12,
+          guestSurcharge: 0,
+          cleaningFee: 0,
+          touristTax: bookingData.touristTax,
+          totalPrice: grandTotal,
+          extraServices: selected,
+          extraServicesTotal: extrasTotal,
         }),
       });
 
@@ -213,27 +213,26 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
             <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-3">
               <CreditCard size={12} className="inline mr-1" />Fizetési mód *
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {[
-                { value: "cash",     label: "Készpénz",    Icon: Banknote   },
-                { value: "transfer", label: "Átutalás",    Icon: Building2  },
-                { value: "szep",     label: "SZÉP kártya", Icon: CreditCard },
+                { value: "transfer", label: "Átutalás", Icon: Building2 },
+                { value: "szep", label: "SZÉP kártya", Icon: CreditCard },
               ].map(({ value, label, Icon }) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setForm({ ...form, paymentMethod: value, szepType: value === "szep" ? (form.szepType || "otp") : "" })}
-                  className={`flex flex-col items-center gap-2 py-4 px-2 rounded-2xl border-2 transition-all text-sm font-medium ${
-                    form.paymentMethod === value
+                  className={`flex flex-col items-center gap-2 py-4 px-2 rounded-2xl border-2 transition-all text-sm font-medium ${form.paymentMethod === value
                       ? "border-forest-600 bg-forest-50 text-forest-800"
                       : "border-stone-200 text-stone-500 hover:border-stone-300"
-                  }`}
+                    }`}
                 >
                   <Icon size={20} className={form.paymentMethod === value ? "text-forest-600" : "text-stone-400"} />
                   {label}
                 </button>
               ))}
             </div>
+            <p className="text-xs text-stone-400 mt-2">Ez az előleg fizetési módjára vonatkozik. A maradék összeget helyszínen, érkezéskor megbeszélés alapján rendezzük.</p>
 
             {/* SZÉP kártya bank választó */}
             {form.paymentMethod === "szep" && (
@@ -241,17 +240,16 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                 {[
                   { value: "otp", label: "OTP" },
                   { value: "mbh", label: "MBH" },
-                  { value: "kh",  label: "K&H" },
+                  { value: "kh", label: "K&H" },
                 ].map(({ value, label }) => (
                   <button
                     key={value}
                     type="button"
                     onClick={() => setForm({ ...form, szepType: value })}
-                    className={`py-2.5 px-3 rounded-xl border-2 text-xs font-medium transition-all ${
-                      form.szepType === value
+                    className={`py-2.5 px-3 rounded-xl border-2 text-xs font-medium transition-all ${form.szepType === value
                         ? "border-forest-600 bg-forest-50 text-forest-800"
                         : "border-stone-200 text-stone-500 hover:border-stone-300"
-                    }`}
+                      }`}
                   >
                     {label}
                   </button>
@@ -275,11 +273,10 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                 return (
                   <div
                     key={svc.id}
-                    className={`relative rounded-2xl border-2 overflow-hidden transition-all duration-200 ${
-                      isSelected
+                    className={`relative rounded-2xl border-2 overflow-hidden transition-all duration-200 ${isSelected
                         ? "border-forest-500 shadow-md"
                         : "border-stone-200"
-                    }`}
+                      }`}
                   >
                     {/* Kép — kattintható toggle */}
                     <button
@@ -311,11 +308,10 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                       <button type="button" onClick={() => toggleService(svc)} className="w-full text-left">
                         <div className="flex items-start justify-between gap-2">
                           <p className="font-medium text-stone-800 text-sm leading-tight">{svc.name}</p>
-                          <span className={`shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium ${
-                            svc.pricingType === "PER_NIGHT"
+                          <span className={`shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium ${svc.pricingType === "PER_NIGHT"
                               ? "bg-forest-50 text-forest-700"
                               : "bg-terra-50 text-terra-700"
-                          }`}>
+                            }`}>
                             {svc.pricingType === "PER_NIGHT" ? <Moon size={9} /> : <CalendarCheck size={9} />}
                             {svc.pricingType === "PER_NIGHT" ? "/éj" : "/fog."}
                           </span>

@@ -20,6 +20,7 @@ interface EditForm {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
+  guestAddress: string;
   checkIn: string;
   checkOut: string;
   numberOfAdults: number;
@@ -59,7 +60,7 @@ function calcPriceBreakdown(
   ch2to6: number,
   ch6to12: number,
   rules: PricingRule[]
-): Pick<EditForm, "basePrice" | "childPrice2to6" | "childPrice6to12" | "guestSurcharge" | "cleaningFee" | "touristTax" | "totalPrice"> | null {
+): Pick<EditForm, "basePrice" | "childPrice2to6" | "childPrice6to12" | "guestSurcharge" | "cleaningFee" | "touristTax" | "totalPrice" | "depositAmount"> | null {
   const rule = getApplicablePricingRule(checkIn, checkOut, rules);
   if (!rule) return null;
   const nights = differenceInCalendarDays(checkOut, checkIn);
@@ -97,8 +98,10 @@ function calcPriceBreakdown(
   const touristTax      = adults * 450 * nights;  // csak felnőttek fizetnek IFA-t
   const cleaningFee     = CLEANING_FEE;
   const totalPrice      = basePrice + childTotal2to6 + childTotal6to12 + guestSurcharge + cleaningFee + touristTax;
+  const depositPercent  = rule.depositPercent ?? 30;
+  const depositAmount   = Math.round((totalPrice - touristTax) * depositPercent / 100);
 
-  return { basePrice, childPrice2to6, childPrice6to12, guestSurcharge, cleaningFee, touristTax, totalPrice };
+  return { basePrice, childPrice2to6, childPrice6to12, guestSurcharge, cleaningFee, touristTax, totalPrice, depositAmount };
 }
 
 export default function AdminBookingsList({ bookings }: Props) {
@@ -121,6 +124,8 @@ export default function AdminBookingsList({ bookings }: Props) {
   const [confirmDelete, setConfirmDelete]   = useState(false);
   const [cancelModal, setCancelModal]       = useState(false);
   const [cancelNote, setCancelNote]         = useState("");
+  const [depositModal, setDepositModal]     = useState<string | null>(null);
+  const [depositForm, setDepositForm]       = useState({ paidAt: new Date().toISOString().slice(0, 10), paidAmount: "", paidMethod: "transfer" });
   const [saveError, setSaveError]           = useState<string | null>(null);
   const [rules, setRules]                   = useState<PricingRule[]>([]);
 
@@ -152,6 +157,7 @@ export default function AdminBookingsList({ bookings }: Props) {
       guestName:             booking.guestName,
       guestEmail:            booking.guestEmail,
       guestPhone:            booking.guestPhone,
+      guestAddress:          booking.guestAddress ?? "",
       checkIn:               toDateInput(booking.checkIn),
       checkOut:              toDateInput(booking.checkOut),
       numberOfAdults:        booking.numberOfAdults,
@@ -166,7 +172,7 @@ export default function AdminBookingsList({ bookings }: Props) {
       cleaningFee:           booking.cleaningFee,
       touristTax:            booking.touristTax,
       guestSurcharge:        booking.guestSurcharge,
-      totalPrice:            booking.totalPrice,
+      totalPrice:            booking.totalPrice - (booking.extraServicesTotal ?? 0),
       depositAmount:         booking.depositAmount ?? 0,
       status:                booking.status as BookingStatus,
     };
@@ -227,12 +233,21 @@ export default function AdminBookingsList({ bookings }: Props) {
   const markDepositPaid = async (id: string) => {
     setLoading(id);
     try {
-      const res  = await fetch(`/api/admin/bookings/${id}/deposit`, { method: "POST" });
+      const res  = await fetch(`/api/admin/bookings/${id}/deposit`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          paidAt:     depositForm.paidAt,
+          paidAmount: depositForm.paidAmount !== "" ? Number(depositForm.paidAmount) : null,
+          paidMethod: depositForm.paidMethod,
+        }),
+      });
       const data = await res.json();
       if (data.success) {
         const updated = data.data;
         setList((prev) => prev.map((b) => b.id === id ? { ...b, ...updated } : b));
         setSelected((prev) => prev ? { ...prev, ...updated } : prev);
+        setDepositModal(null);
       }
     } finally {
       setLoading(null);
@@ -249,7 +264,12 @@ export default function AdminBookingsList({ bookings }: Props) {
       const res  = await fetch(`/api/bookings/${selected.id}`, {
         method:  "PATCH",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ ...editForm, extraServices: editExtras, extraServicesTotal: extrasTotal }),
+        body:    JSON.stringify({
+          ...editForm,
+          totalPrice: editForm.totalPrice + extrasTotal,
+          extraServices: editExtras,
+          extraServicesTotal: extrasTotal,
+        }),
       });
       const data = await res.json();
       if (!data.success) {
@@ -357,7 +377,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                       <div className="flex items-center gap-2">
                         {booking.depositAmount > 0 && !booking.depositPaidAt && booking.status !== "CANCELLED" && (
                           <button
-                            onClick={() => markDepositPaid(booking.id)}
+                            onClick={() => { setDepositForm({ paidAt: new Date().toISOString().slice(0, 10), paidAmount: String(booking.depositAmount), paidMethod: "transfer" }); setDepositModal(booking.id); }}
                             disabled={loading === booking.id}
                             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-colors shadow-sm disabled:opacity-60"
                             title="Előleg befizetve – visszaigazoló küldése"
@@ -457,6 +477,13 @@ export default function AdminBookingsList({ bookings }: Props) {
                         value={editForm.guestPhone}
                         onChange={(e) => setField("guestPhone", e.target.value)}
                         placeholder="Telefon"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+                      />
+                      <input
+                        type="text"
+                        value={editForm.guestAddress}
+                        onChange={(e) => setField("guestAddress", e.target.value)}
+                        placeholder="Lakcím"
                         className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
                       />
                     </div>
@@ -819,46 +846,63 @@ export default function AdminBookingsList({ bookings }: Props) {
                           })()}
 
                           {/* Végső ár + előleg */}
-                          <div className="border-t border-stone-100 pt-3 mt-1 space-y-2">
-                            <div>
-                              <label className="text-xs text-stone-400 mb-1.5 block">Végső ár (szerkeszthető)</label>
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="number"
-                                  value={editForm.totalPrice}
-                                  onChange={(e) => setField("totalPrice", Number(e.target.value))}
-                                  className="flex-1 px-3 py-2 rounded-xl border border-stone-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-forest-400"
-                                />
-                                <span className="text-sm text-stone-400">Ft</span>
-                              </div>
-                            </div>
-                            <div>
-                              <label className="text-xs text-amber-600 font-medium mb-1.5 block">Fizetendő előleg (szerkeszthető)</label>
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="number"
-                                  value={editForm.depositAmount}
-                                  onChange={(e) => setField("depositAmount", Number(e.target.value))}
-                                  className="flex-1 px-3 py-2 rounded-xl border border-amber-200 bg-amber-50 text-sm font-semibold text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                />
-                                <span className="text-sm text-stone-400">Ft</span>
-                              </div>
-                              {editForm.totalPrice > 0 && editForm.depositAmount > 0 && (
-                                <p className="text-xs text-stone-400 mt-1">
-                                  = {Math.round(editForm.depositAmount / editForm.totalPrice * 100)}% az összegből
-                                </p>
-                              )}
-                            </div>
-                            {editForm.depositAmount > 0 && editForm.totalPrice > editForm.depositAmount && (
-                              <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5">
+                          {(() => {
+                            const extrasTotal = editExtras.reduce((sum, s) => sum + (s.total ?? 0), 0);
+                            const grandTotal  = editForm.totalPrice + extrasTotal;
+                            const depositBase = grandTotal - editForm.touristTax;
+                            return (
+                              <div className="border-t border-stone-100 pt-3 mt-1 space-y-2">
                                 <div>
-                                  <p className="text-xs font-semibold text-stone-700">Helyszínen fizetendő</p>
-                                  <p className="text-[10px] text-stone-400 mt-0.5">Végső ár – előleg</p>
+                                  <label className="text-xs text-stone-400 mb-1.5 block">Szállásdíj összege (szerkeszthető)</label>
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="number"
+                                      value={editForm.totalPrice}
+                                      onChange={(e) => setField("totalPrice", Number(e.target.value))}
+                                      className="flex-1 px-3 py-2 rounded-xl border border-stone-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-forest-400"
+                                    />
+                                    <span className="text-sm text-stone-400">Ft</span>
+                                  </div>
                                 </div>
-                                <span className="font-bold text-stone-800 text-sm">{formatCurrency(editForm.totalPrice - editForm.depositAmount)}</span>
+                                {extrasTotal > 0 && (
+                                  <div className="flex justify-between items-center text-sm text-stone-600 px-1">
+                                    <span className="text-xs text-stone-400">Extra szolgáltatások</span>
+                                    <span className="font-medium">{formatCurrency(extrasTotal)}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between items-center bg-forest-50 border border-forest-200 rounded-xl px-3 py-2">
+                                  <span className="text-xs font-semibold text-forest-800">Végösszeg</span>
+                                  <span className="font-bold text-forest-800 text-sm">{formatCurrency(grandTotal)}</span>
+                                </div>
+                                <div>
+                                  <label className="text-xs text-amber-600 font-medium mb-1.5 block">Fizetendő előleg (szerkeszthető)</label>
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="number"
+                                      value={editForm.depositAmount}
+                                      onChange={(e) => setField("depositAmount", Number(e.target.value))}
+                                      className="flex-1 px-3 py-2 rounded-xl border border-amber-200 bg-amber-50 text-sm font-semibold text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                    />
+                                    <span className="text-sm text-stone-400">Ft</span>
+                                  </div>
+                                  {depositBase > 0 && editForm.depositAmount > 0 && (
+                                    <p className="text-xs text-stone-400 mt-1">
+                                      = {Math.round(editForm.depositAmount / depositBase * 100)}% (extrákat tartalmaz, IFA nélkül)
+                                    </p>
+                                  )}
+                                </div>
+                                {editForm.depositAmount > 0 && grandTotal > editForm.depositAmount && (
+                                  <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5">
+                                    <div>
+                                      <p className="text-xs font-semibold text-stone-700">Helyszínen fizetendő</p>
+                                      <p className="text-[10px] text-stone-400 mt-0.5">Végösszeg – előleg</p>
+                                    </div>
+                                    <span className="font-bold text-stone-800 text-sm">{formatCurrency(grandTotal - editForm.depositAmount)}</span>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
+                            );
+                          })()}
                         </div>
                       );
                     })()}
@@ -940,6 +984,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                     <div className="space-y-1 text-sm text-stone-700">
                       <p>{selected.guestEmail}</p>
                       <p>{selected.guestPhone}</p>
+                      {selected.guestAddress && <p>{selected.guestAddress}</p>}
                     </div>
                   </section>
 
@@ -1144,34 +1189,42 @@ export default function AdminBookingsList({ bookings }: Props) {
                           )}
 
                           {/* Végösszeg */}
-                          <div className="flex justify-between font-semibold text-stone-800 border-t border-stone-100 pt-2 mt-1">
-                            <span>Összesen</span>
-                            <span>{formatCurrency(selected.totalPrice)}</span>
-                          </div>
+                          {(() => {
+                            const grandTotal  = selected.totalPrice;
+                            const depositBase = grandTotal - (selected.touristTax ?? 0);
+                            return (
+                              <>
+                                <div className="flex justify-between font-semibold text-stone-800 border-t border-stone-100 pt-2 mt-1">
+                                  <span>Végösszeg</span>
+                                  <span>{formatCurrency(grandTotal)}</span>
+                                </div>
 
-                          {/* Előleg */}
-                          {selected.depositAmount > 0 && (
-                            <div className="flex justify-between items-center bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 mt-2">
-                              <div>
-                                <p className="text-xs font-semibold text-amber-800">Fizetendő előleg</p>
-                                <p className="text-[10px] text-amber-600 mt-0.5">
-                                  {Math.round(selected.depositAmount / selected.totalPrice * 100)}% az összegből
-                                </p>
-                              </div>
-                              <span className="font-bold text-amber-800">{formatCurrency(selected.depositAmount)}</span>
-                            </div>
-                          )}
+                                {/* Előleg */}
+                                {selected.depositAmount > 0 && (
+                                  <div className="flex justify-between items-center bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 mt-2">
+                                    <div>
+                                      <p className="text-xs font-semibold text-amber-800">Fizetendő előleg</p>
+                                      <p className="text-[10px] text-amber-600 mt-0.5">
+                                        {depositBase > 0 ? `${Math.round(selected.depositAmount / depositBase * 100)}% (IFA nélkül)` : ""}
+                                      </p>
+                                    </div>
+                                    <span className="font-bold text-amber-800">{formatCurrency(selected.depositAmount)}</span>
+                                  </div>
+                                )}
 
-                          {/* Maradék */}
-                          {selected.depositAmount > 0 && (
-                            <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5">
-                              <div>
-                                <p className="text-xs font-semibold text-stone-700">Helyszínen fizetendő</p>
-                                <p className="text-[10px] text-stone-400 mt-0.5">Teljes összeg – előleg</p>
-                              </div>
-                              <span className="font-bold text-stone-800">{formatCurrency(selected.totalPrice - selected.depositAmount)}</span>
-                            </div>
-                          )}
+                                {/* Maradék */}
+                                {selected.depositAmount > 0 && (
+                                  <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5">
+                                    <div>
+                                      <p className="text-xs font-semibold text-stone-700">Helyszínen fizetendő</p>
+                                      <p className="text-[10px] text-stone-400 mt-0.5">Végösszeg – előleg</p>
+                                    </div>
+                                    <span className="font-bold text-stone-800">{formatCurrency(grandTotal - selected.depositAmount)}</span>
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
 
                         </div>
                       );
@@ -1219,7 +1272,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                         </div>
                       ) : (
                         <button
-                          onClick={() => markDepositPaid(selected.id)}
+                          onClick={() => { setDepositForm({ paidAt: new Date().toISOString().slice(0, 10), paidAmount: String(selected.depositAmount), paidMethod: "transfer" }); setDepositModal(selected.id); }}
                           disabled={loading === selected.id}
                           className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
                         >
@@ -1255,6 +1308,77 @@ export default function AdminBookingsList({ bookings }: Props) {
                   )}
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Előleg rögzítés modal */}
+      {depositModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl p-6 w-full sm:max-w-md space-y-4">
+            <h3 className="font-serif text-lg text-stone-800">Előleg rögzítése</h3>
+
+            <div>
+              <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">Fizetés dátuma</label>
+              <input
+                type="date"
+                value={depositForm.paidAt}
+                onChange={(e) => setDepositForm((f) => ({ ...f, paidAt: e.target.value }))}
+                className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">Befizetett összeg (Ft)</label>
+              <input
+                type="number"
+                value={depositForm.paidAmount}
+                onChange={(e) => setDepositForm((f) => ({ ...f, paidAmount: e.target.value }))}
+                placeholder="pl. 30000"
+                className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-stone-500 uppercase tracking-wider block mb-1.5">Fizetési mód</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: "transfer", label: "Átutalás" },
+                  { value: "szep",     label: "SZÉP kártya" },
+                  { value: "cash",     label: "Készpénz" },
+                ].map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setDepositForm((f) => ({ ...f, paidMethod: value }))}
+                    className={`py-2 px-2 rounded-xl border-2 text-xs font-medium transition-all ${
+                      depositForm.paidMethod === value
+                        ? "border-forest-600 bg-forest-50 text-forest-800"
+                        : "border-stone-200 text-stone-500 hover:border-stone-300"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setDepositModal(null)}
+                className="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-600 text-sm font-medium hover:bg-stone-50 transition-colors"
+              >
+                Mégse
+              </button>
+              <button
+                onClick={() => markDepositPaid(depositModal)}
+                disabled={loading === depositModal}
+                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <CreditCard size={14} />
+                Rögzítés & email küldés
+              </button>
             </div>
           </div>
         </div>

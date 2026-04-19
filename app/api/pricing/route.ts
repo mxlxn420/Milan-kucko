@@ -6,6 +6,7 @@ export async function GET() {
     const rules = await prisma.pricingRule.findMany({
       where:   { isActive: true },
       orderBy: { priority: "desc" },
+      include: { policy: true },
     });
 
     const data = rules.map((r) => ({
@@ -24,6 +25,7 @@ export async function GET() {
       minNights:       r.minNights,
       isActive:        r.isActive,
       priority:        r.priority,
+      depositPercent:  (r as any).policy?.depositPercent ?? 30,
     }));
 
     return NextResponse.json({ success: true, data });

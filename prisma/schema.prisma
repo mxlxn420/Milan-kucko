@@ -31,6 +31,8 @@ model Booking {
   totalPrice            Float
   depositAmount         Float         @default(0)
   depositPaidAt         DateTime?
+  depositPaidAmount     Float?
+  depositPaidMethod     String?
   extraServices         Json?
   extraServicesTotal    Float         @default(0)
   discountPercent       Float         @default(0)

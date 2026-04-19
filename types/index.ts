@@ -5,6 +5,7 @@ export interface Booking {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
+  guestAddress?: string | null;
   numberOfGuests: number;
   numberOfAdults: number;
   numberOfTeens: number;
@@ -24,6 +25,8 @@ export interface Booking {
   totalPrice: number;
   depositAmount: number;
   depositPaidAt?: Date | string | null;
+  depositPaidAmount?: number | null;
+  depositPaidMethod?: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extraServices?: any;
   extraServicesTotal?: number;
@@ -65,6 +68,7 @@ export interface PricingRule {
   extraGuestFrom: number;
   isActive: boolean;
   priority: number;
+  depositPercent?: number;
 }
 
 export interface PriceBreakdown {

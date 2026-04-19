@@ -16,10 +16,17 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Az előleg már be van fizetve" }, { status: 409 });
     }
 
+    const body = await req.json().catch(() => ({}));
+    const depositPaidAt     = body.paidAt ? new Date(body.paidAt) : new Date();
+    const depositPaidAmount = body.paidAmount != null ? Number(body.paidAmount) : null;
+    const depositPaidMethod = body.paidMethod ?? null;
+
     const updated = await prisma.booking.update({
       where: { id: params.id },
       data: {
-        depositPaidAt: new Date(),
+        depositPaidAt,
+        depositPaidAmount,
+        depositPaidMethod,
         status: booking.status === "PENDING" ? "CONFIRMED" : booking.status,
       },
     });
