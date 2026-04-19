@@ -111,6 +111,8 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
           cleaningFee: 0,
           touristTax: bookingData.touristTax,
           totalPrice: grandTotal,
+          discountPercent: bookingData.discountPercent,
+          discountAmount: bookingData.discountAmount,
           extraServices: selected,
           extraServicesTotal: extrasTotal,
         }),
