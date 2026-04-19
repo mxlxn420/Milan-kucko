@@ -191,8 +191,9 @@ export default function AdminBookingsList({ bookings }: Props) {
     if (co <= ci) return form;
     const breakdown = calcPriceBreakdown(ci, co, form.numberOfAdults, form.numberOfTeens, form.numberOfChildren2to6, form.numberOfChildren6to12, rules);
     if (!breakdown) return form;
-    return { ...form, ...breakdown };
-  }, [rules]);
+    const extrasTotal = editExtras.reduce((sum, s) => sum + (s.total ?? 0), 0);
+    return { ...form, ...breakdown, totalPrice: breakdown.totalPrice + extrasTotal };
+  }, [rules, editExtras]);
 
   const setField = <K extends keyof EditForm>(key: K, value: EditForm[K]) => {
     setEditForm((prev) => {
