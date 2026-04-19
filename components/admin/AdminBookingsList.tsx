@@ -953,6 +953,13 @@ export default function AdminBookingsList({ bookings }: Props) {
                     {confirmDelete ? (
                       <div className="space-y-2">
                         <p className="text-sm text-red-600 text-center">Biztosan törlöd a foglalást? Ez nem visszavonható.</p>
+                        <textarea
+                          value={cancelNote}
+                          onChange={(e) => setCancelNote(e.target.value)}
+                          placeholder="Megjegyzés a törlés okáról (opcionális)"
+                          rows={2}
+                          className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                        />
                         <div className="flex gap-2">
                           <button
                             onClick={deleteBooking}
@@ -962,7 +969,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                             Igen, törlöm
                           </button>
                           <button
-                            onClick={() => setConfirmDelete(false)}
+                            onClick={() => { setConfirmDelete(false); setCancelNote(""); }}
                             className="flex-1 py-2.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 text-sm font-medium transition-colors"
                           >
                             Mégse
