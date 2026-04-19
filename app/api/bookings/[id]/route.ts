@@ -122,6 +122,8 @@ export async function PATCH(
         notes:                  body.notes || null,
         totalPrice:             Number(body.totalPrice),
         depositAmount:          Number(body.depositAmount) || 0,
+        discountPercent:        Number(body.discountPercent) || 0,
+        discountAmount:         Number(body.discountAmount)  || 0,
         basePrice:              Number(body.basePrice)    || 0,
         childPrice2to6:         Number(body.childPrice2to6)  || 0,
         childPrice6to12:        Number(body.childPrice6to12) || 0,

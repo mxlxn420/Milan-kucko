@@ -37,6 +37,8 @@ interface EditForm {
   guestSurcharge: number;
   totalPrice: number;
   depositAmount: number;
+  discountPercent: number;
+  discountAmount: number;
   status: BookingStatus;
 }
 
@@ -174,6 +176,8 @@ export default function AdminBookingsList({ bookings }: Props) {
       guestSurcharge:        booking.guestSurcharge,
       totalPrice:            booking.totalPrice,
       depositAmount:         booking.depositAmount ?? 0,
+      discountPercent:       booking.discountPercent ?? 0,
+      discountAmount:        booking.discountAmount  ?? 0,
       status:                booking.status as BookingStatus,
     };
     // Ha az árak már betöltöttek, azonnal újraszámolja
@@ -191,11 +195,15 @@ export default function AdminBookingsList({ bookings }: Props) {
     if (co <= ci) return form;
     const breakdown = calcPriceBreakdown(ci, co, form.numberOfAdults, form.numberOfTeens, form.numberOfChildren2to6, form.numberOfChildren6to12, rules);
     if (!breakdown) return form;
-    const extrasTotal = editExtras.reduce((sum, s) => sum + (s.total ?? 0), 0);
-    const totalPrice  = breakdown.totalPrice + extrasTotal;
-    const depositPercent = (rules.find((r) => r.dateFrom && r.dateTo && new Date(r.dateFrom) <= ci && ci <= new Date(r.dateTo)) ?? rules.find((r) => !r.dateFrom))?.depositPercent ?? 30;
+    const extrasTotal    = editExtras.reduce((sum, s) => sum + (s.total ?? 0), 0);
+    const discountPercent = form.discountPercent ?? 0;
+    const discountBase   = breakdown.totalPrice - breakdown.touristTax; // szállásdíj IFA nélkül, extrákat kizárva
+    const discountAmount = Math.round(discountBase * discountPercent / 100);
+    const totalPrice     = breakdown.totalPrice + extrasTotal - discountAmount;
+    const depositRule    = rules.find((r) => r.dateFrom && r.dateTo && new Date(r.dateFrom) <= ci && ci <= new Date(r.dateTo)) ?? rules.find((r) => !r.dateFrom);
+    const depositPercent = depositRule?.depositPercent ?? 30;
     const depositAmount  = Math.round((totalPrice - breakdown.touristTax) * depositPercent / 100);
-    return { ...form, ...breakdown, totalPrice, depositAmount };
+    return { ...form, ...breakdown, totalPrice, discountAmount, depositAmount };
   }, [rules, editExtras]);
 
   const setField = <K extends keyof EditForm>(key: K, value: EditForm[K]) => {
