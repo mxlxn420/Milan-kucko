@@ -181,16 +181,11 @@ export async function POST(req: NextRequest) {
     });
 
     const discountPercent = applicableDiscount?.discountPercent ?? 0;
-    const rawTotal        = Number(totalPrice);
-    // Kedvezmény csak a szállásdíjra vonatkozik (IFA és extra szolgáltatások nélkül)
-    const discountBase    = rawTotal - Number(touristTax) - Number(extraServicesTotal);
-    const discountAmount  = discountPercent > 0
-      ? Math.round(discountBase * discountPercent / 100)
-      : 0;
-    const finalTotal = rawTotal - discountAmount;
+    const finalTotal      = Number(totalPrice); // frontend már levonja a kedvezményt
+    const discountAmount  = Number(body.discountAmount) || 0;
 
     const depositPercent = (applicableRule as any)?.policy?.depositPercent ?? 30;
-    const depositAmount  = Math.round(finalTotal * depositPercent / 100);
+    const depositAmount  = Math.round((finalTotal - Number(touristTax)) * depositPercent / 100);
 
     // Foglalás ID
     const bookingRef = "MK-" + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -240,7 +235,7 @@ export async function POST(req: NextRequest) {
         checkOut,
         nights,
         guests: Number(numberOfGuests),
-        totalPrice: Number(totalPrice),
+        totalPrice: finalTotal,
         bookingId: bookingRef,
         notes,
       });
