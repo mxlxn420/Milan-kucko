@@ -172,7 +172,7 @@ export default function AdminBookingsList({ bookings }: Props) {
       cleaningFee:           booking.cleaningFee,
       touristTax:            booking.touristTax,
       guestSurcharge:        booking.guestSurcharge,
-      totalPrice:            booking.totalPrice - (booking.extraServicesTotal ?? 0),
+      totalPrice:            booking.totalPrice,
       depositAmount:         booking.depositAmount ?? 0,
       status:                booking.status as BookingStatus,
     };
@@ -271,7 +271,7 @@ export default function AdminBookingsList({ bookings }: Props) {
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
           ...editForm,
-          totalPrice: editForm.totalPrice + extrasTotal,
+          totalPrice: editForm.totalPrice,
           extraServices: editExtras,
           extraServicesTotal: extrasTotal,
         }),
@@ -852,13 +852,11 @@ export default function AdminBookingsList({ bookings }: Props) {
 
                           {/* Végső ár + előleg */}
                           {(() => {
-                            const extrasTotal = editExtras.reduce((sum, s) => sum + (s.total ?? 0), 0);
-                            const grandTotal  = editForm.totalPrice + extrasTotal;
-                            const depositBase = grandTotal - editForm.touristTax;
+                            const depositBase = editForm.totalPrice - editForm.touristTax;
                             return (
                               <div className="border-t border-stone-100 pt-3 mt-1 space-y-2">
                                 <div>
-                                  <label className="text-xs text-stone-400 mb-1.5 block">Szállásdíj összege (szerkeszthető)</label>
+                                  <label className="text-xs text-stone-400 mb-1.5 block">Végösszeg (szerkeszthető)</label>
                                   <div className="flex items-center gap-2">
                                     <input
                                       type="number"
@@ -868,16 +866,6 @@ export default function AdminBookingsList({ bookings }: Props) {
                                     />
                                     <span className="text-sm text-stone-400">Ft</span>
                                   </div>
-                                </div>
-                                {extrasTotal > 0 && (
-                                  <div className="flex justify-between items-center text-sm text-stone-600 px-1">
-                                    <span className="text-xs text-stone-400">Extra szolgáltatások</span>
-                                    <span className="font-medium">{formatCurrency(extrasTotal)}</span>
-                                  </div>
-                                )}
-                                <div className="flex justify-between items-center bg-forest-50 border border-forest-200 rounded-xl px-3 py-2">
-                                  <span className="text-xs font-semibold text-forest-800">Végösszeg</span>
-                                  <span className="font-bold text-forest-800 text-sm">{formatCurrency(grandTotal)}</span>
                                 </div>
                                 <div>
                                   <label className="text-xs text-amber-600 font-medium mb-1.5 block">Fizetendő előleg (szerkeszthető)</label>
@@ -892,17 +880,17 @@ export default function AdminBookingsList({ bookings }: Props) {
                                   </div>
                                   {depositBase > 0 && editForm.depositAmount > 0 && (
                                     <p className="text-xs text-stone-400 mt-1">
-                                      = {Math.round(editForm.depositAmount / depositBase * 100)}% (extrákat tartalmaz, IFA nélkül)
+                                      = {Math.round(editForm.depositAmount / depositBase * 100)}% (IFA nélkül)
                                     </p>
                                   )}
                                 </div>
-                                {editForm.depositAmount > 0 && grandTotal > editForm.depositAmount && (
+                                {editForm.depositAmount > 0 && editForm.totalPrice > editForm.depositAmount && (
                                   <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5">
                                     <div>
                                       <p className="text-xs font-semibold text-stone-700">Helyszínen fizetendő</p>
                                       <p className="text-[10px] text-stone-400 mt-0.5">Végösszeg – előleg</p>
                                     </div>
-                                    <span className="font-bold text-stone-800 text-sm">{formatCurrency(grandTotal - editForm.depositAmount)}</span>
+                                    <span className="font-bold text-stone-800 text-sm">{formatCurrency(editForm.totalPrice - editForm.depositAmount)}</span>
                                   </div>
                                 )}
                               </div>
