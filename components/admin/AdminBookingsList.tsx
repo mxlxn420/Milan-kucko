@@ -180,8 +180,7 @@ export default function AdminBookingsList({ bookings }: Props) {
       discountAmount:        booking.discountAmount  ?? 0,
       status:                booking.status as BookingStatus,
     };
-    // Ha az árak már betöltöttek, azonnal újraszámolja
-    setEditForm(rules.length > 0 ? recalc(initial) : initial);
+    setEditForm(initial);
     setEditExtras((booking.extraServices ?? []) as ExtraSvc[]);
     setShowAddPanel(false);
     setEditing(true);
