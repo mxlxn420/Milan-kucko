@@ -430,7 +430,7 @@ export async function sendDepositConfirmationEmail(params: {
     body: JSON.stringify({
       from:     `Milán Kuckó <${FROM_EMAIL}>`,
       to:       [params.guestEmail],
-      reply_to: ADMIN_EMAIL,
+      reply_to: [ADMIN_EMAIL],
       subject:  `✅ Előleg befizetve – ${params.bookingId}`,
       html,
     }),
@@ -466,7 +466,7 @@ export async function sendBookingEmails(data: BookingEmailData): Promise<void> {
     body: JSON.stringify({
       from:     `Milán Kuckó <${FROM_EMAIL}>`,
       to:       [data.guestEmail],
-      reply_to: ADMIN_EMAIL,
+      reply_to: [ADMIN_EMAIL],
       subject:  `✓ Foglalás visszaigazolása – ${data.bookingId}`,
       html:     guestEmailHtml(data),
     }),
@@ -607,7 +607,7 @@ export async function sendCancellationEmail(params: {
     body: JSON.stringify({
       from:     `Milán Kuckó <${FROM_EMAIL}>`,
       to:       [params.guestEmail],
-      reply_to: ADMIN_EMAIL,
+      reply_to: [ADMIN_EMAIL],
       subject:  `Foglalás törölve – ${params.bookingId}`,
       html:     cancellationEmailHtml(params),
     }),
