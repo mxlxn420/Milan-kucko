@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   getDay, addWeeks, subWeeks, startOfWeek, addDays,
-  format, isSameDay,
+  format, isSameDay, startOfDay,
 } from "date-fns";
 import { hu } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -41,11 +41,33 @@ const RULE_COLORS = [
 ];
 const BASE_COLOR = { bg: "bg-stone-50", border: "border-stone-200", text: "text-stone-700", badge: "bg-stone-100 text-stone-600" };
 
+interface BookedRange { from: Date; to: Date; }
+
 export default function AdminPriceCalendar({ rules }: Props) {
   const today = new Date();
   const [weekStart, setWeekStart] = useState(() =>
     startOfWeek(today, { weekStartsOn: 1 })
   );
+  const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
+
+  useEffect(() => {
+    fetch("/api/availability")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setBookedRanges([
+            ...data.data.bookings,
+            ...data.data.blocked,
+          ].map((b: any) => ({ from: new Date(b.checkIn), to: new Date(b.checkOut) })));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const isBooked = (day: Date) => {
+    const d = startOfDay(day);
+    return bookedRanges.some((r) => d >= startOfDay(r.from) && d < startOfDay(r.to));
+  };
 
   const seasonRules = rules.filter((r) => r.dateFrom || r.dateTo);
   const ruleColorMap: Record<string, typeof BASE_COLOR> = {};
@@ -153,14 +175,18 @@ export default function AdminPriceCalendar({ rules }: Props) {
             const colors  = rule ? (ruleColorMap[rule.id] ?? BASE_COLOR) : BASE_COLOR;
             const weekend = [5, 6].includes(getDay(day));
             const isToday = isSameDay(day, today);
+            const booked  = isBooked(day);
             return (
-              <div key={day.toISOString()} className={`rounded-2xl border p-3 flex flex-col gap-1.5 ${colors.bg} ${colors.border} ${isToday ? "ring-2 ring-forest-500 ring-offset-1" : ""}`}>
+              <div key={day.toISOString()} className={`rounded-2xl border p-3 flex flex-col gap-1.5 ${booked ? "opacity-60" : ""} ${colors.bg} ${colors.border} ${isToday ? "ring-2 ring-forest-500 ring-offset-1" : ""}`}>
                 <div className="flex items-center justify-between">
                   <span className={`text-xs font-semibold ${weekend ? "text-red-500" : "text-stone-500"}`}>
                     {format(day, "EEE", { locale: hu }).toUpperCase()}
                   </span>
                   <span className={`text-sm font-bold ${colors.text}`}>{format(day, "d")}</span>
                 </div>
+                {booked && (
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 w-fit">Foglalt</span>
+                )}
                 {rule ? (
                   <>
                     <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full w-fit ${colors.badge}`}>{rule.name}</span>
