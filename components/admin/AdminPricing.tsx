@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Star, Pencil } from "lucide-react";
+import { Plus, Trash2, Star, Pencil, ChevronDown } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { PricingRule } from "@/types";
 import SeasonForm from "@/components/admin/SeasonForm";
@@ -46,6 +46,7 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
   const [datePanel, setDatePanel] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRule, setEditRule]   = useState<EditableRule | null>(null);
+  const [openCards, setOpenCards] = useState<Set<string>>(new Set());
 
   const baseRule    = useMemo(() => rules.find((r) => !r.dateFrom && !r.dateTo), [rules]);
   const basePrice   = baseRule?.pricePerNight ?? 45_000;
@@ -318,62 +319,111 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
                   exit={{ opacity: 0 }}
                   className="bg-white rounded-2xl shadow-card p-6"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        {rule.priority >= 10 && <Star size={13} className="text-terra-400 fill-terra-400" />}
-                        <h3 className="font-medium text-stone-800">{rule.name}</h3>
-                        {!rule.isActive && (
-                          <span className="text-xs bg-stone-100 text-stone-500 px-2 py-0.5 rounded-full">Inaktív</span>
-                        )}
-                        {rule.priority >= 10 && (
-                          <span className="text-xs bg-terra-100 text-terra-600 px-2 py-0.5 rounded-full">Kiemelt</span>
-                        )}
+                  {/* Fejléc – kattintható */}
+                  <button
+                    type="button"
+                    onClick={() => setOpenCards((prev) => {
+                      const next = new Set(prev);
+                      next.has(rule.id) ? next.delete(rule.id) : next.add(rule.id);
+                      return next;
+                    })}
+                    className="w-full text-left"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          {rule.priority >= 10 && <Star size={13} className="text-terra-400 fill-terra-400" />}
+                          <h3 className="font-medium text-stone-800">{rule.name}</h3>
+                          {!rule.isActive && (
+                            <span className="text-xs bg-stone-100 text-stone-500 px-2 py-0.5 rounded-full">Inaktív</span>
+                          )}
+                          {rule.priority >= 10 && (
+                            <span className="text-xs bg-terra-100 text-terra-600 px-2 py-0.5 rounded-full">Kiemelt</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-stone-400">
+                          {rule.dateFrom && rule.dateTo
+                            ? `${new Date(rule.dateFrom as string).toLocaleDateString("hu-HU")} – ${new Date(rule.dateTo as string).toLocaleDateString("hu-HU")}`
+                            : "Dátum nélkül"
+                          }
+                          {" · "}Min. {rule.minNights} éj
+                          {(rule as any).policyId && policies.find((p) => p.id === (rule as any).policyId) && (
+                            <span className="ml-2 bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full text-[10px]">
+                              {policies.find((p) => p.id === (rule as any).policyId)!.name}
+                            </span>
+                          )}
+                        </p>
                       </div>
-                      <p className="text-xs text-stone-400">
-                        {rule.dateFrom && rule.dateTo
-                          ? `${new Date(rule.dateFrom as string).toLocaleDateString("hu-HU")} – ${new Date(rule.dateTo as string).toLocaleDateString("hu-HU")}`
-                          : "Dátum nélkül"
-                        }
-                        {" · "}Min. {rule.minNights} éj
-                        {(rule as any).policyId && policies.find((p) => p.id === (rule as any).policyId) && (
-                          <span className="ml-2 bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full text-[10px]">
-                            {policies.find((p) => p.id === (rule as any).policyId)!.name}
+                      <div className="flex items-center gap-3">
+                        <div className="sm:text-right">
+                          <span className="font-serif text-xl text-forest-900">
+                            {formatCurrency(rule.pricePerNight)}
                           </span>
-                        )}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="sm:text-right">
-                        <span className="font-serif text-xl text-forest-900">
-                          {formatCurrency(rule.pricePerNight)}
-                        </span>
-                        <span className="text-xs text-stone-400">/éj</span>
-                        {(rule as any).weekendPrice > 0 && (
-                          <p className="text-xs text-terra-400 mt-0.5">
-                            Hétvége: {formatCurrency((rule as any).weekendPrice)}/éj
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => openEdit(rule)}
-                          className="w-9 h-9 rounded-xl bg-forest-50 text-forest-700 hover:bg-forest-100 flex items-center justify-center transition-colors"
-                          title="Szerkesztés"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          onClick={() => deleteRule(rule.id)}
-                          disabled={deleting === rule.id}
-                          className="w-9 h-9 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"
-                          title="Törlés"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                          <span className="text-xs text-stone-400">/éj</span>
+                          {(rule as any).weekendPrice > 0 && (
+                            <p className="text-xs text-terra-400 mt-0.5">
+                              Hétvége: {formatCurrency((rule as any).weekendPrice)}/éj
+                            </p>
+                          )}
+                        </div>
+                        <ChevronDown
+                          size={16}
+                          className={`text-stone-400 transition-transform duration-200 ${openCards.has(rule.id) ? "rotate-180" : ""}`}
+                        />
                       </div>
                     </div>
-                  </div>
+                  </button>
+
+                  {/* Lenyitható részletek */}
+                  <AnimatePresence>
+                    {openCards.has(rule.id) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="border-t border-stone-100 mt-4 pt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                          {(rule as any).price3 > 0 && (
+                            <div><p className="text-xs text-stone-400 mb-0.5">3 fő/éj</p><p className="font-medium text-stone-700">{formatCurrency((rule as any).price3)}</p></div>
+                          )}
+                          {(rule as any).price4 > 0 && (
+                            <div><p className="text-xs text-stone-400 mb-0.5">4 fő/éj</p><p className="font-medium text-stone-700">{formatCurrency((rule as any).price4)}</p></div>
+                          )}
+                          {(rule as any).weekendPrice3 > 0 && (
+                            <div><p className="text-xs text-stone-400 mb-0.5">Hétvége 3 fő</p><p className="font-medium text-stone-700">{formatCurrency((rule as any).weekendPrice3)}</p></div>
+                          )}
+                          {(rule as any).weekendPrice4 > 0 && (
+                            <div><p className="text-xs text-stone-400 mb-0.5">Hétvége 4 fő</p><p className="font-medium text-stone-700">{formatCurrency((rule as any).weekendPrice4)}</p></div>
+                          )}
+                          {(rule as any).childPrice2to6 > 0 && (
+                            <div><p className="text-xs text-stone-400 mb-0.5">Gyermek 2–6 év</p><p className="font-medium text-stone-700">{formatCurrency((rule as any).childPrice2to6)}/éj</p></div>
+                          )}
+                          {(rule as any).childPrice6to12 > 0 && (
+                            <div><p className="text-xs text-stone-400 mb-0.5">Gyermek 6–12 év</p><p className="font-medium text-stone-700">{formatCurrency((rule as any).childPrice6to12)}/éj</p></div>
+                          )}
+                          <div><p className="text-xs text-stone-400 mb-0.5">Min. előfoglalás</p><p className="font-medium text-stone-700">{(rule as any).minAdvanceDays ?? 2} nap</p></div>
+                          <div><p className="text-xs text-stone-400 mb-0.5">Prioritás</p><p className="font-medium text-stone-700">{rule.priority ?? 0}</p></div>
+                        </div>
+                        <div className="flex gap-2 mt-4">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); openEdit(rule); }}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-forest-50 text-forest-700 hover:bg-forest-100 text-xs font-medium transition-colors"
+                          >
+                            <Pencil size={12} /> Szerkesztés
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteRule(rule.id); }}
+                            disabled={deleting === rule.id}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 text-xs font-medium transition-colors"
+                          >
+                            <Trash2 size={12} /> Törlés
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
             </AnimatePresence>
