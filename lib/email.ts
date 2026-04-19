@@ -273,7 +273,7 @@ function adminEmailHtml(data: BookingEmailData): string {
 }
 
 // ─── ELŐLEG VISSZAIGAZOLÓ EMAIL HTML ────────────────────────
-function depositConfirmationHtml(data: BookingEmailData & { depositAmount: number; remaining: number; depositMethod?: string | null }): string {
+function depositConfirmationHtml(data: BookingEmailData & { depositAmount: number; remaining: number; depositMethod?: string | null; depositPaidAt?: string | null }): string {
   return `
 <!DOCTYPE html>
 <html lang="hu">
@@ -345,7 +345,7 @@ function depositConfirmationHtml(data: BookingEmailData & { depositAmount: numbe
                       </tr>
                       <tr>
                         <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#737373;">Befizetett előleg</td>
-                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#1a5c2a;font-weight:600;text-align:right;">✓ ${formatHuf(data.depositAmount)}${data.depositMethod ? ` <span style="font-size:12px;font-weight:400;color:#737373;">(${data.depositMethod === "transfer" ? "átutalás" : data.depositMethod === "szep" ? "SZÉP kártya" : data.depositMethod})</span>` : ""}</td>
+                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#1a5c2a;font-weight:600;text-align:right;">✓ ${formatHuf(data.depositAmount)}${data.depositMethod ? ` <span style="font-size:12px;font-weight:400;color:#737373;">(${data.depositMethod === "transfer" ? "átutalás" : data.depositMethod === "szep" ? "SZÉP kártya" : data.depositMethod})</span>` : ""}${data.depositPaidAt ? ` <span style="display:block;font-size:12px;font-weight:400;color:#737373;">Befizetés dátuma: ${data.depositPaidAt}</span>` : ""}</td>
                       </tr>
                       <tr>
                         <td style="padding:12px 0 0;font-family:sans-serif;font-size:14px;color:#737373;">Helyszínen fizetendő</td>
@@ -404,6 +404,7 @@ export async function sendDepositConfirmationEmail(params: {
   totalPrice: number;
   depositAmount: number;
   depositMethod?: string | null;
+  depositPaidAt?: string | null;
   bookingId: string;
 }): Promise<void> {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -411,7 +412,7 @@ export async function sendDepositConfirmationEmail(params: {
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? FROM_EMAIL;
 
   const remaining = params.totalPrice - params.depositAmount;
-  const html = depositConfirmationHtml({ ...params, remaining, depositMethod: params.depositMethod });
+  const html = depositConfirmationHtml({ ...params, remaining, depositMethod: params.depositMethod, depositPaidAt: params.depositPaidAt });
 
   if (!RESEND_API_KEY || RESEND_API_KEY === "re_xxxxxxxxxxxx") {
     console.log("📧 [DEV] Előleg visszaigazoló email szimulálva:", {
