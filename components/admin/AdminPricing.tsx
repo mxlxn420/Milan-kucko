@@ -385,11 +385,15 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
                         className="overflow-hidden"
                       >
                         <div className="border-t border-stone-100 mt-4 pt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                          <div><p className="text-xs text-stone-400 mb-0.5">1–2 fő/éj</p><p className="font-medium text-stone-700">{formatCurrency(rule.pricePerNight)}</p></div>
                           {(rule as any).price3 > 0 && (
                             <div><p className="text-xs text-stone-400 mb-0.5">3 fő/éj</p><p className="font-medium text-stone-700">{formatCurrency((rule as any).price3)}</p></div>
                           )}
                           {(rule as any).price4 > 0 && (
                             <div><p className="text-xs text-stone-400 mb-0.5">4 fő/éj</p><p className="font-medium text-stone-700">{formatCurrency((rule as any).price4)}</p></div>
+                          )}
+                          {(rule as any).weekendPrice > 0 && (
+                            <div><p className="text-xs text-stone-400 mb-0.5">Hétvége 1–2 fő</p><p className="font-medium text-stone-700">{formatCurrency((rule as any).weekendPrice)}</p></div>
                           )}
                           {(rule as any).weekendPrice3 > 0 && (
                             <div><p className="text-xs text-stone-400 mb-0.5">Hétvége 3 fő</p><p className="font-medium text-stone-700">{formatCurrency((rule as any).weekendPrice3)}</p></div>
@@ -403,8 +407,11 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
                           {(rule as any).childPrice6to12 > 0 && (
                             <div><p className="text-xs text-stone-400 mb-0.5">Gyermek 6–12 év</p><p className="font-medium text-stone-700">{formatCurrency((rule as any).childPrice6to12)}/éj</p></div>
                           )}
+                          <div><p className="text-xs text-stone-400 mb-0.5">Min. éjszaka</p><p className="font-medium text-stone-700">{rule.minNights} éj</p></div>
                           <div><p className="text-xs text-stone-400 mb-0.5">Min. előfoglalás</p><p className="font-medium text-stone-700">{(rule as any).minAdvanceDays ?? 2} nap</p></div>
-                          <div><p className="text-xs text-stone-400 mb-0.5">Prioritás</p><p className="font-medium text-stone-700">{rule.priority ?? 0}</p></div>
+                          {(rule as any).policyId && policies.find((p) => p.id === (rule as any).policyId) && (
+                            <div><p className="text-xs text-stone-400 mb-0.5">Szabály</p><p className="font-medium text-stone-700">{policies.find((p) => p.id === (rule as any).policyId)!.name}</p></div>
+                          )}
                         </div>
                         <div className="flex gap-2 mt-4">
                           <button
