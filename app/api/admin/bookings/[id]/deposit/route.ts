@@ -27,6 +27,9 @@ export async function POST(
         depositPaidAt,
         depositPaidAmount,
         depositPaidMethod,
+        ...(depositPaidAmount != null && depositPaidAmount !== booking.depositAmount
+          ? { depositAmount: depositPaidAmount }
+          : {}),
         status: booking.status === "PENDING" ? "CONFIRMED" : booking.status,
       },
     });

@@ -126,6 +126,7 @@ export default function AdminBookingsList({ bookings }: Props) {
   const [confirmDelete, setConfirmDelete]   = useState(false);
   const [cancelModal, setCancelModal]       = useState(false);
   const [cancelNote, setCancelNote]         = useState("");
+  const [sendCancelEmail, setSendCancelEmail] = useState(true);
   const [depositModal, setDepositModal]     = useState<string | null>(null);
   const [depositForm, setDepositForm]       = useState({ paidAt: new Date().toISOString().slice(0, 10), paidAmount: "", paidMethod: "transfer" });
   const [saveError, setSaveError]           = useState<string | null>(null);
@@ -309,7 +310,7 @@ export default function AdminBookingsList({ bookings }: Props) {
       const res  = await fetch(`/api/bookings/${selected.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminNote: cancelNote || undefined }),
+        body: JSON.stringify({ adminNote: cancelNote || undefined, sendEmail: sendCancelEmail }),
       });
       const data = await res.json();
       if (data.success) {
@@ -975,7 +976,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                       </div>
                     ) : (
                       <button
-                        onClick={() => { setCancelNote(""); setConfirmDelete(true); setCancelModal(true); }}
+                        onClick={() => { setCancelNote(""); setConfirmDelete(true); setSendCancelEmail(selected?.status !== "PENDING"); setCancelModal(true); }}
                         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors"
                       >
                         <Trash2 size={14} />
@@ -1314,7 +1315,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                             Jóváhagyás
                           </button>
                           <button
-                            onClick={() => { setCancelNote(""); setCancelModal(true); }}
+                            onClick={() => { setCancelNote(""); setConfirmDelete(false); setSendCancelEmail(true); setCancelModal(true); }}
                             disabled={loading === selected.id}
                             className="flex-1 py-2.5 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 text-sm font-medium transition-colors"
                           >
@@ -1413,18 +1414,31 @@ export default function AdminBookingsList({ bookings }: Props) {
               {confirmDelete ? "Foglalás törlése" : "Foglalás elutasítása"}
             </h3>
             <p className="text-sm text-stone-500 mb-4">
-              <strong>{selected.guestName}</strong> foglalása {confirmDelete ? "véglegesen törlésre kerül" : "elutasításra kerül"}, és automatikus email érkezik a vendégnek.
+              <strong>{selected.guestName}</strong> foglalása {confirmDelete ? "véglegesen törlésre kerül" : "elutasításra kerül"}.
             </p>
-            <label className="block text-xs font-medium text-stone-500 uppercase tracking-wider mb-1.5">
-              Megjegyzés a vendégnek (opcionális)
+            <label className="flex items-center gap-2.5 mb-4 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={sendCancelEmail}
+                onChange={(e) => setSendCancelEmail(e.target.checked)}
+                className="w-4 h-4 rounded border-stone-300 text-red-600 focus:ring-red-300"
+              />
+              <span className="text-sm text-stone-600">E-mail küldése a vendégnek</span>
             </label>
-            <textarea
-              rows={4}
-              className="w-full border border-stone-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none mb-4"
-              placeholder="pl. Az időszak sajnos már nem elérhető, elnézést kérünk..."
-              value={cancelNote}
-              onChange={(e) => setCancelNote(e.target.value)}
-            />
+            {sendCancelEmail && (
+              <>
+                <label className="block text-xs font-medium text-stone-500 uppercase tracking-wider mb-1.5">
+                  Megjegyzés a vendégnek (opcionális)
+                </label>
+                <textarea
+                  rows={4}
+                  className="w-full border border-stone-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none mb-4"
+                  placeholder="pl. Az időszak sajnos már nem elérhető, elnézést kérünk..."
+                  value={cancelNote}
+                  onChange={(e) => setCancelNote(e.target.value)}
+                />
+              </>
+            )}
             <div className="flex gap-3">
               <button
                 onClick={() => { setCancelModal(false); setConfirmDelete(false); }}
@@ -1445,7 +1459,9 @@ export default function AdminBookingsList({ bookings }: Props) {
                 disabled={loading === selected.id}
                 className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-60"
               >
-                {confirmDelete ? "Törlés + email küldés" : "Elutasítás + email küldés"}
+                {confirmDelete
+                  ? (sendCancelEmail ? "Törlés + email küldés" : "Törlés")
+                  : "Elutasítás + email küldés"}
               </button>
             </div>
           </div>

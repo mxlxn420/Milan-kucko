@@ -155,7 +155,7 @@ export async function DELETE(
   try {
     const body = await req.json().catch(() => ({}));
     const booking = await prisma.booking.findUnique({ where: { id: params.id } });
-    if (booking) {
+    if (booking && body.sendEmail !== false) {
       try {
         const { sendCancellationEmail } = await import("@/lib/email");
         await sendCancellationEmail({
