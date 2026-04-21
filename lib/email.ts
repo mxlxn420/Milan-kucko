@@ -844,7 +844,7 @@ export async function sendDepositConfirmationEmail(params: {
   bookingId: string;
 }): Promise<void> {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
-  const FROM_EMAIL = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
+  const FROM_EMAIL = process.env.FROM_EMAIL ?? "info@milankucko.hu";
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? FROM_EMAIL;
 
   const remaining = params.totalPrice - params.depositAmount;
@@ -902,7 +902,7 @@ export async function sendDepositConfirmationEmail(params: {
 // ─── FŐ EMAIL KÜLDŐ FÜGGVÉNY ─────────────────────────────────
 export async function sendBookingEmails(data: BookingEmailData): Promise<void> {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
-  const FROM_EMAIL = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
+  const FROM_EMAIL = process.env.FROM_EMAIL ?? "info@milankucko.hu";
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? process.env.FROM_EMAIL ?? "info@milankucko.hu";
 
   if (!RESEND_API_KEY || RESEND_API_KEY === "re_xxxxxxxxxxxx") {
@@ -1047,7 +1047,7 @@ export async function sendCancellationEmail(params: {
   adminNote?: string;
 }): Promise<void> {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
-  const FROM_EMAIL = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
+  const FROM_EMAIL = process.env.FROM_EMAIL ?? "info@milankucko.hu";
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? FROM_EMAIL;
 
   if (!RESEND_API_KEY || RESEND_API_KEY === "re_xxxxxxxxxxxx") {
