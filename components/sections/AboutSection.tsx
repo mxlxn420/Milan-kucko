@@ -135,9 +135,9 @@ export default function AboutSection({ data }: { data: AboutData }) {
               })}
             </div>
 
-            {/* Közeli látnivalók */}
+            {/* Közeli látnivalók – csak mobilon itt */}
             {data.nearby.length > 0 && (
-              <div className="bg-forest-900/5 rounded-2xl p-5">
+              <div className="lg:hidden bg-forest-900/5 rounded-2xl p-5">
                 <p className="text-xs font-medium tracking-[0.15em] uppercase text-forest-700 mb-3">
                   Közeli látnivalók
                 </p>
@@ -154,6 +154,26 @@ export default function AboutSection({ data }: { data: AboutData }) {
           </AnimatedSection>
 
         </div>
+
+        {/* Közeli látnivalók – desktopon középre */}
+        {data.nearby.length > 0 && (
+          <AnimatedSection className="hidden lg:block mt-16">
+            <div className="bg-forest-900/5 rounded-2xl p-6 max-w-2xl mx-auto text-center">
+              <p className="text-xs font-medium tracking-[0.15em] uppercase text-forest-700 mb-4">
+                Közeli látnivalók
+              </p>
+              <div className="flex flex-wrap justify-center gap-x-8 gap-y-2">
+                {data.nearby.map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm text-stone-600">
+                    <span className="w-1.5 h-1.5 rounded-full bg-terra-400 shrink-0" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </AnimatedSection>
+        )}
+
       </div>
     </section>
   );
