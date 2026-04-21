@@ -6,7 +6,7 @@ import { Redis } from "@upstash/redis";
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.fixedWindow(3, "60 m"),
+  limiter: Ratelimit.fixedWindow(50, "60 m"),
   prefix: "bookings",
 });
 
@@ -152,14 +152,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Előleg kiszámítása az érvényes árrule policy-ja alapján
-    const applicableRule = await prisma.pricingRule.findFirst({
+    // Először szezon-specifikus szabályt keresünk, ha nincs, akkor az alapértelmezettet
+    const periodRule = await prisma.pricingRule.findFirst({
       where: {
         isActive: true,
-        OR: [
-          { dateFrom: null, dateTo: null },
-          { dateFrom: { lte: checkInDate }, dateTo: { gte: checkInDate } },
-        ],
+        dateFrom: { not: null, lte: checkInDate },
+        dateTo:   { not: null, gte: checkInDate },
       },
+      orderBy: { priority: "desc" },
+      include: { policy: true },
+    });
+    const applicableRule = periodRule ?? await prisma.pricingRule.findFirst({
+      where:   { isActive: true, dateFrom: null, dateTo: null },
       orderBy: { priority: "desc" },
       include: { policy: true },
     });
@@ -184,7 +188,8 @@ export async function POST(req: NextRequest) {
     const finalTotal      = Number(totalPrice); // frontend már levonja a kedvezményt
     const discountAmount  = Number(body.discountAmount) || 0;
 
-    const depositPercent = (applicableRule as any)?.policy?.depositPercent ?? 30;
+    const depositPercent  = (applicableRule as any)?.policy?.depositPercent ?? 30;
+    const freeCancelDays  = (applicableRule as any)?.policy?.freeCancelDays ?? 11;
     const depositAmount  = Math.round((finalTotal - Number(touristTax)) * depositPercent / 100);
 
     // Foglalás ID
@@ -231,13 +236,41 @@ export async function POST(req: NextRequest) {
       await sendBookingEmails({
         guestName,
         guestEmail,
+        guestPhone,
+        guestAddress,
         checkIn,
         checkOut,
         nights,
         guests: Number(numberOfGuests),
+        numberOfAdults: adults,
         totalPrice: finalTotal,
         bookingId: bookingRef,
         notes,
+        basePrice: Number(basePrice),
+        touristTax: Number(touristTax),
+        depositAmount,
+        depositPercent,
+        freeCancelDays,
+        extraServices: Array.isArray(extraServices)
+          ? extraServices.map((s: any) => ({
+              name:        String(s.name ?? ""),
+              total:       Number(s.total ?? 0),
+              quantity:    s.quantity != null ? Number(s.quantity) : undefined,
+              nights:      s.nights   != null ? Number(s.nights)   : undefined,
+              price:       s.price    != null ? Number(s.price)    : undefined,
+              pricingType: s.pricingType ?? undefined,
+            }))
+          : [],
+        extraServicesTotal: Number(extraServicesTotal) || 0,
+        paymentMethod: body.paymentMethod ?? null,
+        discountPercent,
+        discountAmount,
+        numberOfTeens:         teens,
+        numberOfBabies:        babies,
+        numberOfChildren2to6:  children2to6,
+        numberOfChildren6to12: children6to12,
+        childPrice2to6:        Number(body.childPrice2to6)  || 0,
+        childPrice6to12:       Number(body.childPrice6to12) || 0,
       });
     } catch (emailErr) {
       console.error("Email hiba (foglalás mentve):", emailErr);

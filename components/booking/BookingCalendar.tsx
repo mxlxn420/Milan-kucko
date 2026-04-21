@@ -436,7 +436,7 @@ export default function BookingCalendar({ onNext }: Props) {
               />
               <GuestCounter
                 label="Fiatal (12–18 év)"
-                sublabel="Szobadíj/fő – IFA nélkül"
+                sublabel="Felnőtt ár – IFA nélkül"
                 value={teens}
                 atMax={totalGuests >= MAX_GUESTS}
                 onChange={setTeens}

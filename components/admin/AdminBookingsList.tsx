@@ -223,13 +223,13 @@ export default function AdminBookingsList({ bookings }: Props) {
   };
 
   // ─── Státusz módosítás (olvasó nézetből) ────────────────────
-  const updateStatus = async (id: string, status: BookingStatus, adminNote?: string) => {
+  const updateStatus = async (id: string, status: BookingStatus, adminNote?: string, sendEmail?: boolean) => {
     setLoading(id);
     try {
       const res  = await fetch(`/api/bookings/${id}`, {
         method:  "PATCH",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ status, ...(adminNote ? { adminNote } : {}) }),
+        body:    JSON.stringify({ status, ...(adminNote ? { adminNote } : {}), ...(sendEmail !== undefined ? { sendEmail } : {}) }),
       });
       const data = await res.json();
       if (data.success) {
@@ -1471,7 +1471,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                     setConfirmDelete(false);
                     await deleteBooking();
                   } else {
-                    await updateStatus(selected.id, "CANCELLED", cancelNote || undefined);
+                    await updateStatus(selected.id, "CANCELLED", cancelNote || undefined, sendCancelEmail);
                   }
                 }}
                 disabled={loading === selected.id}
@@ -1479,7 +1479,7 @@ export default function AdminBookingsList({ bookings }: Props) {
               >
                 {confirmDelete
                   ? (sendCancelEmail ? "Törlés + email küldés" : "Törlés")
-                  : "Elutasítás + email küldés"}
+                  : (sendCancelEmail ? "Elutasítás + email küldés" : "Elutasítás")}
               </button>
             </div>
           </div>

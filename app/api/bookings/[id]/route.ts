@@ -51,8 +51,8 @@ export async function PATCH(
         data: { status: body.status },
       });
 
-      // Törlési email küldése
-      if (body.status === "CANCELLED") {
+      // Törlési email küldése (csak ha sendEmail !== false)
+      if (body.status === "CANCELLED" && body.sendEmail !== false) {
         try {
           const { sendCancellationEmail } = await import("@/lib/email");
           const { format } = await import("date-fns");

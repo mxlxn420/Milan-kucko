@@ -225,8 +225,8 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                   type="button"
                   onClick={() => setForm({ ...form, paymentMethod: value, szepType: value === "szep" ? (form.szepType || "otp") : "" })}
                   className={`flex flex-col items-center gap-2 py-4 px-2 rounded-2xl border-2 transition-all text-sm font-medium ${form.paymentMethod === value
-                      ? "border-forest-600 bg-forest-50 text-forest-800"
-                      : "border-stone-200 text-stone-500 hover:border-stone-300"
+                    ? "border-forest-600 bg-forest-50 text-forest-800"
+                    : "border-stone-200 text-stone-500 hover:border-stone-300"
                     }`}
                 >
                   <Icon size={20} className={form.paymentMethod === value ? "text-forest-600" : "text-stone-400"} />
@@ -234,7 +234,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-stone-400 mt-2">Ez az előleg fizetési módjára vonatkozik. A maradék összeget helyszínen, érkezéskor megbeszélés alapján rendezzük.</p>
+            <p className="text-xs text-stone-400 mt-2">Ez az előleg fizetési módjára vonatkozik. A maradék összeg fizetése a helyszínen készpénzzel/átutalással/OTP Szép kártyával/KH Szép kártyával/MBH Szép kártyával lehetséges.</p>
 
             {/* SZÉP kártya bank választó */}
             {form.paymentMethod === "szep" && (
@@ -249,8 +249,8 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                     type="button"
                     onClick={() => setForm({ ...form, szepType: value })}
                     className={`py-2.5 px-3 rounded-xl border-2 text-xs font-medium transition-all ${form.szepType === value
-                        ? "border-forest-600 bg-forest-50 text-forest-800"
-                        : "border-stone-200 text-stone-500 hover:border-stone-300"
+                      ? "border-forest-600 bg-forest-50 text-forest-800"
+                      : "border-stone-200 text-stone-500 hover:border-stone-300"
                       }`}
                   >
                     {label}
@@ -276,8 +276,8 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                   <div
                     key={svc.id}
                     className={`relative rounded-2xl border-2 overflow-hidden transition-all duration-200 ${isSelected
-                        ? "border-forest-500 shadow-md"
-                        : "border-stone-200"
+                      ? "border-forest-500 shadow-md"
+                      : "border-stone-200"
                       }`}
                   >
                     {/* Kép — kattintható toggle */}
@@ -311,8 +311,8 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                         <div className="flex items-start justify-between gap-2">
                           <p className="font-medium text-stone-800 text-sm leading-tight">{svc.name}</p>
                           <span className={`shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium ${svc.pricingType === "PER_NIGHT"
-                              ? "bg-forest-50 text-forest-700"
-                              : "bg-terra-50 text-terra-700"
+                            ? "bg-forest-50 text-forest-700"
+                            : "bg-terra-50 text-terra-700"
                             }`}>
                             {svc.pricingType === "PER_NIGHT" ? <Moon size={9} /> : <CalendarCheck size={9} />}
                             {svc.pricingType === "PER_NIGHT" ? "/éj" : "/fog."}
