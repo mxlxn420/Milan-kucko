@@ -559,120 +559,252 @@ function adminEmailHtml(data: BookingEmailData): string {
 
 // ─── ELŐLEG VISSZAIGAZOLÓ EMAIL HTML ────────────────────────
 function depositConfirmationHtml(data: BookingEmailData & { depositAmount: number; remaining: number; depositMethod?: string | null; depositPaidAt?: string | null }): string {
+  const depositPct    = data.depositPercent ?? 30;
+  const adults        = data.numberOfAdults ?? data.guests;
+  const freeCancelDays = data.freeCancelDays ?? 11;
+  const penaltyFromDay = freeCancelDays - 1;
+  const extras        = data.extraServices?.filter(s => s.total > 0) ?? [];
+
+  const depositMethodText = (() => {
+    const m = data.depositMethod ?? "";
+    if (m === "transfer")  return "átutalással";
+    if (m === "szep-otp")  return "OTP Szép kártyával";
+    if (m === "szep-mbh")  return "MBH Szép kártyával";
+    if (m === "szep-kh")   return "K&H Szép kártyával";
+    return m || "átutalással";
+  })();
+
   return `
 <!DOCTYPE html>
 <html lang="hu">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foglalás visszaigazolása</title>
 </head>
 <body style="margin:0;padding:0;background:#f5f0e8;font-family:Georgia,serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;padding:40px 20px;">
-    <tr>
-      <td align="center">
-        <table width="580" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(26,58,42,0.08);">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;padding:40px 20px;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(26,58,42,0.08);">
 
-          <!-- Fejléc -->
-          <tr>
-            <td style="background:#1a3a2a;padding:40px;text-align:center;">
-              <p style="color:#f5f0e8;font-size:28px;font-weight:300;margin:0;letter-spacing:-0.02em;">Milán Kuckó</p>
-              <p style="color:rgba(245,240,232,0.6);font-size:12px;margin:8px 0 0;font-family:sans-serif;letter-spacing:0.2em;text-transform:uppercase;">Miskolctapolca · Bencések útja 117/A</p>
-            </td>
-          </tr>
+      <!-- Fejléc -->
+      <tr>
+        <td style="background:#1a3a2a;padding:36px 40px;text-align:center;">
+          <p style="color:#f5f0e8;font-size:28px;font-weight:300;margin:0;letter-spacing:-0.02em;">Milán Kuckó</p>
+          <p style="color:rgba(245,240,232,0.6);font-size:11px;margin:8px 0 0;font-family:sans-serif;letter-spacing:0.2em;text-transform:uppercase;">Miskolctapolca · Bencések útja 117/A</p>
+        </td>
+      </tr>
 
-          <!-- Tartalom -->
-          <tr>
-            <td style="padding:40px;">
+      <!-- Tartalom -->
+      <tr><td style="padding:36px 40px;">
 
-              <!-- Megerősítés banner -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:#d4edda;border-radius:12px;margin-bottom:24px;">
-                <tr>
-                  <td style="padding:20px;text-align:center;">
-                    <p style="font-size:32px;margin:0 0 8px;">✅</p>
-                    <p style="font-family:sans-serif;font-size:18px;font-weight:700;color:#1a5c2a;margin:0 0 4px;">Előleg megérkezett!</p>
-                    <p style="font-family:sans-serif;font-size:14px;color:#2d7a3a;margin:0;">A foglalása most már végleges.</p>
-                  </td>
-                </tr>
-              </table>
+        <!-- Üdvözlés -->
+        <p style="font-size:20px;color:#1a3a2a;margin:0 0 10px;">Kedves ${escapeHtml(data.guestName)}!</p>
+        <p style="font-family:sans-serif;font-size:14px;color:#525252;line-height:1.7;margin:0 0 8px;">
+          A ${formatHuf(data.depositAmount)} előleg fizetése ${depositMethodText} megtörtént${data.depositPaidAt ? ` ${data.depositPaidAt} napján` : ""}, így a foglalás véglegesítésre került.
+        </p>
+        <p style="font-family:sans-serif;font-size:14px;color:#525252;line-height:1.7;margin:0 0 28px;">
+          Köszönjük hogy minket választott, foglalását megkaptuk.
+        </p>
 
-              <p style="font-size:20px;color:#1a3a2a;margin:0 0 16px;">Kedves ${escapeHtml(data.guestName)}!</p>
-              <p style="font-family:sans-serif;font-size:14px;color:#737373;line-height:1.7;margin:0 0 24px;">
-                Örömmel értesítjük, hogy az előleg beérkezett. Foglalása végleges, várjuk Önt szeretettel!
-              </p>
-
-              <!-- Foglalási azonosító -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-                <tr>
-                  <td align="center">
-                    <p style="font-family:sans-serif;font-size:12px;color:#a8a8a8;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.1em;">Foglalási azonosító</p>
-                    <span style="background:#1a3a2a;color:#f5f0e8;font-family:monospace;font-size:16px;padding:8px 20px;border-radius:8px;letter-spacing:0.15em;">${data.bookingId}</span>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Foglalás adatai -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;border-radius:12px;margin-bottom:24px;">
-                <tr>
-                  <td style="padding:20px;">
-                    <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 16px;">Foglalás részletei</p>
-                    <table width="100%" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#737373;">Érkezés</td>
-                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#2a2a2a;font-weight:500;text-align:right;">${formatDate(data.checkIn)}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#737373;">Távozás</td>
-                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#2a2a2a;font-weight:500;text-align:right;">${formatDate(data.checkOut)}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#737373;">Éjszakák</td>
-                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#2a2a2a;font-weight:500;text-align:right;">${data.nights} éj</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#737373;">Befizetett előleg</td>
-                        <td style="padding:8px 0;border-bottom:1px solid #e8d9b5;font-family:sans-serif;font-size:14px;color:#1a5c2a;font-weight:600;text-align:right;">✓ ${formatHuf(data.depositAmount)}${data.depositMethod ? ` <span style="font-size:12px;font-weight:400;color:#737373;">(${data.depositMethod === "transfer" ? "átutalás" : data.depositMethod === "szep" ? "SZÉP kártya" : data.depositMethod})</span>` : ""}${data.depositPaidAt ? ` <span style="display:block;font-size:12px;font-weight:400;color:#737373;">Befizetés dátuma: ${data.depositPaidAt}</span>` : ""}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:12px 0 0;font-family:sans-serif;font-size:14px;color:#737373;">Helyszínen fizetendő</td>
-                        <td style="padding:12px 0 0;font-family:sans-serif;font-size:18px;color:#1a3a2a;font-weight:700;text-align:right;">${formatHuf(data.remaining)}</td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Tudnivalók -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8d9b5;border-radius:12px;margin-bottom:24px;">
-                <tr>
-                  <td style="padding:20px;">
-                    <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 12px;">Tudnivalók</p>
-                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">🕑 Bejelentkezés: 15:00 – 20:00</p>
-                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">🕙 Kijelentkezés: 11:00-ig</p>
-                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">📍 3519 Miskolctapolca, Bencések útja 117/A</p>
-                    <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:4px 0;">📞 +36 30 845 4923</p>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="font-family:sans-serif;font-size:13px;color:#a8a8a8;line-height:1.6;margin:0;">
-                Kérdés esetén hívjon minket a <strong>+36 30 845 4923</strong> számon vagy írjon az <strong>milan.kucko117@gmail.com</strong> címre.
-              </p>
-
-            </td>
-          </tr>
-
-          <!-- Lábléc -->
-          <tr>
-            <td style="background:#f5f0e8;padding:24px 40px;text-align:center;border-top:1px solid #e8d9b5;">
-              <p style="font-family:sans-serif;font-size:12px;color:#a8a8a8;margin:0;">Milán Kuckó · milan.kucko117@gmail.com · +36 30 845 4923</p>
-              <p style="font-family:sans-serif;font-size:11px;color:#d4d4d4;margin:4px 0 0;">Ez egy automatikus értesítő e-mail. Kérjük, ne válaszoljon rá.</p>
-            </td>
-          </tr>
-
+        <!-- Foglalás részletei -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8d9b5;border-radius:12px;margin-bottom:24px;">
+          <tr><td style="padding:20px 24px;">
+            <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 14px;">Foglalás részletei</p>
+            <p style="font-family:sans-serif;font-size:13px;color:#3d3d3d;margin:0 0 4px;"><strong>Milán Kuckó Miskolctapolca</strong></p>
+            <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:0 0 4px;">Cím: 3519 Miskolctapolca, Bencések útja 117/A</p>
+            <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:0 0 4px;">Telefonszám: +36/30 845 4923</p>
+            <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:0 0 16px;">E-mail: milan.kucko117@gmail.com</p>
+            <p style="font-family:sans-serif;font-size:13px;color:#3d3d3d;margin:0 0 4px;">
+              <strong>Dátum:</strong> ${formatDateWithDay(data.checkIn)} – ${formatDateWithDay(data.checkOut)} (${data.nights} éjszaka)
+            </p>
+            <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:0;">
+              Érkezés napján <strong>15 órától</strong> lehet elfoglalni a szállást és elutazás napján <strong>11 óráig</strong> kérjük elhagyni.
+            </p>
+          </td></tr>
         </table>
-      </td>
-    </tr>
-  </table>
+
+        <!-- Fizetési mód -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#1a3a2a;border-radius:12px;margin-bottom:24px;">
+          <tr><td style="padding:22px 24px;">
+            <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:rgba(245,240,232,0.6);text-transform:uppercase;letter-spacing:0.15em;margin:0 0 14px;">Fizetési mód</p>
+            <p style="font-family:sans-serif;font-size:14px;color:#f5f0e8;margin:0 0 4px;">
+              <strong>Előleg: (${depositPct}%)</strong>
+              &nbsp;<span style="font-size:18px;font-weight:700;color:#d4a878;">${formatHuf(data.depositAmount)}</span>,
+              &nbsp;${data.depositPaidAt ? `${data.depositPaidAt} napján` : ""} ${depositMethodText} fizetésre került.
+            </p>
+            <p style="font-family:sans-serif;font-size:13px;color:rgba(245,240,232,0.8);margin:8px 0 0;">
+              A fennmaradó részre fizetés a szálláson (készpénz / átutalás / OTP Szép kártya / K&amp;H Szép kártya / MBH Szép kártya) lehetséges.
+            </p>
+          </td></tr>
+        </table>
+
+        <!-- Ár összesítő -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;border-radius:12px;margin-bottom:24px;">
+          <tr><td style="padding:20px 24px;">
+            <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 14px;">Ár összesítő</p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              ${data.basePrice ? `
+              <tr>
+                <td style="font-family:sans-serif;font-size:13px;color:#525252;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  Ár: ${adults} felnőtt${(data.numberOfTeens ?? 0) > 0 ? ` + ${data.numberOfTeens} fiatal` : ""} részére
+                </td>
+                <td style="font-family:sans-serif;font-size:13px;color:#2a2a2a;font-weight:500;text-align:right;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  ${formatHuf(data.basePrice)} / ${data.nights} éj
+                </td>
+              </tr>` : ""}
+              ${(data.numberOfBabies ?? 0) > 0 ? `
+              <tr>
+                <td style="font-family:sans-serif;font-size:13px;color:#525252;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  Baba (0–2 év): ${data.numberOfBabies} fő
+                </td>
+                <td style="font-family:sans-serif;font-size:13px;color:#2a2a2a;font-weight:500;text-align:right;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  ingyenes
+                </td>
+              </tr>` : ""}
+              ${(data.numberOfChildren6to12 ?? 0) > 0 && (data.childPrice6to12 ?? 0) > 0 ? `
+              <tr>
+                <td style="font-family:sans-serif;font-size:13px;color:#525252;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  Gyerek (6–12 év): ${data.numberOfChildren6to12} fő × ${data.nights} éj × ${formatHuf(data.childPrice6to12!)}
+                </td>
+                <td style="font-family:sans-serif;font-size:13px;color:#2a2a2a;font-weight:500;text-align:right;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  ${formatHuf(data.childPrice6to12! * data.numberOfChildren6to12! * data.nights)}
+                </td>
+              </tr>` : ""}
+              ${(data.numberOfChildren2to6 ?? 0) > 0 && (data.childPrice2to6 ?? 0) > 0 ? `
+              <tr>
+                <td style="font-family:sans-serif;font-size:13px;color:#525252;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  Kisgyerek (2–6 év): ${data.numberOfChildren2to6} fő × ${data.nights} éj × ${formatHuf(data.childPrice2to6!)}
+                </td>
+                <td style="font-family:sans-serif;font-size:13px;color:#2a2a2a;font-weight:500;text-align:right;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  ${formatHuf(data.childPrice2to6! * data.numberOfChildren2to6! * data.nights)}
+                </td>
+              </tr>` : ""}
+              ${data.discountAmount && data.discountAmount > 0 ? `
+              <tr>
+                <td style="font-family:sans-serif;font-size:13px;color:#1a5c2a;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  Kedvezmény (${data.discountPercent}%)
+                </td>
+                <td style="font-family:sans-serif;font-size:13px;color:#1a5c2a;font-weight:500;text-align:right;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  &minus;${formatHuf(data.discountAmount)}
+                </td>
+              </tr>` : ""}
+              ${extras.map(s => {
+                const detail = s.price != null && s.quantity && s.quantity > 0
+                  ? s.pricingType === "PER_NIGHT" && s.nights && s.nights > 0
+                    ? ` (${s.quantity} db × ${s.nights} éj × ${formatHuf(s.price)})`
+                    : ` (${s.quantity} db × ${formatHuf(s.price)})`
+                  : "";
+                return `
+              <tr>
+                <td style="font-family:sans-serif;font-size:13px;color:#525252;padding:5px 0;border-bottom:1px solid #e8d9b5;">${escapeHtml(s.name)}${detail}</td>
+                <td style="font-family:sans-serif;font-size:13px;color:#2a2a2a;font-weight:500;text-align:right;padding:5px 0;border-bottom:1px solid #e8d9b5;">${formatHuf(s.total)}</td>
+              </tr>`;
+              }).join("")}
+              ${data.touristTax && data.touristTax > 0 ? `
+              <tr>
+                <td style="font-family:sans-serif;font-size:13px;color:#525252;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  Helyi idegenforgalmi adó (IFA: 450 Ft/felnőtt/éj) (${adults} fő/${data.nights} éj)
+                </td>
+                <td style="font-family:sans-serif;font-size:13px;color:#2a2a2a;font-weight:500;text-align:right;padding:5px 0;border-bottom:1px solid #e8d9b5;">
+                  ${formatHuf(data.touristTax)}
+                </td>
+              </tr>` : ""}
+              <tr>
+                <td style="font-family:sans-serif;font-size:15px;font-weight:700;color:#1a3a2a;padding:10px 0 0;">Ár összesen (ÁFA-val)</td>
+                <td style="font-family:sans-serif;font-size:17px;font-weight:700;color:#1a3a2a;text-align:right;padding:10px 0 0;">${formatHuf(data.totalPrice)}</td>
+              </tr>
+            </table>
+            ${data.notes ? `<p style="font-family:sans-serif;font-size:13px;color:#525252;margin:12px 0 0;padding-top:12px;border-top:1px solid #e8d9b5;">Megjegyzés: ${escapeHtml(data.notes)}</p>` : ""}
+          </td></tr>
+        </table>
+
+        <!-- Lemondási feltételek -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8d9b5;border-radius:12px;margin-bottom:24px;">
+          <tr><td style="padding:20px 24px;">
+            <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 10px;">Lemondási feltételek</p>
+            <p style="font-family:sans-serif;font-size:13px;color:#525252;line-height:1.7;margin:0;">
+              Érkezés előtti ${freeCancelDays}. napig kötbérmentesen lemondható a foglalás. Az érkezési nap előtti ${penaltyFromDay}. nap és az érkezési nap között a foglalás értékének ${depositPct}%-a a kötbér.
+            </p>
+          </td></tr>
+        </table>
+
+        <!-- Számlázási cím -->
+        ${data.guestAddress ? `
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8d9b5;border-radius:12px;margin-bottom:24px;">
+          <tr><td style="padding:20px 24px;">
+            <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 10px;">Számlázási cím</p>
+            <p style="font-family:sans-serif;font-size:13px;color:#3d3d3d;margin:0 0 3px;">Név: ${escapeHtml(data.guestName)}</p>
+            <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:0 0 6px;">Cím: ${escapeHtml(data.guestAddress)}</p>
+          </td></tr>
+        </table>` : ""}
+
+        <!-- Az ár tartalmazza -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;border-radius:12px;margin-bottom:24px;">
+          <tr><td style="padding:20px 24px;">
+            <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 12px;">Az ár tartalmazza</p>
+            ${[
+      "Önellátás",
+      "Szállás Milán Kuckó teljes ház (" + data.nights + " éj), csak Önök vannak a szálláson",
+      "Jakuzzi korlátlan használat",
+      "Klíma használat",
+      "Internethasználat",
+      "Díjmentes, zárt, kamerával megfigyelt parkoló",
+      "Ágyneműhasználat",
+      "1 db nagy- és 1 db kisméretű törölköző használat/fő",
+      "1 db fürdőköpeny használat/felnőtt",
+      "Hajszárító használat",
+      "Felszerelt konyha használat (fagyasztós hűtő, 2 zónás főzőlap, minisütő, mosogatógép, mikrohullámú sütő, vízforraló, kenyérpirító, melegszendvics sütő, Nespresso kapszulás kávéfőző és őrölt kávés kávéfőző)",
+      "Kávé és tea bekészítés",
+      "Üdvözlőital (behűtött 1 üveg bor)",
+      "Grillezési/bográcsozási/szalonnasütési lehetőség faszén és tűzifa bekészítéssel",
+      "Mosogatószer, mosogatógép tabletta, konyharuha biztosítása",
+    ].map(item => `<p style="font-family:sans-serif;font-size:13px;color:#3d3d3d;margin:3px 0;">&#8226; ${item}</p>`).join("")}
+          </td></tr>
+        </table>
+
+        <!-- Vendég elérhetősége -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8d9b5;border-radius:12px;margin-bottom:24px;">
+          <tr><td style="padding:20px 24px;">
+            <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 10px;">Vendég elérhetősége</p>
+            <p style="font-family:sans-serif;font-size:13px;color:#3d3d3d;font-weight:600;margin:0 0 3px;">${escapeHtml(data.guestName)}</p>
+            ${data.guestPhone ? `<p style="font-family:sans-serif;font-size:13px;color:#525252;margin:0 0 3px;">Telefon: ${escapeHtml(data.guestPhone)}</p>` : ""}
+            ${data.guestAddress ? `<p style="font-family:sans-serif;font-size:13px;color:#525252;margin:0 0 3px;">Cím: ${escapeHtml(data.guestAddress)}</p>` : ""}
+            <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:0;">E-mail: ${escapeHtml(data.guestEmail)}</p>
+          </td></tr>
+        </table>
+
+        <!-- Zárás -->
+        <p style="font-family:sans-serif;font-size:13px;color:#525252;line-height:1.7;margin:0 0 10px;">
+          Köszönjük, hogy minket választottak!<br>
+          Bármilyen kérésük/kérdésük merülne föl, forduljanak hozzánk bizalommal!
+        </p>
+        <p style="font-family:sans-serif;font-size:14px;color:#1a3a2a;font-weight:600;margin:0 0 20px;">
+          Szeretettel várjuk Önöket ${formatDateWithDay(data.checkIn)} napján 15 óra után!<br>
+          <span style="font-weight:400;font-size:13px;color:#525252;">Az érkezésük körülbelüli időpontját, kérjük legyenek szívesek előre jelezni.</span>
+        </p>
+        <p style="font-family:sans-serif;font-size:12px;color:#a8a8a8;line-height:1.6;margin:0;">
+          Kérdése esetén hívjon minket a <strong>+36 30 845 4923</strong> számon
+          vagy írjon az <strong>milan.kucko117@gmail.com</strong> címre.
+        </p>
+
+      </td></tr>
+
+      <!-- Lábléc -->
+      <tr>
+        <td style="background:#f5f0e8;padding:20px 40px;text-align:center;border-top:1px solid #e8d9b5;">
+          <p style="font-family:sans-serif;font-size:12px;color:#a8a8a8;margin:0;">
+            Milán Kuckó · milan.kucko117@gmail.com · +36 30 845 4923
+          </p>
+          <p style="font-family:sans-serif;font-size:11px;color:#d4d4d4;margin:4px 0 0;">
+            Azonosító: ${data.bookingId}
+          </p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
 </body>
 </html>
   `;
@@ -682,14 +814,32 @@ function depositConfirmationHtml(data: BookingEmailData & { depositAmount: numbe
 export async function sendDepositConfirmationEmail(params: {
   guestName: string;
   guestEmail: string;
+  guestPhone?: string | null;
+  guestAddress?: string | null;
   checkIn: string;
   checkOut: string;
   nights: number;
   guests: number;
+  numberOfAdults?: number;
+  numberOfTeens?: number;
+  numberOfBabies?: number;
+  numberOfChildren2to6?: number;
+  numberOfChildren6to12?: number;
   totalPrice: number;
   depositAmount: number;
+  depositPercent?: number;
+  freeCancelDays?: number;
   depositMethod?: string | null;
   depositPaidAt?: string | null;
+  basePrice?: number;
+  touristTax?: number;
+  childPrice2to6?: number;
+  childPrice6to12?: number;
+  extraServices?: Array<{ name: string; total: number; quantity?: number; nights?: number; price?: number | null; pricingType?: string }>;
+  extraServicesTotal?: number;
+  discountPercent?: number;
+  discountAmount?: number;
+  notes?: string | null;
   bookingId: string;
 }): Promise<void> {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -697,7 +847,7 @@ export async function sendDepositConfirmationEmail(params: {
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? FROM_EMAIL;
 
   const remaining = params.totalPrice - params.depositAmount;
-  const html = depositConfirmationHtml({ ...params, remaining, depositMethod: params.depositMethod, depositPaidAt: params.depositPaidAt });
+  const html = depositConfirmationHtml({ ...params, remaining, guestPhone: params.guestPhone ?? undefined, guestAddress: params.guestAddress ?? undefined });
 
   if (!RESEND_API_KEY || RESEND_API_KEY === "re_xxxxxxxxxxxx") {
     console.log("📧 [DEV] Előleg visszaigazoló email szimulálva:", {
