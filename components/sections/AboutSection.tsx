@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import AnimatedSection from "@/components/ui/AnimatedSection";
+import { useState } from "react";
 import {
   MapPin, Users, Waves, Home, TreePine, Flame, Coffee, Utensils, Wifi,
   Star, Heart, Sun, Bath, Car, Wind, Flower2, ShieldCheck,
-  Bed, Mountain, Sparkles, Music, Bike,
+  Bed, Mountain, Sparkles, Music, Bike, ChevronDown,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -31,6 +32,8 @@ interface AboutData {
 }
 
 export default function AboutSection({ data }: { data: AboutData }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <section id="rolunk" className="section-py bg-cream overflow-hidden">
       <div className="container-custom">
@@ -89,7 +92,23 @@ export default function AboutSection({ data }: { data: AboutData }) {
               <em className="italic">{data.heading2}</em>
             </h2>
             <p className="text-stone-600 leading-relaxed mb-4">{data.description1}</p>
-            <p className="text-stone-600 leading-relaxed mb-8">{data.description2}</p>
+            <motion.div
+              initial={false}
+              animate={{ height: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              style={{ overflow: "hidden" }}
+            >
+              <p className="text-stone-600 leading-relaxed mb-4">{data.description2}</p>
+            </motion.div>
+            <button
+              onClick={() => setExpanded(e => !e)}
+              className="flex items-center gap-1.5 text-sm font-medium text-forest-700 hover:text-forest-900 transition-colors mb-8"
+            >
+              {expanded ? "Kevesebb" : "Tovább olvasás"}
+              <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                <ChevronDown size={15} />
+              </motion.span>
+            </button>
 
             {/* Értékek */}
             <div className="space-y-5 mb-10">
