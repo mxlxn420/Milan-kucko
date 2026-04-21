@@ -104,7 +104,7 @@ export default function AboutSection({ data }: { data: AboutData }) {
               onClick={() => setExpanded(e => !e)}
               className="flex items-center gap-1.5 text-sm font-medium text-forest-700 hover:text-forest-900 transition-colors mb-8"
             >
-              {expanded ? "Kevesebb" : "Tovább olvasás"}
+              {expanded ? "Kevesebb" : "Bővebben"}
               <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
                 <ChevronDown size={15} />
               </motion.span>
