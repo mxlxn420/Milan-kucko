@@ -34,11 +34,11 @@ export default function AboutSection({ data }: { data: AboutData }) {
   return (
     <section id="rolunk" className="section-py bg-cream overflow-hidden">
       <div className="container-custom">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center lg:items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
 
           {/* Képek */}
-          <AnimatedSection direction="left" className="relative lg:self-stretch">
-            <div className="relative aspect-[4/5] lg:aspect-auto lg:h-full rounded-3xl overflow-hidden shadow-luxury">
+          <AnimatedSection direction="left" className="relative lg:sticky lg:top-24">
+            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-luxury">
               <Image
                 src={data.mainImage.src}
                 alt={data.mainImage.alt}
