@@ -571,7 +571,8 @@ function depositConfirmationHtml(data: BookingEmailData & { depositAmount: numbe
     if (m === "szep-otp")  return "OTP Szép kártyával";
     if (m === "szep-mbh")  return "MBH Szép kártyával";
     if (m === "szep-kh")   return "K&H Szép kártyával";
-    return m || "átutalással";
+    if (m === "szep")      return "SZÉP kártyával";
+    return "átutalással";
   })();
 
   return `
@@ -857,7 +858,7 @@ export async function sendDepositConfirmationEmail(params: {
     return;
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
+  const guestRes = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -872,9 +873,29 @@ export async function sendDepositConfirmationEmail(params: {
     }),
   });
 
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("Előleg email hiba:", err);
+  if (!guestRes.ok) {
+    const err = await guestRes.text();
+    console.error("Előleg email hiba (vendég):", err);
+  }
+
+  // Admin másolat
+  const adminRes = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${RESEND_API_KEY}`,
+    },
+    body: JSON.stringify({
+      from: `Milán Kuckó Foglalások <${FROM_EMAIL}>`,
+      to: [ADMIN_EMAIL],
+      subject: `✅ Előleg befizetve: ${params.guestName} – ${params.bookingId}`,
+      html,
+    }),
+  });
+
+  if (!adminRes.ok) {
+    const err = await adminRes.text();
+    console.error("Előleg email hiba (admin):", err);
   }
 }
 
