@@ -34,6 +34,25 @@ export async function POST(
       },
     });
 
+    // Szezon policy lekérése (depositPercent, freeCancelDays)
+    const checkInDate = new Date(booking.checkIn);
+    const periodRule = await prisma.pricingRule.findFirst({
+      where: {
+        isActive: true,
+        dateFrom: { not: null, lte: checkInDate },
+        dateTo:   { not: null, gte: checkInDate },
+      },
+      orderBy: { priority: "desc" },
+      include: { policy: true },
+    });
+    const applicableRule = periodRule ?? await prisma.pricingRule.findFirst({
+      where:   { isActive: true, dateFrom: null, dateTo: null },
+      orderBy: { priority: "desc" },
+      include: { policy: true },
+    });
+    const depositPercent = (applicableRule as any)?.policy?.depositPercent ?? 30;
+    const freeCancelDays = (applicableRule as any)?.policy?.freeCancelDays ?? 11;
+
     // Email küldés
     let emailSent = false;
     let emailError: string | null = null;
@@ -55,6 +74,8 @@ export async function POST(
         numberOfChildren6to12: booking.numberOfChildren6to12 ?? undefined,
         totalPrice:            booking.totalPrice,
         depositAmount:         depositPaidAmount ?? booking.depositAmount,
+        depositPercent,
+        freeCancelDays,
         depositMethod:         depositPaidMethod,
         depositPaidAt:         format(depositPaidAt, "yyyy. MM. dd."),
         bookingId:             booking.id,
