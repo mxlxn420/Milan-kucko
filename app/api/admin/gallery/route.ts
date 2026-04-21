@@ -47,8 +47,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: false, error: "A categories mező tömb kell legyen" }, { status: 400 });
     }
     for (const cat of categories) {
-      if (typeof cat?.name !== "string") {
-        return NextResponse.json({ success: false, error: "Minden kategóriának van name mezője (string)" }, { status: 400 });
+      if (typeof cat?.label !== "string") {
+        return NextResponse.json({ success: false, error: "Minden kategóriának van label mezője (string)" }, { status: 400 });
       }
       if (cat.images !== undefined && !Array.isArray(cat.images)) {
         return NextResponse.json({ success: false, error: "A kategória images mezője tömb kell legyen" }, { status: 400 });
