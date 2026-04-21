@@ -92,47 +92,52 @@ function ImageSlot({
 // ─── Kép hozzáadása gomb ─────────────────────────────────────────────────────
 
 function AddImageButton({ bucket, onAdd }: { bucket: string; onAdd: (img: GalleryImage) => void }) {
-  const fileInputRef              = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError]         = useState<string | null>(null);
+  const fileInputRef            = useRef<HTMLInputElement>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [errors, setErrors]     = useState<string[]>([]);
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    setError(null);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      const res  = await fetch(`/api/admin/upload?bucket=${bucket}`, { method: "POST", body: form });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error);
-      onAdd({ src: json.url, alt: "" });
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Felt\u00F6lt\u00E9si hiba");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setErrors([]);
+    setProgress({ done: 0, total: files.length });
+    const errs: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const fd = new FormData();
+        fd.append('file', files[i]);
+        const res  = await fetch(`/api/admin/upload?bucket=${bucket}`, { method: 'POST', body: fd });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error);
+        onAdd({ src: json.url, alt: '' });
+      } catch (err: unknown) {
+        errs.push(`${files[i].name}: ${err instanceof Error ? err.message : 'Feltöltési hiba'}`);
+      }
+      setProgress({ done: i + 1, total: files.length });
     }
+    setErrors(errs);
+    setProgress(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  const uploading = progress !== null;
 
   return (
     <div>
       <button
-        type="button"
+        type='button'
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-stone-300 text-stone-500 text-xs hover:border-forest-400 hover:text-forest-600 transition-colors disabled:opacity-60 w-full justify-center"
+        className='flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-stone-300 text-stone-500 text-xs hover:border-forest-400 hover:text-forest-600 transition-colors disabled:opacity-60 w-full justify-center'
       >
         <Plus size={13} />
-        {uploading ? "Felt\u00F6lt\u00E9s..." : "K\u00E9p hozz\u00E1ad\u00E1sa"}
+        {uploading ? `Feltöltés... (${progress!.done}/${progress!.total})` : 'Képek hozzáadása'}
       </button>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-      <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFile} />
+      {errors.map((e, i) => <p key={i} className='text-xs text-red-500 mt-1'>{e}</p>)}
+      <input ref={fileInputRef} type='file' accept='image/jpeg,image/png,image/webp' multiple className='hidden' onChange={handleFiles} />
     </div>
   );
 }
-
 // ─── Fő komponens ─────────────────────────────────────────────────────────────
 
 export default function AdminGallery({ initial }: { initial: GalleryData }) {
