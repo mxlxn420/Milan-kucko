@@ -6,7 +6,7 @@ import { Redis } from "@upstash/redis";
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.fixedWindow(50, "60 m"),
+  limiter: Ratelimit.fixedWindow(3, "60 m"),
   prefix: "bookings",
 });
 
