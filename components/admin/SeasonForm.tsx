@@ -326,7 +326,7 @@ export default function SeasonForm({
           <input
             type="number"
             className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-cream text-sm focus:outline-none focus:border-white/50"
-            placeholder="Ha üres = 1–2 fő hétvégi"
+            placeholder="Ha üres = 3 fő hétköznapi"
             value={rule.weekendPrice3 || ""}
             onChange={(e) => setRule({ ...rule, weekendPrice3: Number(e.target.value) })}
           />
@@ -340,7 +340,7 @@ export default function SeasonForm({
           <input
             type="number"
             className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-cream text-sm focus:outline-none focus:border-white/50"
-            placeholder="Ha üres = 3 fő hétvégi"
+            placeholder="Ha üres = 4 fő hétköznapi"
             value={rule.weekendPrice4 || ""}
             onChange={(e) => setRule({ ...rule, weekendPrice4: Number(e.target.value) })}
           />

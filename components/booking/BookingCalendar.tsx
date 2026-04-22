@@ -52,9 +52,11 @@ function getPriceForNight(date: Date, rule: PricingRule, personCount: number): n
 
   let tier1to2: number, tier3: number, tier4: number;
   if (isWeekend) {
+    const wkday3 = (rule as any).price3 > 0 ? (rule as any).price3 : rule.pricePerNight;
+    const wkday4 = (rule as any).price4 > 0 ? (rule as any).price4 : wkday3;
     tier1to2 = rule.weekendPrice > 0 ? rule.weekendPrice : rule.pricePerNight;
-    tier3 = (rule as any).weekendPrice3 > 0 ? (rule as any).weekendPrice3 : tier1to2;
-    tier4 = (rule as any).weekendPrice4 > 0 ? (rule as any).weekendPrice4 : tier3;
+    tier3 = (rule as any).weekendPrice3 > 0 ? (rule as any).weekendPrice3 : wkday3;
+    tier4 = (rule as any).weekendPrice4 > 0 ? (rule as any).weekendPrice4 : wkday4;
   } else {
     tier1to2 = rule.pricePerNight;
     tier3 = (rule as any).price3 > 0 ? (rule as any).price3 : tier1to2;
@@ -215,9 +217,11 @@ export default function BookingCalendar({ onNext }: Props) {
     return personCount >= 4 ? t4 : personCount >= 3 ? t3 : t2;
   })() : 0;
   const effectiveWeekendRate = currentRule ? (() => {
+    const wkday3 = (currentRule as any).price3 > 0 ? (currentRule as any).price3 : currentRule.pricePerNight;
+    const wkday4 = (currentRule as any).price4 > 0 ? (currentRule as any).price4 : wkday3;
     const t2 = (currentRule as any).weekendPrice > 0 ? (currentRule as any).weekendPrice : currentRule.pricePerNight;
-    const t3 = (currentRule as any).weekendPrice3 > 0 ? (currentRule as any).weekendPrice3 : t2;
-    const t4 = (currentRule as any).weekendPrice4 > 0 ? (currentRule as any).weekendPrice4 : t3;
+    const t3 = (currentRule as any).weekendPrice3 > 0 ? (currentRule as any).weekendPrice3 : wkday3;
+    const t4 = (currentRule as any).weekendPrice4 > 0 ? (currentRule as any).weekendPrice4 : wkday4;
     return personCount >= 4 ? t4 : personCount >= 3 ? t3 : t2;
   })() : 0;
 
