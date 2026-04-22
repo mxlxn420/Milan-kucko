@@ -330,13 +330,13 @@ export default function BookingCalendar({ onNext }: Props) {
             const advance = getApplicableRule(d, rules)?.minAdvanceDays ?? 2;
             const earliest = startOfDay(addDays(new Date(), advance));
             if (d < earliest || d > latest) return true;
-            return bookedRanges.some((r) => d >= startOfDay(r.from) && d < startOfDay(r.to));
+            return bookedRanges.some((r) => d > startOfDay(r.from) && d < startOfDay(r.to));
           }}
           modifiers={{
             booked: (day) =>
               bookedRanges.some((r) => {
                 const d = startOfDay(day);
-                return d >= startOfDay(r.from) && d < startOfDay(r.to);
+                return d > startOfDay(r.from) && d < startOfDay(r.to);
               }),
             tooSoon: (day) => {
               const d = startOfDay(day);
