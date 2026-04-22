@@ -47,6 +47,17 @@ function getApplicableRule(checkIn: Date, rules: PricingRule[]): PricingRule | n
   return sorted.find((r) => !r.dateFrom && !r.dateTo) ?? null;
 }
 
+function getEffectiveMinNights(checkIn: Date, checkOut: Date, rules: PricingRule[]): number {
+  let max = 1;
+  const cur = new Date(checkIn);
+  while (cur < checkOut) {
+    const rule = getApplicableRule(cur, rules);
+    if (rule && rule.minNights > max) max = rule.minNights;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return max;
+}
+
 function getPriceForNight(date: Date, rule: PricingRule, personCount: number): number {
   const isWeekend = [5, 6].includes(getDay(date));
 
@@ -207,7 +218,9 @@ export default function BookingCalendar({ onNext }: Props) {
   const paidGuests = adults + teens + babies + children2to6 + children6to12;
   const hasChildren = teens + babies + children2to6 + children6to12 > 0;
   const currentRule = checkIn ? getApplicableRule(checkIn, rules) : null;
-  const minNights = currentRule?.minNights ?? 2;
+  const minNights = checkIn && checkOut
+    ? getEffectiveMinNights(checkIn, checkOut, rules)
+    : (currentRule?.minNights ?? 2);
 
   const personCount = adults + teens;
   const effectiveWeekdayRate = currentRule ? (() => {

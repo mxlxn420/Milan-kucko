@@ -133,6 +133,27 @@ export async function POST(req: NextRequest) {
 
     const prisma = await getPrisma();
 
+    // MinNights ellenőrzés: minden éjszakára megnézzük a szezon szabályát
+    const allRules = await prisma.pricingRule.findMany({
+      where: { isActive: true },
+      orderBy: { priority: "desc" },
+    });
+    let effectiveMinNights = 1;
+    const cur = new Date(checkInDate);
+    while (cur < checkOutDate) {
+      const rule =
+        allRules.find((r) => r.dateFrom && r.dateTo && cur >= r.dateFrom && cur <= r.dateTo) ??
+        allRules.find((r) => !r.dateFrom && !r.dateTo);
+      if (rule && rule.minNights > effectiveMinNights) effectiveMinNights = rule.minNights;
+      cur.setDate(cur.getDate() + 1);
+    }
+    if (nights < effectiveMinNights) {
+      return NextResponse.json(
+        { success: false, error: `Ebben az időszakban minimum ${effectiveMinNights} éjszakára lehet foglalni!` },
+        { status: 400 }
+      );
+    }
+
     // Ütközés ellenőrzés
     const conflict = await prisma.booking.findFirst({
       where: {
