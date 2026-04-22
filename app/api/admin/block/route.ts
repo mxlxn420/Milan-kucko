@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export async function GET() {
+  const blocked = await prisma.blockedPeriod.findMany({ orderBy: { dateFrom: "asc" } });
+  return NextResponse.json({
+    success: true,
+    data: blocked.map((b) => ({
+      ...b,
+      dateFrom: b.dateFrom.toISOString(),
+      dateTo:   b.dateTo.toISOString(),
+    })),
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

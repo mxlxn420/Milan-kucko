@@ -117,6 +117,11 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
         )
         .join(", ");
       setSyncResult(summary || "Nincs beállított iCal forrás");
+
+      // Frissítjük a blokkolt periódusokat
+      const blockedRes = await fetch("/api/admin/block");
+      const blockedData = await blockedRes.json();
+      if (blockedData.success) setBlocked(blockedData.data);
     } catch {
       setSyncResult("Hiba történt a szinkronizálás során");
     } finally {
