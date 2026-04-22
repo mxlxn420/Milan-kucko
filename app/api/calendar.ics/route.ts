@@ -16,6 +16,7 @@ export async function GET() {
       select: { id: true, checkIn: true, checkOut: true, guestName: true },
     }),
     prisma.blockedPeriod.findMany({
+      where: { reason: { not: { startsWith: "[szallas.hu]" } } },
       select: { id: true, dateFrom: true, dateTo: true, reason: true },
     }),
   ]);
