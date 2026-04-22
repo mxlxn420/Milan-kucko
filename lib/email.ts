@@ -293,6 +293,7 @@ function guestEmailHtml(data: BookingEmailData): string {
             <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 10px;">Számlázási cím</p>
             <p style="font-family:sans-serif;font-size:13px;color:#3d3d3d;margin:0 0 3px;">Név: ${escapeHtml(data.guestName)}</p>
             <p style="font-family:sans-serif;font-size:13px;color:#525252;margin:0 0 6px;">Cím: ${escapeHtml(data.guestAddress)}</p>
+            <p style="font-family:sans-serif;font-size:12px;color:#a8a8a8;margin:0;">(Ha OTP Szép Kártyával szeretne fizetni, akkor a Milán Kuckó Miskolctapolca, 3519 Miskolctapolca, Bencések útja 117/A. elfogadóhelyet kell megkeresnie az előleg utalásnál.)</p>
             <p style="font-family:sans-serif;font-size:12px;color:#a8a8a8;margin:0;">(Ha a számla kiállítását más névre és címre kéri, vagy adószám feltüntetését is kéri, kérem legyen szíves megírni!)</p>
           </td></tr>
         </table>` : ""}
@@ -317,6 +318,7 @@ function guestEmailHtml(data: BookingEmailData): string {
       "Üdvözlőital (behűtött 1 üveg bor)",
       "Grillezési/bográcsozási/szalonnasütési lehetőség faszén és tűzifa bekészítéssel",
       "Mosogatószer, mosogatógép tabletta, konyharuha biztosítása",
+      "Igény esetén kiságy (1 db), kiskád, etetőszék, bili, wc szűkítő, fellépő stb. biztosítása.",
     ].map(item => `<p style="font-family:sans-serif;font-size:13px;color:#3d3d3d;margin:3px 0;">&#8226; ${item}</p>`).join("")}
           </td></tr>
         </table>
@@ -339,7 +341,7 @@ function guestEmailHtml(data: BookingEmailData): string {
         </p>
         <p style="font-family:sans-serif;font-size:14px;color:#1a3a2a;font-weight:600;margin:0 0 20px;">
           Szeretettel várjuk Önöket ${formatDateWithDay(data.checkIn)} napján 15 óra után!<br>
-          <span style="font-weight:400;font-size:13px;color:#525252;">Az érkezésük körülbelüli időpontját, kérjük legyenek szívesek előre jelezni.</span>
+          <span style="font-weight:700;font-size:13px;color:#525252;text-decoration:underline;">Az érkezésük körülbelüli időpontját, kérjük legyenek szívesek előre jelezni.</span>
         </p>
 
         <p style="font-family:sans-serif;font-size:12px;color:#a8a8a8;line-height:1.6;margin:0;">
@@ -782,7 +784,7 @@ function depositConfirmationHtml(data: BookingEmailData & { depositAmount: numbe
         </p>
         <p style="font-family:sans-serif;font-size:14px;color:#1a3a2a;font-weight:600;margin:0 0 20px;">
           Szeretettel várjuk Önöket ${formatDateWithDay(data.checkIn)} napján 15 óra után!<br>
-          <span style="font-weight:400;font-size:13px;color:#525252;">Az érkezésük körülbelüli időpontját, kérjük legyenek szívesek előre jelezni.</span>
+          <span style="font-weight:700;font-size:13px;color:#525252;text-decoration:underline;">Az érkezésük körülbelüli időpontját, kérjük legyenek szívesek előre jelezni.</span>
         </p>
         <p style="font-family:sans-serif;font-size:12px;color:#a8a8a8;line-height:1.6;margin:0;">
           Kérdése esetén hívjon minket a <strong>+36 30 845 4923</strong> számon
