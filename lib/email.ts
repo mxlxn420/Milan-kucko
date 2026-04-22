@@ -791,7 +791,7 @@ function depositConfirmationHtml(data: BookingEmailData & { depositAmount: numbe
         </p>
         <p style="font-family:sans-serif;font-size:14px;color:#1a3a2a;font-weight:600;margin:0 0 20px;">
           Szeretettel várjuk Önöket ${formatDateWithDay(data.checkIn)} napján 15 óra után!<br>
-          <span style="font-weight:400;font-size:13px;color:#525252;">Az érkezésük körülbelüli időpontját, kérjük legyenek szívesek előre jelezni.</span>
+          <span style="font-weight:700;font-size:13px;color:#525252;text-decoration:underline;">Az érkezésük körülbelüli időpontját, kérjük legyenek szívesek előre jelezni.</span>
         </p>
         <p style="font-family:sans-serif;font-size:13px;color:#3d3d3d;line-height:1.8;margin:0 0 4px;">
           Üdvözlettel: <strong>Beáta</strong>
