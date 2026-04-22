@@ -79,14 +79,31 @@ function getPriceForNight(date: Date, rule: PricingRule, personCount: number): n
   return tier1to2;
 }
 
-function calcBaseTotal(checkIn: Date, checkOut: Date, rule: PricingRule, personCount: number): number {
+function calcBaseTotal(checkIn: Date, checkOut: Date, rules: PricingRule[], personCount: number): number {
   let nightlyTotal = 0;
   const cur = new Date(checkIn);
   while (cur < checkOut) {
-    nightlyTotal += getPriceForNight(cur, rule, personCount);
+    const rule = getApplicableRule(cur, rules);
+    if (rule) nightlyTotal += getPriceForNight(cur, rule, personCount);
     cur.setDate(cur.getDate() + 1);
   }
   return nightlyTotal;
+}
+
+function getNightBreakdown(checkIn: Date, checkOut: Date, rules: PricingRule[], personCount: number): { count: number; rate: number }[] {
+  const groups: { count: number; rate: number }[] = [];
+  const cur = new Date(checkIn);
+  while (cur < checkOut) {
+    const rule = getApplicableRule(cur, rules);
+    const rate = rule ? getPriceForNight(cur, rule, personCount) : 0;
+    if (groups.length > 0 && groups[groups.length - 1].rate === rate) {
+      groups[groups.length - 1].count++;
+    } else {
+      groups.push({ count: 1, rate });
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return groups;
 }
 
 function isRangeOverlapping(from: Date, to: Date, bookedRanges: BookedRange[]): boolean {
@@ -238,9 +255,12 @@ export default function BookingCalendar({ onNext }: Props) {
     return personCount >= 4 ? t4 : personCount >= 3 ? t3 : t2;
   })() : 0;
 
-  const baseTotal = checkIn && checkOut && nights > 0 && currentRule
-    ? calcBaseTotal(checkIn, checkOut, currentRule, personCount)
+  const baseTotal = checkIn && checkOut && nights > 0
+    ? calcBaseTotal(checkIn, checkOut, rules, personCount)
     : 0;
+  const nightBreakdown = checkIn && checkOut && nights > 0
+    ? getNightBreakdown(checkIn, checkOut, rules, personCount)
+    : [];
   const child2to6Price = currentRule?.childPrice2to6 ?? 0;
   const child6to12Price = currentRule?.childPrice6to12 ?? 0;
   const childTotal2to6 = child2to6Price * children2to6 * nights;
@@ -516,24 +536,11 @@ export default function BookingCalendar({ onNext }: Props) {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-stone-700 font-medium">Szállás</p>
-                    {effectiveWeekendRate !== effectiveWeekdayRate && weekendNights > 0 && weekdayNights > 0 ? (
-                      <>
-                        <p className="text-xs text-stone-400 mt-0.5">
-                          {weekdayNights} hétköznap × {formatCurrency(effectiveWeekdayRate)}/éj
-                        </p>
-                        <p className="text-xs text-stone-400">
-                          {weekendNights} hétvégi éj × {formatCurrency(effectiveWeekendRate)}/éj
-                        </p>
-                      </>
-                    ) : effectiveWeekendRate !== effectiveWeekdayRate && weekendNights === nights ? (
-                      <p className="text-xs text-stone-400 mt-0.5">
-                        {nights} hétvégi éj × {formatCurrency(effectiveWeekendRate)}/éj
+                    {nightBreakdown.map((g, i) => (
+                      <p key={i} className="text-xs text-stone-400 mt-0.5">
+                        {g.count} éj × {formatCurrency(g.rate)}/éj
                       </p>
-                    ) : (
-                      <p className="text-xs text-stone-400 mt-0.5">
-                        {nights} éj × {formatCurrency(effectiveWeekdayRate)}/éj
-                      </p>
-                    )}
+                    ))}
                   </div>
                   <span className="text-stone-800 font-medium">{formatCurrency(baseTotal)}</span>
                 </div>

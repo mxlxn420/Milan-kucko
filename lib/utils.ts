@@ -34,6 +34,54 @@ export function getApplicablePricingRule(
   return active.find((r) => !r.dateFrom && !r.dateTo) ?? null;
 }
 
+export function getRuleForNight(date: Date, rules: PricingRule[]): PricingRule | null {
+  const active = rules.filter((r) => r.isActive).sort((a, b) => b.priority - a.priority);
+  return (
+    active.find((r) => {
+      if (!r.dateFrom || !r.dateTo) return false;
+      return date >= new Date(r.dateFrom) && date <= new Date(r.dateTo);
+    }) ?? active.find((r) => !r.dateFrom && !r.dateTo) ?? null
+  );
+}
+
+export function getNightRateFromRule(rule: PricingRule, date: Date, personCount: number): number {
+  const isWeekend = [5, 6].includes(date.getDay());
+  let tier1to2: number, tier3: number, tier4: number;
+  if (isWeekend) {
+    const wkday3 = (rule as any).price3 > 0 ? (rule as any).price3 : rule.pricePerNight;
+    const wkday4 = (rule as any).price4 > 0 ? (rule as any).price4 : wkday3;
+    tier1to2 = rule.weekendPrice > 0 ? rule.weekendPrice : rule.pricePerNight;
+    tier3 = (rule as any).weekendPrice3 > 0 ? (rule as any).weekendPrice3 : wkday3;
+    tier4 = (rule as any).weekendPrice4 > 0 ? (rule as any).weekendPrice4 : wkday4;
+  } else {
+    tier1to2 = rule.pricePerNight;
+    tier3 = (rule as any).price3 > 0 ? (rule as any).price3 : tier1to2;
+    tier4 = (rule as any).price4 > 0 ? (rule as any).price4 : tier3;
+  }
+  return personCount >= 4 ? tier4 : personCount >= 3 ? tier3 : tier1to2;
+}
+
+export function getAdminNightBreakdown(
+  checkIn: Date,
+  checkOut: Date,
+  rules: PricingRule[],
+  personCount: number
+): { count: number; rate: number }[] {
+  const groups: { count: number; rate: number }[] = [];
+  const cur = new Date(checkIn);
+  while (cur < checkOut) {
+    const rule = getRuleForNight(cur, rules);
+    const rate = rule ? getNightRateFromRule(rule, cur, personCount) : 0;
+    if (groups.length > 0 && groups[groups.length - 1].rate === rate) {
+      groups[groups.length - 1].count++;
+    } else {
+      groups.push({ count: 1, rate });
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return groups;
+}
+
 export function calculatePrice(
   checkIn: Date,
   checkOut: Date,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { format, differenceInCalendarDays, getDay } from "date-fns";
-import { formatDateHu, formatCurrency, getApplicablePricingRule, CLEANING_FEE, TOURIST_TAX } from "@/lib/utils";
+import { formatDateHu, formatCurrency, getApplicablePricingRule, getAdminNightBreakdown, getRuleForNight, getNightRateFromRule, CLEANING_FEE, TOURIST_TAX } from "@/lib/utils";
 import { Check, X, CreditCard, ChevronRight, Pencil, Trash2, RefreshCw, Plus, Minus, Moon, CalendarCheck } from "lucide-react";
 import type { Booking, BookingStatus, PricingRule } from "@/types";
 
@@ -63,35 +63,25 @@ function calcPriceBreakdown(
   ch6to12: number,
   rules: PricingRule[]
 ): Pick<EditForm, "basePrice" | "childPrice2to6" | "childPrice6to12" | "guestSurcharge" | "cleaningFee" | "touristTax" | "totalPrice" | "depositAmount"> | null {
-  const rule = getApplicablePricingRule(checkIn, checkOut, rules);
-  if (!rule) return null;
   const nights = differenceInCalendarDays(checkOut, checkIn);
   if (nights <= 0) return null;
-
-  // Szállásdíj: vendégszám alapján sávos ár × éjszakánként
   const personCount = adults + teens;
+
+  // Szállásdíj: éjszakánként a megfelelő szezon ára
   let basePrice = 0;
   const cur = new Date(checkIn);
   while (cur < checkOut) {
-    const dow = getDay(cur);
-    const isWeekend = [5, 6].includes(dow);
-    let tier1to2: number, tier3: number, tier4: number;
-    if (isWeekend) {
-      tier1to2 = rule.weekendPrice  > 0 ? rule.weekendPrice  : rule.pricePerNight;
-      tier3    = (rule as any).weekendPrice3 > 0 ? (rule as any).weekendPrice3 : tier1to2;
-      tier4    = (rule as any).weekendPrice4 > 0 ? (rule as any).weekendPrice4 : tier3;
-    } else {
-      tier1to2 = rule.pricePerNight;
-      tier3    = (rule as any).price3 > 0 ? (rule as any).price3 : tier1to2;
-      tier4    = (rule as any).price4 > 0 ? (rule as any).price4 : tier3;
-    }
-    const nightRate = personCount >= 4 ? tier4 : personCount >= 3 ? tier3 : tier1to2;
-    basePrice += nightRate;
+    const nightRule = getRuleForNight(cur, rules);
+    if (nightRule) basePrice += getNightRateFromRule(nightRule, cur, personCount);
     cur.setDate(cur.getDate() + 1);
   }
 
-  const childPrice2to6  = rule.childPrice2to6  ?? 0;
-  const childPrice6to12 = rule.childPrice6to12 ?? 0;
+  // Gyerekárak és egyebek: az érkezés napjára vonatkozó szabály alapján
+  const rule = getApplicablePricingRule(checkIn, checkOut, rules);
+  if (!rule && basePrice === 0) return null;
+
+  const childPrice2to6  = rule?.childPrice2to6  ?? 0;
+  const childPrice6to12 = rule?.childPrice6to12 ?? 0;
   const childTotal2to6  = childPrice2to6  * ch2to6  * nights;
   const childTotal6to12 = childPrice6to12 * ch6to12 * nights;
   const totalGuests     = adults + teens + ch2to6 + ch6to12;
@@ -606,56 +596,22 @@ export default function AdminBookingsList({ bookings }: Props) {
                       }
                       const weekdayNights = editNights - weekendNights;
 
-                      // Érvényes szabály a dátumokhoz
-                      const rule = ci && co ? getApplicablePricingRule(ci, co, rules) : null;
-                      const personCount  = editForm.numberOfAdults + editForm.numberOfTeens;
-
-                      // Sávos (tier-alapú) ráta a létszám szerint – flat rate/éj, nem per-person
-                      const wd1 = rule?.pricePerNight ?? 0;
-                      const wd3 = (rule as any)?.price3 > 0 ? (rule as any).price3 : wd1;
-                      const wd4 = (rule as any)?.price4 > 0 ? (rule as any).price4 : wd3;
-                      const we1 = rule && rule.weekendPrice > 0 ? rule.weekendPrice : wd1;
-                      const we3 = (rule as any)?.weekendPrice3 > 0 ? (rule as any).weekendPrice3 : we1;
-                      const we4 = (rule as any)?.weekendPrice4 > 0 ? (rule as any).weekendPrice4 : we3;
-                      const weekdayRate  = personCount >= 4 ? wd4 : personCount >= 3 ? wd3 : wd1;
-                      const weekendRate  = personCount >= 4 ? we4 : personCount >= 3 ? we3 : we1;
-                      const hasWeekend   = rule && rule.weekendPrice > 0 && weekendNights > 0;
+                      const personCount = editForm.numberOfAdults + editForm.numberOfTeens;
+                      const nightBreakdown = ci && co ? getAdminNightBreakdown(ci, co, rules, personCount) : [];
 
                       return (
                         <div className="space-y-2 text-sm">
 
-                          {/* Szállás – hétköznap */}
-                          {weekdayNights > 0 && (
-                            <div className="flex justify-between items-start text-stone-600">
+                          {/* Szállás – éjszakánként csoportosítva */}
+                          {nightBreakdown.map((g, i) => (
+                            <div key={i} className="flex justify-between items-start text-stone-600">
                               <div>
-                                <span>Szállás – hétköznap</span>
-                                <p className="text-xs text-stone-400">{weekdayNights} éj × {formatCurrency(weekdayRate)}/éj</p>
+                                <span>Szállás</span>
+                                <p className="text-xs text-stone-400">{g.count} éj × {formatCurrency(g.rate)}/éj</p>
                               </div>
-                              <span className="shrink-0 ml-2">{formatCurrency(weekdayNights * weekdayRate)}</span>
+                              <span className="shrink-0 ml-2">{formatCurrency(g.count * g.rate)}</span>
                             </div>
-                          )}
-
-                          {/* Szállás – hétvége */}
-                          {hasWeekend && weekendNights > 0 && (
-                            <div className="flex justify-between items-start text-stone-600">
-                              <div>
-                                <span>Szállás – hétvége</span>
-                                <p className="text-xs text-stone-400">{weekendNights} éj × {formatCurrency(weekendRate)}/éj</p>
-                              </div>
-                              <span className="shrink-0 ml-2">{formatCurrency(weekendNights * weekendRate)}</span>
-                            </div>
-                          )}
-
-                          {/* Szállás – csak hétvégi éjek, nincs külön hétvégi ár */}
-                          {!hasWeekend && weekendNights > 0 && weekdayNights === 0 && (
-                            <div className="flex justify-between items-start text-stone-600">
-                              <div>
-                                <span>Szállás – hétvége</span>
-                                <p className="text-xs text-stone-400">{editNights} éj × {formatCurrency(weekdayRate)}/éj (hétköznapi ár)</p>
-                              </div>
-                              <span className="shrink-0 ml-2">{formatCurrency(editForm.basePrice)}</span>
-                            </div>
-                          )}
+                          ))}
 
                           {/* Gyerek 2–6 */}
                           {editForm.numberOfChildren2to6 > 0 && editForm.childPrice2to6 > 0 && (
@@ -1072,64 +1028,21 @@ export default function AdminBookingsList({ bookings }: Props) {
                     {(() => {
                       const ci = new Date(selected.checkIn);
                       const co = new Date(selected.checkOut);
-                      const rule = rules.length ? getApplicablePricingRule(ci, co, rules) : null;
                       const personCount = selected.numberOfAdults + selected.numberOfTeens;
-
-                      // Sávos (tier-alapú) ráta a létszám szerint – flat rate/éj, nem per-person
-                      const wd1 = rule?.pricePerNight ?? 0;
-                      const wd3 = (rule as any)?.price3 > 0 ? (rule as any).price3 : wd1;
-                      const wd4 = (rule as any)?.price4 > 0 ? (rule as any).price4 : wd3;
-                      const we1 = rule && rule.weekendPrice > 0 ? rule.weekendPrice : wd1;
-                      const we3 = (rule as any)?.weekendPrice3 > 0 ? (rule as any).weekendPrice3 : we1;
-                      const we4 = (rule as any)?.weekendPrice4 > 0 ? (rule as any).weekendPrice4 : we3;
-                      const weekdayRate = personCount >= 4 ? wd4 : personCount >= 3 ? wd3 : wd1;
-                      const weekendRate = personCount >= 4 ? we4 : personCount >= 3 ? we3 : we1;
-                      const hasWeekendPrice = rule && rule.weekendPrice > 0;
-
-                      let weekendNights = 0;
-                      if (rule) {
-                        const cur = new Date(ci);
-                        while (cur < co) { if ([5, 6].includes(getDay(cur))) weekendNights++; cur.setDate(cur.getDate() + 1); }
-                      }
-                      const weekdayNights = selected.nights - weekendNights;
+                      const nightBreakdown = rules.length ? getAdminNightBreakdown(ci, co, rules, personCount) : [];
 
                       return (
                         <div className="space-y-2 text-sm">
-                          {/* Szállás hétköznap */}
-                          {weekdayNights > 0 && (
-                            <div className="flex justify-between items-start text-stone-600">
+                          {/* Szállás – éjszakánként csoportosítva */}
+                          {nightBreakdown.length > 0 ? nightBreakdown.map((g, i) => (
+                            <div key={i} className="flex justify-between items-start text-stone-600">
                               <div>
-                                <span>Szállás – hétköznap</span>
-                                {rule && <p className="text-xs text-stone-400">{weekdayNights} éj × {formatCurrency(weekdayRate)}/éj</p>}
+                                <span>Szállás</span>
+                                <p className="text-xs text-stone-400">{g.count} éj × {formatCurrency(g.rate)}/éj</p>
                               </div>
-                              <span className="shrink-0 ml-2">{formatCurrency(weekdayNights * weekdayRate)}</span>
+                              <span className="shrink-0 ml-2">{formatCurrency(g.count * g.rate)}</span>
                             </div>
-                          )}
-
-                          {/* Szállás hétvége */}
-                          {hasWeekendPrice && weekendNights > 0 && (
-                            <div className="flex justify-between items-start text-stone-600">
-                              <div>
-                                <span>Szállás – hétvége</span>
-                                <p className="text-xs text-stone-400">{weekendNights} éj × {formatCurrency(weekendRate)}/éj</p>
-                              </div>
-                              <span className="shrink-0 ml-2">{formatCurrency(weekendNights * weekendRate)}</span>
-                            </div>
-                          )}
-
-                          {/* Csak hétvégi éjek, de nincs külön hétvégi ár → hétköznapi rátán */}
-                          {!hasWeekendPrice && weekendNights > 0 && weekdayNights === 0 && (
-                            <div className="flex justify-between items-start text-stone-600">
-                              <div>
-                                <span>Szállás – hétvége</span>
-                                {rule && <p className="text-xs text-stone-400">{weekendNights} éj × {formatCurrency(weekdayRate)}/éj (hétköznapi ár)</p>}
-                              </div>
-                              <span className="shrink-0 ml-2">{formatCurrency(weekendNights * weekdayRate)}</span>
-                            </div>
-                          )}
-
-                          {/* Ha nincs rule, csak a total */}
-                          {!rule && (
+                          )) : (
                             <div className="flex justify-between text-stone-600">
                               <span>Szállás ({selected.nights} éj)</span>
                               <span>{formatCurrency(selected.basePrice)}</span>
