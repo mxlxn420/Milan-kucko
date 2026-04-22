@@ -19,6 +19,7 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://milankucko.hu"),
   title: {
     default: "Milán Kuckó | Prémium pihenés Miskolctapolcán",
     template: "%s | Milán Kuckó",
