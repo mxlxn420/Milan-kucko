@@ -1,0 +1,16 @@
+name: iCal szinkronizálás
+
+on:
+  schedule:
+    - cron: "0 * * * *"  # óránként
+  workflow_dispatch:       # manuálisan is indítható
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: iCal szinkron hívás
+        run: |
+          curl -s -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.SITE_URL }}/api/cron/ical-sync"

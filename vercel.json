@@ -1,8 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/ical-sync",
-      "schedule": "0 * * * *"
-    }
-  ]
-}
+{}
