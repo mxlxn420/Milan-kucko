@@ -50,7 +50,16 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
 
   const baseRule    = useMemo(() => rules.find((r) => !r.dateFrom && !r.dateTo), [rules]);
   const basePrice   = baseRule?.pricePerNight ?? 45_000;
-  const seasonRules = useMemo(() => rules.filter((r) => r.dateFrom || r.dateTo), [rules]);
+  const seasonRules = useMemo(() =>
+    rules
+      .filter((r) => r.dateFrom || r.dateTo)
+      .sort((a, b) => {
+        const aDate = a.dateFrom ? new Date(a.dateFrom as string).getTime() : 0;
+        const bDate = b.dateFrom ? new Date(b.dateFrom as string).getTime() : 0;
+        return aDate - bDate;
+      }),
+    [rules]
+  );
 
   const EMPTY_NEW = {
     name:            "",
