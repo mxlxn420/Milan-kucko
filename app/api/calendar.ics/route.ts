@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 function formatIcalDate(date: Date): string {
   return date.toISOString().replace(/[-:]/g, "").slice(0, 8);
 }
