@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 
 const SOURCES = [
-  { envKey: "ICAL_SZALLAS_HU",  label: "szallas.hu"  },
-  { envKey: "ICAL_BOOKING_COM", label: "booking.com" },
+  { envKey: "ICAL_SZALLAS_HU",    label: "szallas.hu"    },
+  { envKey: "ICAL_BOOKING_COM",   label: "booking.com"   },
+  { envKey: "ICAL_APPARTMAN_HU",  label: "appartman.hu"  },
 ];
 
 /** Egy YYYYMMDD stringből Date objektum (UTC éjfél) */
