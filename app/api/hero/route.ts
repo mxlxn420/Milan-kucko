@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULTS = {
   id:            "singleton",
   subtitle:      "Bencések útja 117/A, Miskolctapolca",
