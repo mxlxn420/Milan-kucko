@@ -134,6 +134,7 @@ export default function AdminExtraServices({ services: initial }: Props) {
                     src={s.imageUrl}
                     alt={s.name}
                     fill
+                    sizes="112px"
                     className="object-cover"
                   />
                 </div>

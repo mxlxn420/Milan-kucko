@@ -288,7 +288,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                     >
                       {svc.imageUrl ? (
                         <div className="relative h-32 w-full">
-                          <Image src={svc.imageUrl} alt={svc.name} fill className="object-cover" />
+                          <Image src={svc.imageUrl} alt={svc.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                         </div>
                       ) : (

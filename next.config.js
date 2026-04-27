@@ -16,9 +16,8 @@ const nextConfig = {
         hostname: "*.supabase.co",
       },
     ],
-    // Nagy felbontású képek optimalizálása
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    deviceSizes: [640, 1080, 1920],
+    imageSizes: [16, 32, 64, 128, 256],
     formats: ["image/webp"],
   },
 };

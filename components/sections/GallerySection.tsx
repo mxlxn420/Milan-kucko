@@ -82,7 +82,7 @@ export default function GallerySection({ featured = DEFAULT_FEATURED }: { featur
             <ChevronRight size={40} />
           </button>
           <div className="relative w-full max-w-4xl aspect-video" onClick={(e) => e.stopPropagation()}>
-            <Image src={featured[lightbox].src} alt={featured[lightbox].alt} fill className="object-contain" />
+            <Image src={featured[lightbox].src} alt={featured[lightbox].alt} fill sizes="100vw" className="object-contain" />
           </div>
           <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-sm">
             {lightbox + 1} / {featured.length}
