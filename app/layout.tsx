@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Jost } from "next/font/google";
 import "./globals.css";
 import ViewportFix from "@/components/ui/ViewportFix";
+import { Analytics } from "@vercel/analytics/next";
 
 const playfair = Playfair_Display({
   subsets: ["latin", "latin-ext"],
@@ -114,6 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-sans bg-cream text-stone-800 antialiased">
         <ViewportFix />
         {children}
+        <Analytics />
       </body>
     </html>
   );
