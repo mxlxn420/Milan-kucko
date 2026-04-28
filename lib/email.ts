@@ -938,6 +938,7 @@ export async function sendBookingEmails(data: BookingEmailData): Promise<void> {
     body: JSON.stringify({
       from: `Milán Kuckó <${FROM_EMAIL}>`,
       to: [data.guestEmail],
+      bcc: [ADMIN_EMAIL],
       reply_to: [ADMIN_EMAIL],
       subject: `✓ Foglalás visszaigazolása – ${data.bookingId}`,
       html: guestEmailHtml(data),
