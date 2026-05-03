@@ -417,6 +417,10 @@ export default function BookingCalendar({ onNext }: Props) {
             <span className="w-3.5 h-3.5 rounded-full inline-block" style={{ background: "linear-gradient(to right, white 50%, #f5e6d8 50%)", border: "1px solid #e7c9b0" }} />
             Érkezés napja
           </div>
+          <div className="flex items-center gap-2 text-xs text-stone-500">
+            <span className="w-3.5 h-3.5 rounded-full inline-block" style={{ background: "linear-gradient(to right, #f5e6d8 50%, white 50%)", border: "1px solid #e7c9b0" }} />
+            Távozás napja
+          </div>
         </div>
       </div>
 
