@@ -359,6 +359,14 @@ export default function BookingCalendar({ onNext }: Props) {
                 const d = startOfDay(day);
                 return d > startOfDay(r.from) && d < startOfDay(r.to);
               }),
+            arrivalDay: (day) => {
+              const d = startOfDay(day);
+              return bookedRanges.some((r) => d.getTime() === startOfDay(r.from).getTime());
+            },
+            departureDay: (day) => {
+              const d = startOfDay(day);
+              return bookedRanges.some((r) => d.getTime() === startOfDay(r.to).getTime());
+            },
             tooSoon: (day) => {
               const d = startOfDay(day);
               const advance = getApplicableRule(d, rules)?.minAdvanceDays ?? 2;
@@ -374,6 +382,14 @@ export default function BookingCalendar({ onNext }: Props) {
               cursor: "not-allowed",
               opacity: 0.7,
             },
+            arrivalDay: {
+              background: "linear-gradient(to right, white 50%, #f5e6d8 50%)",
+              color: "#a86435",
+            },
+            departureDay: {
+              background: "linear-gradient(to right, #f5e6d8 50%, white 50%)",
+              color: "#a86435",
+            },
             tooSoon: {
               backgroundColor: "#f5e6d8",
               color: "#a86435",
@@ -384,7 +400,7 @@ export default function BookingCalendar({ onNext }: Props) {
           }}
           styles={{ months: { gap: "1rem" } }}
         />
-        <div className="flex items-center gap-6 mt-4 pt-4 border-t border-stone-100">
+        <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-stone-100">
           <div className="flex items-center gap-2 text-xs text-stone-500">
             <span className="w-3.5 h-3.5 rounded-full bg-forest-900 inline-block" />
             Kiválasztva
@@ -396,6 +412,10 @@ export default function BookingCalendar({ onNext }: Props) {
           <div className="flex items-center gap-2 text-xs text-stone-500">
             <span className="w-3.5 h-3.5 rounded-full bg-terra-200 inline-block" />
             Foglalt
+          </div>
+          <div className="flex items-center gap-2 text-xs text-stone-500">
+            <span className="w-3.5 h-3.5 rounded-full inline-block" style={{ background: "linear-gradient(to right, white 50%, #f5e6d8 50%)", border: "1px solid #e7c9b0" }} />
+            Érkezés napja
           </div>
         </div>
       </div>
