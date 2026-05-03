@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { DayPicker } from "react-day-picker";
 import { hu }        from "date-fns/locale";
+import { format }    from "date-fns";
 import { motion }    from "framer-motion";
 import { Plus, Trash2, X, RefreshCw } from "lucide-react";
 import { formatDateHu }    from "@/lib/utils";
@@ -77,8 +78,8 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
-          dateFrom: range.from.toISOString(),
-          dateTo:   range.to.toISOString(),
+          dateFrom: format(range.from, "yyyy-MM-dd"),
+          dateTo:   format(range.to,   "yyyy-MM-dd"),
           reason:   reason || null,
         }),
       });

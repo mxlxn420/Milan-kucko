@@ -5,12 +5,19 @@ import { twMerge } from "tailwind-merge";
 import type { PriceBreakdown, PricingRule, BookedDateRange } from "@/types";
 
 export const CLEANING_FEE      = 0;   // jelenleg nem számítjuk fel
-export const TOURIST_TAX       = 500;   // per fő / éj
+export const TOURIST_TAX       = 450;   // per fő / éj
 export const MIN_NIGHTS        = 2;
 export const MAX_GUESTS        = 6;
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+// Robustus dátum összehasonlítás: a tárolt dateFrom/dateTo lehet 22:00 UTC
+// (ha DayPicker toISOString()-gel lett mentve Magyarországról), ezért
+// helyi dátumstringet hasonlítunk, nem UTC timestampet.
+function toDateStr(d: Date | string): string {
+  return format(typeof d === "string" ? new Date(d) : d, "yyyy-MM-dd");
 }
 
 export function getApplicablePricingRule(
@@ -23,23 +30,27 @@ export function getApplicablePricingRule(
     .filter((r) => r.dateFrom && r.dateTo)
     .sort((a, b) => b.priority - a.priority);
 
+  const ciStr = toDateStr(checkIn);
+  const coStr = toDateStr(checkOut);
+
   for (const rule of period) {
-    const from = new Date(rule.dateFrom!);
-    const to   = new Date(rule.dateTo!);
+    const fromStr = toDateStr(rule.dateFrom!);
+    const toStr   = toDateStr(rule.dateTo!);
     if (
-      isWithinInterval(checkIn,  { start: from, end: to }) ||
-      isWithinInterval(checkOut, { start: from, end: to })
+      (ciStr >= fromStr && ciStr <= toStr) ||
+      (coStr >= fromStr && coStr <= toStr)
     ) return rule;
   }
   return active.find((r) => !r.dateFrom && !r.dateTo) ?? null;
 }
 
 export function getRuleForNight(date: Date, rules: PricingRule[]): PricingRule | null {
-  const active = rules.filter((r) => r.isActive).sort((a, b) => b.priority - a.priority);
+  const active  = rules.filter((r) => r.isActive).sort((a, b) => b.priority - a.priority);
+  const dateStr = toDateStr(date);
   return (
     active.find((r) => {
       if (!r.dateFrom || !r.dateTo) return false;
-      return date >= new Date(r.dateFrom) && date <= new Date(r.dateTo);
+      return dateStr >= toDateStr(r.dateFrom) && dateStr <= toDateStr(r.dateTo);
     }) ?? active.find((r) => !r.dateFrom && !r.dateTo) ?? null
   );
 }

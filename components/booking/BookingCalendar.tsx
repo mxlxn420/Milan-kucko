@@ -37,11 +37,12 @@ interface BookedRange {
 function getApplicableRule(checkIn: Date, rules: PricingRule[]): PricingRule | null {
   if (!rules.length) return null;
   const sorted = [...rules].sort((a, b) => b.priority - a.priority);
+  const ciStr = format(checkIn, "yyyy-MM-dd");
   for (const rule of sorted) {
     if (rule.dateFrom && rule.dateTo) {
-      const from = new Date(rule.dateFrom);
-      const to = new Date(rule.dateTo);
-      if (checkIn >= from && checkIn <= to) return rule;
+      const fromStr = format(new Date(rule.dateFrom), "yyyy-MM-dd");
+      const toStr   = format(new Date(rule.dateTo),   "yyyy-MM-dd");
+      if (ciStr >= fromStr && ciStr <= toStr) return rule;
     }
   }
   return sorted.find((r) => !r.dateFrom && !r.dateTo) ?? null;

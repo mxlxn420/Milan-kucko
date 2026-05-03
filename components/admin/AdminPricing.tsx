@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Star, Pencil, ChevronDown } from "lucide-react";
+import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import type { PricingRule } from "@/types";
 import SeasonForm from "@/components/admin/SeasonForm";
@@ -166,8 +167,8 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
           weekendPrice4:   editRule.weekendPrice4,
           childPrice2to6:  editRule.childPrice2to6,
           childPrice6to12: editRule.childPrice6to12,
-          dateFrom:        editRule.dateFrom?.toISOString() ?? null,
-          dateTo:          editRule.dateTo?.toISOString()   ?? null,
+          dateFrom:        editRule.dateFrom ? format(editRule.dateFrom, "yyyy-MM-dd") : null,
+          dateTo:          editRule.dateTo   ? format(editRule.dateTo,   "yyyy-MM-dd") : null,
           minNights:       editRule.minNights,
           minAdvanceDays:  editRule.minAdvanceDays,
           isActive:        editRule.isActive,
@@ -189,8 +190,8 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
             weekendPrice4:   editRule.weekendPrice4,
             childPrice2to6:  editRule.childPrice2to6,
             childPrice6to12: editRule.childPrice6to12,
-            dateFrom:        editRule.dateFrom?.toISOString() ?? null,
-            dateTo:          editRule.dateTo?.toISOString()   ?? null,
+            dateFrom:        editRule.dateFrom ? format(editRule.dateFrom, "yyyy-MM-dd") : null,
+            dateTo:          editRule.dateTo   ? format(editRule.dateTo,   "yyyy-MM-dd") : null,
             minNights:       editRule.minNights,
             isActive:        editRule.isActive,
             priority:        editRule.featured ? 10 : 5,
@@ -230,8 +231,8 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
         body:    JSON.stringify({
           ...newRule,
           priority:       newRule.featured ? 10 : 5,
-          dateFrom:       newRule.dateFrom?.toISOString() ?? null,
-          dateTo:         newRule.dateTo?.toISOString()   ?? null,
+          dateFrom:       newRule.dateFrom ? format(newRule.dateFrom, "yyyy-MM-dd") : null,
+          dateTo:         newRule.dateTo   ? format(newRule.dateTo,   "yyyy-MM-dd") : null,
           minAdvanceDays: newRule.minAdvanceDays,
           policyId:       newRule.policyId ?? null,
         }),

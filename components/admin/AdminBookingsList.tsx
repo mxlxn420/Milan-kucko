@@ -87,7 +87,7 @@ function calcPriceBreakdown(
   const totalGuests     = adults + teens + ch2to6 + ch6to12;
   const extraGuests     = Math.max(0, totalGuests - ((rule.extraGuestFrom ?? 3) - 1));
   const guestSurcharge  = extraGuests * (rule.extraGuestFee ?? 0) * nights;
-  const touristTax      = adults * 450 * nights;  // csak felnőttek fizetnek IFA-t
+  const touristTax      = adults * TOURIST_TAX * nights;  // csak felnőttek fizetnek IFA-t
   const cleaningFee     = CLEANING_FEE;
   const totalPrice      = basePrice + childTotal2to6 + childTotal6to12 + guestSurcharge + cleaningFee + touristTax;
   const depositPercent  = rule.depositPercent ?? 30;
@@ -200,7 +200,7 @@ export default function AdminBookingsList({ bookings }: Props) {
     setEditForm((prev) => {
       if (!prev) return prev;
       const next = { ...prev, [key]: value };
-      if (["checkIn", "checkOut", "numberOfAdults", "numberOfTeens", "numberOfChildren2to6", "numberOfChildren6to12"].includes(key)) {
+      if (["checkIn", "checkOut", "numberOfAdults", "numberOfTeens", "numberOfChildren2to6", "numberOfChildren6to12", "discountPercent"].includes(key)) {
         return recalc(next);
       }
       return next;
@@ -640,7 +640,7 @@ export default function AdminBookingsList({ bookings }: Props) {
                             <div className="flex justify-between items-start text-stone-600">
                               <div>
                                 <span>IFA</span>
-                                <p className="text-xs text-stone-400">{editForm.numberOfAdults} felnőtt × {editNights} éj × 450 Ft/éj</p>
+                                <p className="text-xs text-stone-400">{editForm.numberOfAdults} felnőtt × {editNights} éj × {TOURIST_TAX} Ft/éj</p>
                               </div>
                               <span className="shrink-0 ml-2">{formatCurrency(editForm.touristTax)}</span>
                             </div>
