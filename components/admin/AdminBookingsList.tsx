@@ -121,6 +121,8 @@ export default function AdminBookingsList({ bookings }: Props) {
   const [depositForm, setDepositForm]       = useState({ paidAt: new Date().toISOString().slice(0, 10), paidAmount: "", paidMethod: "transfer" });
   const [saveError, setSaveError]           = useState<string | null>(null);
   const [rules, setRules]                   = useState<PricingRule[]>([]);
+  const [resendStatus, setResendStatus]           = useState<null | "loading" | "ok" | "error">(null);
+  const [resendDepositStatus, setResendDepositStatus] = useState<null | "loading" | "ok" | "error">(null);
 
   useEffect(() => {
     fetch("/api/pricing")
@@ -210,6 +212,34 @@ export default function AdminBookingsList({ bookings }: Props) {
   const handleRecalcManual = () => {
     if (!editForm) return;
     setEditForm(recalc(editForm));
+  };
+
+  // ─── Előleg email újraküldése ────────────────────────────────
+  const resendDepositEmail = async (id: string) => {
+    setResendDepositStatus("loading");
+    try {
+      const res = await fetch(`/api/admin/bookings/${id}/resend-deposit-email`, { method: "POST" });
+      const json = await res.json();
+      setResendDepositStatus(json.success ? "ok" : "error");
+      setTimeout(() => setResendDepositStatus(null), 3000);
+    } catch {
+      setResendDepositStatus("error");
+      setTimeout(() => setResendDepositStatus(null), 3000);
+    }
+  };
+
+  // ─── Visszaigazoló email újraküldése ────────────────────────
+  const resendEmail = async (id: string) => {
+    setResendStatus("loading");
+    try {
+      const res = await fetch(`/api/admin/bookings/${id}/resend-email`, { method: "POST" });
+      const json = await res.json();
+      setResendStatus(json.success ? "ok" : "error");
+      setTimeout(() => setResendStatus(null), 3000);
+    } catch {
+      setResendStatus("error");
+      setTimeout(() => setResendStatus(null), 3000);
+    }
   };
 
   // ─── Státusz módosítás (olvasó nézetből) ────────────────────
@@ -1211,14 +1241,26 @@ export default function AdminBookingsList({ bookings }: Props) {
                   {selected.depositAmount > 0 && selected.status !== "CANCELLED" && (
                     <section>
                       {selected.depositPaidAt ? (
-                        <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-                          <Check className="w-5 h-5 text-green-600 shrink-0" />
-                          <div>
-                            <p className="text-sm font-semibold text-green-700">Előleg befizetve</p>
-                            <p className="text-xs text-green-500 mt-0.5">
-                              {format(new Date(selected.depositPaidAt), "yyyy. MM. dd. HH:mm")} · Visszaigazoló e-mail elküldve
-                            </p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                            <Check className="w-5 h-5 text-green-600 shrink-0" />
+                            <div>
+                              <p className="text-sm font-semibold text-green-700">Előleg befizetve</p>
+                              <p className="text-xs text-green-500 mt-0.5">
+                                {format(new Date(selected.depositPaidAt), "yyyy. MM. dd. HH:mm")}
+                              </p>
+                            </div>
                           </div>
+                          <button
+                            onClick={() => resendDepositEmail(selected.id)}
+                            disabled={resendDepositStatus === "loading"}
+                            className="w-full py-2.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 text-sm font-medium transition-colors disabled:opacity-50"
+                          >
+                            {resendDepositStatus === "loading" && "Küldés..."}
+                            {resendDepositStatus === "ok" && "Email elküldve"}
+                            {resendDepositStatus === "error" && "Küldési hiba"}
+                            {resendDepositStatus === null && "Előleg visszaigazoló újraküldése"}
+                          </button>
                         </div>
                       ) : (
                         <button
@@ -1254,6 +1296,22 @@ export default function AdminBookingsList({ bookings }: Props) {
                           </button>
                         </>
                       )}
+                    </section>
+                  )}
+
+                  {/* Email újraküldés */}
+                  {selected.status !== "CANCELLED" && selected.status !== "BLOCKED" && (
+                    <section className="pt-1">
+                      <button
+                        onClick={() => resendEmail(selected.id)}
+                        disabled={resendStatus === "loading"}
+                        className="w-full py-2.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 text-sm font-medium transition-colors disabled:opacity-50"
+                      >
+                        {resendStatus === "loading" && "Küldés..."}
+                        {resendStatus === "ok" && "Email elküldve"}
+                        {resendStatus === "error" && "Küldési hiba"}
+                        {resendStatus === null && "Visszaigazoló email újraküldése"}
+                      </button>
                     </section>
                   )}
                 </>
