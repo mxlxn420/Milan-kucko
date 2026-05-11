@@ -4,8 +4,10 @@ import { createClient }  from "@supabase/supabase-js";
 import { randomBytes }   from "crypto";
 
 async function isAuthed() {
-  const store = await cookies();
-  return !!store.get("admin_token")?.value;
+  const store         = await cookies();
+  const token         = store.get("admin_token")?.value;
+  const expectedToken = process.env.ADMIN_SESSION_TOKEN;
+  return !!token && !!expectedToken && token === expectedToken;
 }
 
 function detectImageType(buf: Buffer): string | null {

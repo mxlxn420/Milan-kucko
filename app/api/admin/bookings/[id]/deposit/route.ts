@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
+import { requireAdminAuth } from "@/lib/adminAuth";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const authError = requireAdminAuth(req);
+  if (authError) return authError;
+
   try {
     const booking = await prisma.booking.findUnique({ where: { id: params.id } });
     if (!booking) {

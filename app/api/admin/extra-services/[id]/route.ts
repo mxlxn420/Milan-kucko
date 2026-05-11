@@ -4,8 +4,10 @@ import { prisma }        from "@/lib/prisma";
 import { createClient }  from "@supabase/supabase-js";
 
 async function isAuthed() {
-  const store = await cookies();
-  return !!store.get("admin_token")?.value;
+  const store         = await cookies();
+  const token         = store.get("admin_token")?.value;
+  const expectedToken = process.env.ADMIN_SESSION_TOKEN;
+  return !!token && !!expectedToken && token === expectedToken;
 }
 
 const BUCKET = "extra-services";
