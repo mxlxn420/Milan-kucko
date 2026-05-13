@@ -23,6 +23,7 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com",
               "connect-src 'self' https://*.supabase.co https://vitals.vercel-insights.com",
+              "frame-src https://www.openstreetmap.org",
               "frame-ancestors 'none'",
             ].join("; "),
           },
