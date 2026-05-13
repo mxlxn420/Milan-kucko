@@ -86,12 +86,13 @@ export default function ContactSection() {
               </div>
             </div>
 
-            {/* OpenStreetMap */}
+            {/* Google Maps */}
             <div className="rounded-2xl overflow-hidden shadow-card h-56">
               <iframe
-                src="https://www.openstreetmap.org/export/embed.html?bbox=20.7420249%2C48.0701645%2C20.7520249%2C48.0761645&layer=mapnik&marker=48.0731645%2C20.7470249"
+                src="https://maps.google.com/maps?q=48.0731645,20.7470249&z=17&output=embed"
                 width="100%" height="100%" style={{ border: 0 }}
                 allowFullScreen loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
                 title="Milán Kuckó – Bencések útja 117/A"
               />
             </div>
