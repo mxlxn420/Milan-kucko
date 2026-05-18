@@ -135,6 +135,12 @@ export default function ContactSection() {
                   <textarea className="input-base resize-none" rows={5} placeholder="Írjon nekünk..." required
                     value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
                 </div>
+                <p className="text-xs text-stone-400 leading-relaxed">
+                  Az üzenet elküldésével elfogadja az{" "}
+                  <a href="/adatvedelem" target="_blank" className="text-forest-700 underline hover:text-forest-900">
+                    adatvédelmi tájékoztatót
+                  </a>.
+                </p>
                 <button
                   type="submit"
                   disabled={loading}

@@ -51,6 +51,7 @@ export default function AdatvedelemPage() {
               <li>Teljes név</li>
               <li>E-mail-cím</li>
               <li>Telefonszám</li>
+              <li>Lakcím</li>
               <li>Érkezés és távozás időpontja</li>
               <li>Vendégek száma (felnőttek, gyermekek)</li>
               <li>Fizetési mód</li>
@@ -73,7 +74,7 @@ export default function AdatvedelemPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl text-forest-900 mb-3">5. Adattovábbítás</h2>
+            <h2 className="font-serif text-xl text-forest-900 mb-3">5. Adattovábbítás és adatfeldolgozók</h2>
             <p>
               Az Ön személyes adatait harmadik félnek nem adjuk át, kivéve az alábbi eseteket:
             </p>
@@ -83,9 +84,27 @@ export default function AdatvedelemPage() {
                 kötelezettség alapján a szálláshely-szolgáltatók kötelesek a vendégadatokat bejelenteni.
               </li>
               <li>
-                <strong>E-mail küldő szolgáltatás:</strong> a foglalási visszaigazolók küldéséhez
-                külső e-mail szolgáltatót (Resend) veszünk igénybe, amely az adatokat kizárólag
+                <strong>Resend (e-mail küldő szolgáltatás):</strong> a foglalási visszaigazolók küldéséhez
+                külső e-mail szolgáltatót veszünk igénybe, amely az adatokat kizárólag
                 az üzenet kézbesítéséhez használja.
+              </li>
+              <li>
+                <strong>Vercel Analytics (webes látogatottság-mérés):</strong> weboldalunk látogatottságának
+                mérése céljából a Vercel Inc. (San Francisco, USA) sütimentes analitikai megoldását
+                alkalmazzuk. Ez az eszköz az oldalmegtekintések számát és az általános forgalmi
+                adatokat rögzíti; személyes azonosításra alkalmas adatot (pl. nevet, e-mail-címet)
+                nem tárol. Az adatkezelés jogalapja a GDPR 6. cikk (1) bekezdés f) pontja (jogos érdek:
+                a weboldal működésének javítása).
+              </li>
+              <li>
+                <strong>Google Maps (interaktív térkép):</strong> weboldalunkon a helyszín megjelenítéséhez
+                Google Maps térképet használunk (Google LLC, Mountain View, USA). A térkép betöltésekor
+                a Google az Ön IP-címét és böngészőjére vonatkozó adatokat kezelheti saját
+                adatvédelmi szabályzata szerint. A Google adatvédelmi tájékoztatója a{" "}
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-forest-700 underline hover:text-forest-900">
+                  policies.google.com/privacy
+                </a>{" "}
+                oldalon érhető el.
               </li>
             </ul>
           </section>
@@ -123,7 +142,12 @@ export default function AdatvedelemPage() {
             <h2 className="font-serif text-xl text-forest-900 mb-3">8. Cookie-k (sütik)</h2>
             <p>
               Weboldalunk kizárólag a működéshez szükséges munkamenet-cookie-kat használ (pl. admin bejelentkezés).
-              Harmadik fél által elhelyezett nyomkövető vagy marketing cookie-kat nem alkalmazunk.
+              Hirdető vagy marketing célú cookie-kat nem alkalmazunk.
+            </p>
+            <p className="mt-3">
+              A látogatottságméréshez használt Vercel Analytics sütimentes megoldást alkalmaz – cookie-t
+              nem helyez el az Ön eszközén. A Google Maps beágyazott térkép betöltésekor a Google
+              saját cookie-kat helyezhet el; ezek kezeléséről a Google adatvédelmi szabályzata rendelkezik.
             </p>
           </section>
 
