@@ -17,7 +17,7 @@ export default function AdatvedelemPage() {
         </Link>
 
         <h1 className="font-serif text-4xl text-forest-900 mb-2">Adatvédelmi tájékoztató</h1>
-        <p className="text-stone-400 text-sm mb-12">Hatályos: 2025. január 1-től</p>
+        <p className="text-stone-400 text-sm mb-12">Hatályos: 2026. január 1-től</p>
 
         <div className="prose prose-stone max-w-none space-y-10 text-stone-700 leading-relaxed">
 
