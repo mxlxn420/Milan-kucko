@@ -10,6 +10,7 @@ export default function ContactSection() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mapConsent, setMapConsent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,22 +80,39 @@ export default function ContactSection() {
               <p className="text-xs tracking-[0.2em] uppercase text-cream/50 mb-4">Tudnivalók</p>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between"><span className="text-cream/60">Bejelentkezés</span><span>15:00 – 20:00</span></div>
-                <div className="flex justify-between"><span className="text-cream/60">Kijelentkezés</span><span>8:00 – 11:00</span></div>
+                <div className="flex justify-between"><span className="text-cream/60">Kijelentkezés</span><span>11:00-ig</span></div>
                 <div className="flex justify-between"><span className="text-cream/60">Max. vendég</span><span>4 fő</span></div>
                 <div className="flex justify-between"><span className="text-cream/60">NTAK</span><span>MA25112258</span></div>
                 <div className="flex justify-between"><span className="text-cream/60">Háziállat</span><span>Nem tudunk fogadni</span></div>
               </div>
             </div>
 
-            {/* Google Maps */}
-            <div className="rounded-2xl overflow-hidden shadow-card h-56">
-              <iframe
-                src="https://maps.google.com/maps?q=48.0731645,20.7470249&z=17&output=embed"
-                width="100%" height="100%" style={{ border: 0 }}
-                allowFullScreen loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Milán Kuckó – Bencések útja 117/A"
-              />
+            {/* Google Maps – cookie hozzájárulás után tölt be */}
+            <div className="rounded-2xl overflow-hidden shadow-card h-56 bg-forest-950 flex items-center justify-center">
+              {mapConsent ? (
+                <iframe
+                  src="https://maps.google.com/maps?q=48.0731645,20.7470249&z=17&output=embed"
+                  width="100%" height="100%" style={{ border: 0 }}
+                  allowFullScreen loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Milán Kuckó – Bencések útja 117/A"
+                />
+              ) : (
+                <div className="text-center px-6 py-4">
+                  <MapPin size={28} className="text-terra-400 mx-auto mb-3" />
+                  <p className="text-cream/70 text-sm mb-1">A térkép megjelenítéséhez</p>
+                  <p className="text-cream/50 text-xs mb-4">
+                    a Google Maps harmadik féltől származó sütiket helyez el. Részletek:{" "}
+                    <a href="/adatvedelem" className="underline hover:text-cream/80">adatvédelmi tájékoztató</a>.
+                  </p>
+                  <button
+                    onClick={() => setMapConsent(true)}
+                    className="px-5 py-2 bg-terra-400 hover:bg-terra-500 text-white text-xs font-medium tracking-wide rounded-full transition-colors"
+                  >
+                    Térkép betöltése
+                  </button>
+                </div>
+              )}
             </div>
           </AnimatedSection>
 

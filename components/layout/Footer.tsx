@@ -105,7 +105,7 @@ export default function Footer() {
                 <span>Érkezés</span><span className="text-cream">15:00–20:00</span>
               </div>
               <div className="flex justify-between text-cream/60">
-                <span>Távozás</span><span className="text-cream">8:00 – 11:00</span>
+                <span>Távozás</span><span className="text-cream">11:00-ig</span>
               </div>
             </div>
           </div>

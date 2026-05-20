@@ -17,7 +17,7 @@ export default function AszfPage() {
         </Link>
 
         <h1 className="font-serif text-4xl text-forest-900 mb-2">Általános Szerződési Feltételek</h1>
-        <p className="text-stone-400 text-sm mb-12">Hatályos: 2025. január 1-től</p>
+        <p className="text-stone-400 text-sm mb-12">Hatályos: 2026. január 1-től</p>
 
         <div className="prose prose-stone max-w-none space-y-10 text-stone-700 leading-relaxed">
 
@@ -27,6 +27,7 @@ export default function AszfPage() {
             <p>Cím: 3519 Miskolctapolca, Bencések útja 117/A</p>
             <p>Telefon: +36 30 845 4923</p>
             <p>E-mail: milan.kucko117@gmail.com</p>
+            <p>Adószám: 60338662-1-25</p>
             <p>NTAK regisztrációs szám: MA25112258</p>
           </section>
 
@@ -88,8 +89,8 @@ export default function AszfPage() {
           <section>
             <h2 className="font-serif text-xl text-forest-900 mb-3">6. Bejelentkezés és kijelentkezés</h2>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Bejelentkezés: 14:00–20:00 között</li>
-              <li>Kijelentkezés: 10:00-ig</li>
+              <li>Bejelentkezés: 15:00–20:00 között</li>
+              <li>Kijelentkezés: 11:00-ig</li>
             </ul>
             <p className="mt-3">
               Ettől eltérő időpontban való érkezés esetén kérjük, előzetesen egyeztessen velünk.
@@ -116,7 +117,19 @@ export default function AszfPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl text-forest-900 mb-3">9. Felelősségkorlátozás</h2>
+            <h2 className="font-serif text-xl text-forest-900 mb-3">9. Elállási jog</h2>
+            <p>
+              A 45/2014. (II. 26.) Korm. rendelet 29. § (1) bekezdés l) pontja alapján a vendég
+              <strong> nem jogosult indokolás nélküli elállásra</strong> szálláshely-foglalásra vonatkozó szerződés esetén,
+              mivel a szolgáltatás meghatározott teljesítési időponthoz kötött (szállásfoglalás konkrét dátumokra).
+            </p>
+            <p className="mt-3">
+              A foglalás lemondásának feltételeit a 4. pont (Fizetési feltételek) és az 5. pont (Lemondási feltételek) tartalmazza.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-xl text-forest-900 mb-3">10. Felelősségkorlátozás</h2>
             <p>
               A szolgáltató nem vállal felelősséget a vendég személyes tárgyaiban, vagyonában bekövetkező
               károkért, kivéve, ha azok a szolgáltató szándékos magatartásából vagy súlyos gondatlanságából
@@ -125,7 +138,7 @@ export default function AszfPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl text-forest-900 mb-3">10. Panaszkezelés</h2>
+            <h2 className="font-serif text-xl text-forest-900 mb-3">11. Panaszkezelés</h2>
             <p>
               Amennyiben a vendégnek kifogása merül fel a szolgáltatással kapcsolatban, azt kérjük jelezze
               a tartózkodás ideje alatt személyesen, vagy utólag az alábbi elérhetőségeken:
@@ -135,10 +148,16 @@ export default function AszfPage() {
             <p className="mt-3">
               A szóbeli panaszokat haladéktalanul, az írásbeli panaszokat 30 napon belül vizsgáljuk ki és válaszoljuk meg.
             </p>
+            <p className="mt-3">
+              Az Európai Unió online vitarendezési platformja (ODR) fogyasztói jogviták esetén igénybe vehető:{" "}
+              <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-forest-700 underline hover:text-forest-900">
+                ec.europa.eu/consumers/odr
+              </a>
+            </p>
           </section>
 
           <section>
-            <h2 className="font-serif text-xl text-forest-900 mb-3">11. Irányadó jog</h2>
+            <h2 className="font-serif text-xl text-forest-900 mb-3">12. Irányadó jog</h2>
             <p>
               Jelen ÁSZF-re a magyar jog az irányadó. A felek közötti jogvitában a magyar bíróságok rendelkeznek
               illetékességgel. Fogyasztói jogviták esetén a vendég a Fogyasztóvédelmi Hatósághoz vagy a
