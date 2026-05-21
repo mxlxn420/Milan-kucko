@@ -95,8 +95,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 longitude:  20.7470249,
               },
               priceRange:   "$$",
-              checkinTime:  "14:00",
-              checkoutTime: "10:00",
+              checkinTime:  "15:00",
+              checkoutTime: "11:00",
               amenityFeature: [
                 { "@type": "LocationFeatureSpecification", name: "Privát jacuzzi",   value: true },
                 { "@type": "LocationFeatureSpecification", name: "Kandalló",         value: true },
