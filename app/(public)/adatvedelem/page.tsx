@@ -68,6 +68,7 @@ export default function AdatvedelemPage() {
             <ul className="list-disc pl-5 space-y-1">
               <li>Foglalási adatok: a foglalást követő 5 évig (számviteli törvény alapján)</li>
               <li>Vendégkönyv adatai: jogszabályban meghatározott ideig</li>
+              <li>Kapcsolatfelvételi üzenetek (kapcsolati form): az üzenet megválaszolását követő 1 évig, majd törlésre kerülnek</li>
               <li>Hozzájárulás visszavonása esetén: az adatokat haladéktalanul töröljük,
                 kivéve ha jogszabály hosszabb megőrzési kötelezettséget ír elő</li>
             </ul>
@@ -105,6 +106,19 @@ export default function AdatvedelemPage() {
                   policies.google.com/privacy
                 </a>{" "}
                 oldalon érhető el.
+              </li>
+              <li>
+                <strong>Upstash Redis (visszaélés-védelmi rendszer):</strong> a weboldalon beérkező
+                foglalási és kapcsolatfelvételi kérések visszaélésszerű használatának megelőzése
+                érdekében a beküldő IP-cím ideiglenesen (legfeljebb 1 óráig) tárolásra kerül az
+                Upstash Inc. (USA) Redis-alapú szolgáltatásában. Az adatkezelés jogalapja a GDPR
+                6. cikk (1) bekezdés f) pontja (jogos érdek: az informatikai rendszer biztonsága).
+              </li>
+              <li>
+                <strong>Szallas.hu (online szállásfoglaló platform):</strong> a szálláshely
+                foglaltsági naptárát szinkronizáljuk a Szallas.hu platformmal iCal formátumban.
+                Az adatcsere kizárólag a foglalt időszakokat tartalmazza (érkezés és távozás
+                dátuma), személyes vendégadatot nem továbbít.
               </li>
             </ul>
           </section>
