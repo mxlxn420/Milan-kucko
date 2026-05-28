@@ -24,6 +24,7 @@ export default function AdatvedelemPage() {
           <section>
             <h2 className="font-serif text-xl text-forest-900 mb-3">1. Az adatkezelő adatai</h2>
             <p>Adatkezelő neve: Milán Kuckó vendégház</p>
+            <p>Képviselő: Martisné Csekes Beáta</p>
             <p>Cím: 3519 Miskolctapolca, Bencések útja 117/A</p>
             <p>Telefon: +36 30 845 4923</p>
             <p>E-mail: milan.kucko117@gmail.com</p>
@@ -86,8 +87,9 @@ export default function AdatvedelemPage() {
               </li>
               <li>
                 <strong>Resend (e-mail küldő szolgáltatás):</strong> a foglalási visszaigazolók küldéséhez
-                külső e-mail szolgáltatót veszünk igénybe, amely az adatokat kizárólag
-                az üzenet kézbesítéséhez használja.
+                külső e-mail szolgáltatót veszünk igénybe (Resend Inc., USA), amely az adatokat kizárólag
+                az üzenet kézbesítéséhez használja. A harmadik országba történő adattovábbítás az Európai
+                Bizottság által jóváhagyott általános szerződési feltételek (SCC) alapján történik.
               </li>
               <li>
                 <strong>Vercel Analytics (webes látogatottság-mérés):</strong> weboldalunk látogatottságának
@@ -113,6 +115,8 @@ export default function AdatvedelemPage() {
                 érdekében a beküldő IP-cím ideiglenesen (legfeljebb 1 óráig) tárolásra kerül az
                 Upstash Inc. (USA) Redis-alapú szolgáltatásában. Az adatkezelés jogalapja a GDPR
                 6. cikk (1) bekezdés f) pontja (jogos érdek: az informatikai rendszer biztonsága).
+                A harmadik országba történő adattovábbítás az Európai Bizottság által jóváhagyott
+                általános szerződési feltételek (SCC) alapján történik.
               </li>
               <li>
                 <strong>Szallas.hu (online szállásfoglaló platform):</strong> a szálláshely

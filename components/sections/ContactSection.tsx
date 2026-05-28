@@ -153,12 +153,15 @@ export default function ContactSection() {
                   <textarea className="input-base resize-none" rows={5} placeholder="Írjon nekünk..." required
                     value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
                 </div>
-                <p className="text-xs text-stone-400 leading-relaxed">
-                  Az üzenet elküldésével elfogadja az{" "}
-                  <a href="/adatvedelem" target="_blank" className="text-forest-700 underline hover:text-forest-900">
-                    adatvédelmi tájékoztatót
-                  </a>.
-                </p>
+                <div className="flex items-start gap-3">
+                  <input type="checkbox" id="contact-adatvedelem" required className="mt-0.5 accent-forest-900 shrink-0" />
+                  <label htmlFor="contact-adatvedelem" className="text-xs text-stone-400 leading-relaxed">
+                    Elolvastam és elfogadom az{" "}
+                    <a href="/adatvedelem" target="_blank" className="text-forest-700 underline hover:text-forest-900">
+                      adatvédelmi tájékoztatót
+                    </a>, és hozzájárulok adataim kezeléséhez az üzenet megválaszolásának céljából.
+                  </label>
+                </div>
                 <button
                   type="submit"
                   disabled={loading}
