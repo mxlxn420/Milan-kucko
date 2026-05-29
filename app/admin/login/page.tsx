@@ -39,7 +39,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-forest-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-forest-900 flex items-center justify-center p-4 -m-4 md:-m-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
