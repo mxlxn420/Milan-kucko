@@ -19,17 +19,21 @@ function getClientIp(req: NextRequest): string {
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
 
-  const { success, remaining, reset } = await ratelimit.limit(ip);
+  try {
+    const { success, remaining, reset } = await ratelimit.limit(ip);
 
-  if (!success) {
-    const retryAfterMin = Math.ceil((reset - Date.now()) / 60000);
-    return NextResponse.json(
-      {
-        success: false,
-        error: `Túl sok sikertelen próbálkozás. Próbáld újra ${retryAfterMin} perc múlva.`,
-      },
-      { status: 429 }
-    );
+    if (!success) {
+      const retryAfterMin = Math.ceil((reset - Date.now()) / 60000);
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Túl sok sikertelen próbálkozás. Próbáld újra ${retryAfterMin} perc múlva.`,
+        },
+        { status: 429 }
+      );
+    }
+  } catch {
+    // ha az Upstash nem elérhető, átengedjük a kérést
   }
 
   try {
@@ -47,10 +51,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (password !== ADMIN_PASSWORD) {
-      const errorMsg =
-        remaining === 0
-          ? "Túl sok sikertelen próbálkozás. Próbáld újra 1 óra múlva."
-          : `Hibás jelszó. Még ${remaining} próbálkozás maradt.`;
+      const errorMsg = "Hibás jelszó.";
 
       return NextResponse.json(
         { success: false, error: errorMsg },
