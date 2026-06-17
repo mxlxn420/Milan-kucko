@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       const errorMsg =
         remaining === 0
           ? "Túl sok sikertelen próbálkozás. Próbáld újra 1 óra múlva."
-          : `Hibás jelszó. Még ${remaining} próbálkozás maradt. (beírt: ${password.length} kar, env: ${ADMIN_PASSWORD.length} kar)`;
+          : `Hibás jelszó. Még ${remaining} próbálkozás maradt.`;
 
       return NextResponse.json(
         { success: false, error: errorMsg },
