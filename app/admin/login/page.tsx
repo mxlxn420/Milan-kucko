@@ -29,7 +29,7 @@ export default function AdminLogin() {
         router.push("/admin");
         router.refresh();
       } else {
-        setError("Hibás jelszó!");
+        setError(data.error ?? "Hibás jelszó!");
       }
     } catch {
       setError("Szerver hiba. Próbálja újra!");
