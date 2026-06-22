@@ -1053,6 +1053,79 @@ function cancellationEmailHtml(data: {
 </html>`;
 }
 
+// ─── ICAL SZINKRON HIBA EMAIL ────────────────────────────────
+export async function sendIcalSyncErrorEmail(failed: { source: string; error: string }[]): Promise<void> {
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  const FROM_EMAIL = process.env.FROM_EMAIL ?? "info@milankucko.hu";
+  const ERROR_NOTIFY_EMAIL = "milanmartis007@gmail.com";
+
+  if (!RESEND_API_KEY || RESEND_API_KEY === "re_xxxxxxxxxxxx") {
+    console.log("📧 [DEV] iCal hiba email szimulálva:", failed);
+    return;
+  }
+
+  const rows = failed
+    .map(f => `<tr>
+      <td style="font-family:sans-serif;font-size:13px;font-weight:600;color:#1a3a2a;padding:8px 12px;border-bottom:1px solid #e8d9b5;">${escapeHtml(f.source)}</td>
+      <td style="font-family:monospace;font-size:12px;color:#b91c1c;padding:8px 12px;border-bottom:1px solid #e8d9b5;">${escapeHtml(f.error)}</td>
+    </tr>`)
+    .join("");
+
+  const html = `<!DOCTYPE html>
+<html lang="hu">
+<head><meta charset="UTF-8"><title>iCal szinkron hiba</title></head>
+<body style="margin:0;padding:0;background:#f5f0e8;font-family:sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;padding:32px 16px;">
+  <tr><td align="center">
+    <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(26,58,42,0.10);">
+      <tr><td style="background:#7f1d1d;padding:24px 32px;">
+        <p style="color:rgba(255,255,255,0.6);font-size:11px;margin:0 0 6px;letter-spacing:0.2em;text-transform:uppercase;">Milán Kuckó · Admin</p>
+        <p style="color:#ffffff;font-size:20px;font-weight:600;margin:0;">iCal szinkron hiba</p>
+      </td></tr>
+      <tr><td style="padding:28px 32px;">
+        <p style="font-size:14px;color:#3d3d3d;margin:0 0 20px;">A következő forrásokból nem sikerült szinkronizálni a naptárat:</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8d9b5;border-radius:10px;overflow:hidden;">
+          <tr style="background:#f5f0e8;">
+            <th style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.1em;padding:8px 12px;text-align:left;">Forrás</th>
+            <th style="font-family:sans-serif;font-size:11px;font-weight:600;color:#1a3a2a;text-transform:uppercase;letter-spacing:0.1em;padding:8px 12px;text-align:left;">Hiba</th>
+          </tr>
+          ${rows}
+        </table>
+        <p style="font-size:13px;color:#737373;margin:20px 0 0;line-height:1.6;">
+          Ellenőrizze a forrás URL-eket és az env változókat. A manuális szinkron az admin naptárból indítható.
+        </p>
+      </td></tr>
+      <tr><td style="background:#f5f0e8;padding:16px 32px;text-align:center;border-top:1px solid #e8d9b5;">
+        <p style="font-size:11px;color:#a8a8a8;margin:0;">Milán Kuckó iCal monitor · automatikus értesítő</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${RESEND_API_KEY}`,
+    },
+    body: JSON.stringify({
+      from: `Milán Kuckó <${FROM_EMAIL}>`,
+      to: [ERROR_NOTIFY_EMAIL],
+      subject: `⚠️ iCal szinkron hiba – ${failed.map(f => f.source).join(", ")}`,
+      html,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("iCal hiba email küldés sikertelen:", err);
+  }
+}
+
+// ─── TÖRLÉSI / ELUTASÍTÁSI EMAIL ─────────────────────────────
+
 export async function sendCancellationEmail(params: {
   guestName: string;
   guestEmail: string;
