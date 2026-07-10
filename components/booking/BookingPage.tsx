@@ -12,6 +12,7 @@ export type BookingStep = "calendar" | "form" | "success";
 export interface SelectedService {
   id:          string;
   name:        string;
+  description: string;
   pricingType: "PER_NIGHT" | "PER_BOOKING";
   price:       number | null;
   quantity:    number;

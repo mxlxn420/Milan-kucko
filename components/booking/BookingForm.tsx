@@ -57,6 +57,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
       setSelected((prev) => [...prev, {
         id: svc.id,
         name: svc.name,
+        description: svc.description,
         pricingType: svc.pricingType,
         price: svc.price,
         quantity,
@@ -318,7 +319,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                             {svc.pricingType === "PER_NIGHT" ? "/éj" : "/fog."}
                           </span>
                         </div>
-                        <p className="text-xs text-stone-500 mt-1 leading-relaxed line-clamp-2">{svc.description}</p>
+                        <p className="text-xs text-stone-500 mt-1 leading-relaxed">{svc.description}</p>
                         <p className="text-sm font-semibold text-forest-700 mt-2.5">
                           {svc.price != null ? formatCurrency(svc.price) : "Ár érdeklődésre"}
                           {svc.price != null && (
@@ -630,6 +631,9 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
                 <div key={s.id} className="flex justify-between items-start">
                   <div>
                     <p className="text-cream/80">{s.name}</p>
+                    {s.description && (
+                      <p className="text-xs text-cream/40 mt-0.5 leading-relaxed">{s.description}</p>
+                    )}
                     {s.price != null && (
                       <p className="text-xs text-cream/40 mt-0.5">
                         {s.pricingType === "PER_NIGHT"
