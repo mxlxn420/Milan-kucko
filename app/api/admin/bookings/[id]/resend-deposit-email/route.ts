@@ -4,10 +4,11 @@ import { format } from "date-fns";
 
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const booking = await prisma.booking.findUnique({ where: { id: params.id } });
+    const booking = await prisma.booking.findUnique({ where: { id } });
     if (!booking) {
       return NextResponse.json({ success: false, error: "Foglalás nem található" }, { status: 404 });
     }

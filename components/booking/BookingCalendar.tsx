@@ -382,11 +382,11 @@ export default function BookingCalendar({ onNext }: Props) {
               opacity: 0.7,
             },
             arrivalDay: {
-              background: "linear-gradient(to right, white 50%, #f5e6d8 50%)",
+              backgroundImage: "linear-gradient(to right, white 50%, #f5e6d8 50%)",
               color: "#a86435",
             },
             departureDay: {
-              background: "linear-gradient(to right, #f5e6d8 50%, white 50%)",
+              backgroundImage: "linear-gradient(to right, #f5e6d8 50%, white 50%)",
               color: "#a86435",
             },
             tooSoon: {

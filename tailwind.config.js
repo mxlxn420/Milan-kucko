@@ -2,6 +2,7 @@
 module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "!./app/api/**",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./store/**/*.{js,ts,jsx,tsx}",
     "./types/**/*.{js,ts}",
