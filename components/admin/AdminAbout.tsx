@@ -8,6 +8,7 @@ import { Upload, X, ImageOff,
   Bed, Mountain, Sparkles, Music, Bike, Plus, Trash2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { ICON_MAP } from "@/lib/icons";
 
 const ICON_OPTIONS: { name: string; label: string; icon: LucideIcon }[] = [
   { name: "MapPin",      label: "Helyszín (térkép)",      icon: MapPin      },
@@ -34,9 +35,6 @@ const ICON_OPTIONS: { name: string; label: string; icon: LucideIcon }[] = [
   { name: "Bike",        label: "Kerékpár",                 icon: Bike        },
 ];
 
-const ICON_MAP: Record<string, LucideIcon> = Object.fromEntries(
-  ICON_OPTIONS.map(({ name, icon }) => [name, icon])
-);
 
 interface ImageField { src: string; alt: string; }
 interface Value      { icon: string; title: string; text: string; }

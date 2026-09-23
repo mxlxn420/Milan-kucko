@@ -9,7 +9,7 @@ import {
   Users, Baby, ArrowRight, AlertCircle,
   ChevronDown, ChevronUp, Loader2,
 } from "lucide-react";
-import { formatDateHu, formatCurrency } from "@/lib/utils";
+import { formatDateHu, formatCurrency, MAX_GUESTS } from "@/lib/utils";
 import { useBookingStore } from "@/store/bookingStore";
 import type { BookingData } from "./BookingPage";
 import "react-day-picker/dist/style.css";
@@ -231,7 +231,6 @@ export default function BookingCalendar({ onNext }: Props) {
   })() : 0;
   const weekdayNights = nights - weekendNights;
 
-  const MAX_GUESTS = 4;
   const totalGuests = adults + teens + babies + children2to6 + children6to12;
   const paidGuests = adults + teens + babies + children2to6 + children6to12;
   const hasChildren = teens + babies + children2to6 + children6to12 > 0;

@@ -39,19 +39,6 @@ export interface Booking {
   updatedAt: Date | string;
 }
 
-export interface CreateBookingPayload {
-  guestName: string;
-  guestEmail: string;
-  guestPhone: string;
-  numberOfGuests: number;
-  numberOfAdults: number;
-  numberOfChildren2to6: number;
-  numberOfChildren6to12: number;
-  notes?: string;
-  checkIn: string;
-  checkOut: string;
-}
-
 export interface PricingRule {
   id: string;
   name: string;
@@ -71,54 +58,4 @@ export interface PricingRule {
   isActive: boolean;
   priority: number;
   depositPercent?: number;
-}
-
-export interface PriceBreakdown {
-  nights: number;
-  pricePerNight: number;
-  baseTotal: number;
-  childTotal2to6: number;
-  childTotal6to12: number;
-  guestSurcharge: number;
-  cleaningFee: number;
-  touristTax: number;
-  total: number;
-  minNights: number;
-  isValid: boolean;
-  validationError?: string;
-}
-
-export interface BookedDateRange {
-  checkIn: string;
-  checkOut: string;
-  status: BookingStatus;
-}
-
-export interface BookingState {
-  checkIn: Date | null;
-  checkOut: Date | null;
-  adults: number;
-  children2to6: number;
-  children6to12: number;
-  priceBreakdown: PriceBreakdown | null;
-  isCalculating: boolean;
-  step: "dates" | "details" | "confirm" | "success";
-  isSubmitting: boolean;
-  bookingId: string | null;
-  setCheckIn: (date: Date | null) => void;
-  setCheckOut: (date: Date | null) => void;
-  setAdults: (n: number) => void;
-  setChildren2to6: (n: number) => void;
-  setChildren6to12: (n: number) => void;
-  setStep: (step: BookingState["step"]) => void;
-  setPriceBreakdown: (b: PriceBreakdown | null) => void;
-  setBookingId: (id: string) => void;
-  reset: () => void;
-}
-
-export interface ContactFormData {
-  name: string;
-  email: string;
-  phone?: string;
-  message: string;
 }

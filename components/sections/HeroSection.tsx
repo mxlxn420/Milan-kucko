@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import BookingWidget from "@/components/booking/BookingWidget";
-import { ICON_MAP } from "@/components/admin/AdminHero";
+import { ICON_MAP } from "@/lib/icons";
 
 interface Highlight {
   icon:  string;
@@ -50,7 +50,7 @@ export default function HeroSection({ data }: Props) {
   }, [slides.length]);
 
   return (
-    <section id="hero" ref={ref} className="relative h-screen min-h-[640px] overflow-hidden" style={{ touchAction: "pan-y" }}>
+    <section id="hero" ref={ref} className="relative min-h-[100svh] flex flex-col overflow-hidden" style={{ touchAction: "pan-y" }}>
 
       {/* Slideshow */}
       <AnimatePresence initial={false}>
@@ -77,19 +77,19 @@ export default function HeroSection({ data }: Props) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Tartalom */}
+      {/* Tartalom – a szekció inkább megnő, mint hogy a navbar alá csússzon vagy levágódjon */}
       <motion.div
-        className="relative z-10 h-full flex flex-col justify-start lg:justify-center"
+        className="relative z-10 flex-1 flex flex-col justify-start lg:justify-center pt-[calc(var(--navbar-h)+1.5rem)] pb-28 short:pb-24"
         style={{ y: textY, opacity }}
       >
-        <div className="container-custom pt-24 pb-4 lg:pt-20 lg:pb-8">
+        <div className="container-custom w-full pb-4 lg:pb-8 short:pb-3">
           {/* text-shadow az egész szövegblokkra öröklődik */}
-          <div className="max-w-3xl [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]">
+          <div className="max-w-4xl [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]">
 
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="flex items-center gap-2.5 mb-6"
+              className="flex items-center gap-2.5 mb-6 short:mb-3"
             >
               <span className="h-px w-8 bg-white/50" />
               <span className="text-white text-xs font-medium tracking-[0.25em] uppercase">
@@ -100,7 +100,7 @@ export default function HeroSection({ data }: Props) {
             <motion.h1
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 0.2 }}
-              className="font-serif text-display-2xl font-light text-white mb-6"
+              className="font-serif text-display-hero font-light text-white mb-6 short:mb-3"
             >
               {data.titleBefore}
               <em className="italic text-white">{data.titleEmphasis}</em>
@@ -110,7 +110,7 @@ export default function HeroSection({ data }: Props) {
             <motion.p
               initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.35 }}
-              className="text-white/90 text-lg font-light leading-relaxed mb-8 max-w-xl"
+              className="text-white/90 text-lg short:text-base font-light leading-relaxed mb-8 short:mb-4 max-w-xl"
             >
               {data.description}
             </motion.p>
@@ -119,12 +119,12 @@ export default function HeroSection({ data }: Props) {
               <motion.div
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.5 }}
-                className="flex flex-wrap gap-3 mb-10"
+                className="flex flex-wrap gap-3 short:gap-2 mb-10 short:mb-2"
               >
                 {data.highlights.map(({ icon, label }) => {
                   const Icon = ICON_MAP[icon];
                   return (
-                    <div key={label} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs font-medium">
+                    <div key={label} className="flex items-center gap-2 px-4 py-2 short:py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs font-medium">
                       {Icon && <Icon size={13} className="text-white" />}
                       {label}
                     </div>
@@ -138,7 +138,7 @@ export default function HeroSection({ data }: Props) {
 
         {/* Booking widget */}
         <motion.div
-          className="container-custom pb-16 lg:pb-0"
+          className="container-custom w-full"
           initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.6 }}
         >
@@ -147,7 +147,7 @@ export default function HeroSection({ data }: Props) {
       </motion.div>
 
       {/* Slideshow pontok + Görgessen – EGYÜTT ALUL */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3">
+      <div className="absolute bottom-6 short:bottom-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3">
 
         {/* Pontok */}
         <div className="flex items-center gap-2.5">

@@ -9,6 +9,10 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        // Alacsony képernyők (pl. laptop böngészősávokkal) – a hero tömörebb lesz
+        short: { raw: "(max-height: 780px)" },
+      },
       colors: {
         forest: {
           50:  "#f0f5f1",
@@ -59,6 +63,8 @@ module.exports = {
         sans:  ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       fontSize: {
+        // Hero cím: a szélesség mellett a magassághoz is igazodik, hogy alacsony laptopon ne törjön 3 sorba
+        "display-hero": ["clamp(3rem, min(8vw, 11svh), 7rem)", { lineHeight: "1.05", letterSpacing: "-0.03em" }],
         "display-2xl": ["clamp(3rem, 8vw, 7rem)",      { lineHeight: "1.05", letterSpacing: "-0.03em" }],
         "display-xl":  ["clamp(2.5rem, 6vw, 5rem)",    { lineHeight: "1.1",  letterSpacing: "-0.02em" }],
         "display-lg":  ["clamp(2rem, 4vw, 3.5rem)",    { lineHeight: "1.15", letterSpacing: "-0.02em" }],

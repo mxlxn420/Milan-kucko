@@ -8,6 +8,7 @@ import {
   Baby, Shirt, Plus, Trash2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { ICON_MAP } from "@/lib/icons";
 
 const ICON_OPTIONS: { name: string; label: string; icon: LucideIcon }[] = [
   { name: "Waves",           label: "Hullámok (jacuzzi)",        icon: Waves           },
@@ -39,9 +40,6 @@ const ICON_OPTIONS: { name: string; label: string; icon: LucideIcon }[] = [
   { name: "Bike",            label: "Kerékpár",                   icon: Bike            },
 ];
 
-const ICON_MAP: Record<string, LucideIcon> = Object.fromEntries(
-  ICON_OPTIONS.map(({ name, icon }) => [name, icon])
-);
 
 interface Item {
   icon:  string;

@@ -4,18 +4,8 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 import { useState } from "react";
-import {
-  MapPin, Users, Waves, Home, TreePine, Flame, Coffee, Utensils, Wifi,
-  Star, Heart, Sun, Bath, Car, Wind, Flower2, ShieldCheck,
-  Bed, Mountain, Sparkles, Music, Bike, ChevronDown,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  MapPin, Users, Waves, Home, TreePine, Flame, Coffee, Utensils, Wifi,
-  Star, Heart, Sun, Bath, Car, Wind, Flower2, ShieldCheck,
-  Bed, Mountain, Sparkles, Music, Bike,
-};
+import { Star, ChevronDown } from "lucide-react";
+import { ICON_MAP } from "@/lib/icons";
 
 interface ImageField { src: string; alt: string; }
 interface Value      { icon: string; title: string; text: string; }

@@ -2,22 +2,7 @@ import { cookies }   from "next/headers";
 import { redirect }   from "next/navigation";
 import { prisma }     from "@/lib/prisma";
 import AdminHero      from "@/components/admin/AdminHero";
-
-const DEFAULT_SLIDES = [
-  { src: "/images/haz/IMG_8519 kicsi.jpg",    alt: "Milán Kuckó – vendégház kívülről" },
-  { src: "/images/jacuzzi/jacuzzikivilag.jpg", alt: "Privát jacuzzi"                  },
-  { src: "/images/kert/kert.jpg",              alt: "Hatalmas privát kert"             },
-];
-
-const DEFAULTS = {
-  subtitle:      "Bencések útja 117/A, Miskolctapolca",
-  titleBefore:   "A tökéletes ",
-  titleEmphasis: "kikapcsolódás",
-  titleAfter:    "csak rád vár.",
-  description:   `Romantikus vendégház hatalmas kerttel és privát jacuzzival, Miskolctapolca csendes zsákutcájában. Csak ti vagytok az egész \u201Ebirtokon.\u201D`,
-  highlights:    [{ icon: "Waves", label: "Privát jacuzzi" }, { icon: "Home", label: "Csak ti vagytok" }],
-  slides:        DEFAULT_SLIDES,
-};
+import { HERO_DEFAULTS as DEFAULTS } from "@/lib/contentDefaults";
 
 export default async function AdminHeroPage() {
   const cookieStore = await cookies();

@@ -2,18 +2,8 @@
 
 import { motion } from "framer-motion";
 import AnimatedSection from "@/components/ui/AnimatedSection";
-import {
-  Waves, Home, TreePine, Flame, Coffee, Utensils, UtensilsCrossed, Wifi,
-  Star, Heart, Sun, Bath, Car, Wind, Flower2, ShieldCheck,
-  Bed, Mountain, Sparkles, Music, Bike, MapPin, Users, Tv, Wine, Baby, Shirt,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  Waves, Home, TreePine, Flame, Coffee, Utensils, UtensilsCrossed, Wifi,
-  Star, Heart, Sun, Bath, Car, Wind, Flower2, ShieldCheck,
-  Bed, Mountain, Sparkles, Music, Bike, MapPin, Users, Tv, Wine, Baby, Shirt,
-};
+import { Star } from "lucide-react";
+import { ICON_MAP } from "@/lib/icons";
 
 interface Item { icon: string; label: string; desc: string; }
 

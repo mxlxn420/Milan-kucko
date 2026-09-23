@@ -1,22 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { HERO_DEFAULTS } from "@/lib/contentDefaults";
 
-const DEFAULTS = {
-  id:            "singleton",
-  subtitle:      "Bencések útja 117/A, Miskolctapolca",
-  titleBefore:   "A tökéletes ",
-  titleEmphasis: "kikapcsolódás",
-  titleAfter:    "csak rád vár.",
-  description:   `Romantikus vendégház hatalmas kerttel és privát jacuzzival, Miskolctapolca csendes zsákutcájában. Csak ti vagytok az egész \u201Ebirtokon.\u201D`,
-  highlights:    [{ icon: "Waves", label: "Privát jacuzzi" }, { icon: "Home", label: "Csak ti vagytok" }],
-  slides:        [
-    { src: "/images/haz/IMG_8519 kicsi.jpg", alt: "Milán Kuckó – vendégház kívülről" },
-    { src: "/images/jacuzzi/jacuzzikivilag.jpg", alt: "Privát jacuzzi" },
-    { src: "/images/kert/kert.jpg", alt: "Hatalmas privát kert" },
-    { src: "", alt: "" },
-    { src: "", alt: "" },
-  ],
-};
+const DEFAULTS = { id: "singleton", ...HERO_DEFAULTS };
 
 export async function GET() {
   try {
