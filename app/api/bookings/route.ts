@@ -3,6 +3,7 @@ import { differenceInCalendarDays } from "date-fns";
 import { cookies } from "next/headers";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { getRuleForNight, getNightRateFromRule, TOURIST_TAX, CLEANING_FEE } from "@/lib/utils";
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
@@ -62,17 +63,10 @@ export async function POST(req: NextRequest) {
       guestEmail,
       guestPhone,
       guestAddress,
-      numberOfGuests,
       notes,
       checkIn,
       checkOut,
-      basePrice,
-      guestSurcharge,
-      cleaningFee,
-      touristTax,
-      totalPrice,
       extraServices,
-      extraServicesTotal,
     } = body;
 
     // Hossz- és típus-validáció
@@ -98,20 +92,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!body.numberOfAdults || Number(body.numberOfAdults) < 1) {
+    // Létszámok nem negatív egészre szorítva — negatív/tört szám nem csökkentheti az árat
+    const toCount = (v: unknown) => Math.max(0, Math.min(20, Math.floor(Number(v) || 0)));
+    const adults        = toCount(body.numberOfAdults);
+    const teens         = toCount(body.numberOfTeens);
+    const babies        = toCount(body.numberOfBabies);
+    const children2to6  = toCount(body.numberOfChildren2to6);
+    const children6to12 = toCount(body.numberOfChildren6to12);
+
+    if (adults < 1) {
       return NextResponse.json(
         { success: false, error: "Legalább 1 felnőtt szükséges!" },
         { status: 400 }
       );
     }
 
-    // Max. kapacitás ellenőrzés (babák nem számítanak)
-    const adults        = Number(body.numberOfAdults        ?? 0);
-    const teens         = Number(body.numberOfTeens         ?? 0);
-    const babies        = Number(body.numberOfBabies        ?? 0);
-    const children2to6  = Number(body.numberOfChildren2to6  ?? 0);
-    const children6to12 = Number(body.numberOfChildren6to12 ?? 0);
+    // Max. kapacitás ellenőrzés
     const paidGuests    = adults + teens + babies + children2to6 + children6to12;
+    const numberOfGuests = paidGuests;
     if (paidGuests > 4) {
       return NextResponse.json(
         { success: false, error: "Maximum 4 fő foglalható!" },
@@ -165,7 +163,15 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (conflict) {
+    // Admin által lezárt (vagy iCal-ból importált) időszakok
+    const blockedConflict = await prisma.blockedPeriod.findFirst({
+      where: {
+        dateFrom: { lt: checkOutDate },
+        dateTo:   { gt: checkInDate  },
+      },
+    });
+
+    if (conflict || blockedConflict) {
       return NextResponse.json(
         { success: false, error: "Ez az időszak már foglalt!" },
         { status: 409 }
@@ -206,12 +212,64 @@ export async function POST(req: NextRequest) {
     });
 
     const discountPercent = applicableDiscount?.discountPercent ?? 0;
-    const finalTotal      = Number(totalPrice); // frontend már levonja a kedvezményt
-    const discountAmount  = Number(body.discountAmount) || 0;
+
+    // ─── Szerver oldali árszámítás (a kliens által küldött árak nem megbízhatók) ───
+    // personCount: felnőtt + 12 év feletti (a kisebb gyerekek külön gyerekárral)
+    const personCount = adults + teens;
+    let basePrice = 0;
+    const cur2 = new Date(checkInDate);
+    while (cur2 < checkOutDate) {
+      const rule = getRuleForNight(cur2, allRules);
+      if (rule) basePrice += getNightRateFromRule(rule, cur2, personCount);
+      cur2.setDate(cur2.getDate() + 1);
+    }
+    const checkInRule        = getRuleForNight(checkInDate, allRules);
+    const childPrice2to6     = checkInRule?.childPrice2to6  ?? 0;
+    const childPrice6to12    = checkInRule?.childPrice6to12 ?? 0;
+    const accommodationTotal = basePrice
+      + childPrice2to6  * children2to6  * nights
+      + childPrice6to12 * children6to12 * nights;
+    const touristTax = adults * nights * TOURIST_TAX;
+
+    // Kedvezmény csak a szállásdíjra (IFA és extrák nélkül)
+    const discountAmount = discountPercent > 0 ? Math.round(accommodationTotal * discountPercent / 100) : 0;
+
+    // Extra szolgáltatások validálása az adatbázis alapján
+    const requestedServiceIds = Array.isArray(extraServices)
+      ? extraServices.map((s: any) => s?.id).filter((id: any) => typeof id === "string")
+      : [];
+    const dbServices = requestedServiceIds.length > 0
+      ? await prisma.extraService.findMany({ where: { id: { in: requestedServiceIds }, isActive: true } })
+      : [];
+    let extraServicesTotal = 0;
+    const seenServiceIds = new Set<string>();
+    const validatedExtraServices = (Array.isArray(extraServices) ? extraServices : [])
+      .map((sel: any) => {
+        const dbSvc = dbServices.find((s) => s.id === sel?.id);
+        if (!dbSvc || dbSvc.price == null || seenServiceIds.has(dbSvc.id)) return null;
+        seenServiceIds.add(dbSvc.id);
+        const quantity  = Math.max(1, Math.min(20, Math.round(Number(sel.quantity)) || 1));
+        // PER_NIGHT: a vendég 1..foglalt éj között választhat
+        const svcNights = dbSvc.pricingType === "PER_NIGHT"
+          ? Math.max(1, Math.min(nights, Math.round(Number(sel.nights)) || nights))
+          : 1;
+        const total = dbSvc.price * quantity * svcNights;
+        extraServicesTotal += total;
+        return { id: dbSvc.id, name: dbSvc.name, pricingType: dbSvc.pricingType, price: dbSvc.price, quantity, nights: svcNights, total };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+
+    const finalTotal = Math.round(accommodationTotal + touristTax - discountAmount + extraServicesTotal);
+    if (!finalTotal || finalTotal <= 0) {
+      return NextResponse.json(
+        { success: false, error: "Érvénytelen ár" },
+        { status: 400 }
+      );
+    }
 
     const depositPercent  = (applicableRule as any)?.policy?.depositPercent ?? 30;
     const freeCancelDays  = (applicableRule as any)?.policy?.freeCancelDays ?? 11;
-    const depositAmount  = Math.round((finalTotal - Number(touristTax)) * depositPercent / 100);
+    const depositAmount  = Math.round((finalTotal - touristTax) * depositPercent / 100);
 
     // Foglalás ID
     const bookingRef = "MK-" + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -224,28 +282,28 @@ export async function POST(req: NextRequest) {
         guestEmail,
         guestPhone,
         guestAddress: guestAddress || null,
-        numberOfGuests:        Number(numberOfGuests)              || 2,
-        numberOfAdults:        Number(body.numberOfAdults)        || 2,
-        numberOfTeens:         Number(body.numberOfTeens)         || 0,
-        numberOfBabies:        Number(body.numberOfBabies)        || 0,
-        numberOfChildren2to6:  Number(body.numberOfChildren2to6)  || 0,
-        numberOfChildren6to12: Number(body.numberOfChildren6to12) || 0,
+        numberOfGuests,
+        numberOfAdults:        adults,
+        numberOfTeens:         teens,
+        numberOfBabies:        babies,
+        numberOfChildren2to6:  children2to6,
+        numberOfChildren6to12: children6to12,
         notes: notes || null,
         checkIn: checkInDate,
         checkOut: checkOutDate,
         nights,
-        basePrice: Number(basePrice),
-        childPrice2to6: Number(body.childPrice2to6) || 0,
-        childPrice6to12: Number(body.childPrice6to12) || 0,
-        guestSurcharge: Number(guestSurcharge) || 0,
-        cleaningFee:    Number(cleaningFee)    || 0,
-        touristTax:     Number(touristTax)     || 0,
+        basePrice,
+        childPrice2to6,
+        childPrice6to12,
+        guestSurcharge: 0,
+        cleaningFee:    CLEANING_FEE,
+        touristTax,
         totalPrice: finalTotal,
         discountPercent,
         discountAmount,
         depositAmount,
-        extraServices:     extraServices     ?? null,
-        extraServicesTotal: Number(extraServicesTotal) || 0,
+        extraServices:     validatedExtraServices.length > 0 ? validatedExtraServices : undefined,
+        extraServicesTotal,
         paymentMethod:     body.paymentMethod ?? null,
         status: "PENDING",
       },
@@ -262,27 +320,25 @@ export async function POST(req: NextRequest) {
         checkIn,
         checkOut,
         nights,
-        guests: Number(numberOfGuests),
+        guests: numberOfGuests,
         numberOfAdults: adults,
         totalPrice: finalTotal,
         bookingId: bookingRef,
         notes,
-        basePrice: Number(basePrice),
-        touristTax: Number(touristTax),
+        basePrice,
+        touristTax,
         depositAmount,
         depositPercent,
         freeCancelDays,
-        extraServices: Array.isArray(extraServices)
-          ? extraServices.map((s: any) => ({
-              name:        String(s.name ?? ""),
-              total:       Number(s.total ?? 0),
-              quantity:    s.quantity != null ? Number(s.quantity) : undefined,
-              nights:      s.nights   != null ? Number(s.nights)   : undefined,
-              price:       s.price    != null ? Number(s.price)    : undefined,
-              pricingType: s.pricingType ?? undefined,
-            }))
-          : [],
-        extraServicesTotal: Number(extraServicesTotal) || 0,
+        extraServices: validatedExtraServices.map((s) => ({
+          name:        s.name,
+          total:       s.total,
+          quantity:    s.quantity,
+          nights:      s.nights,
+          price:       s.price,
+          pricingType: s.pricingType,
+        })),
+        extraServicesTotal,
         paymentMethod: body.paymentMethod ?? null,
         discountPercent,
         discountAmount,
@@ -290,8 +346,8 @@ export async function POST(req: NextRequest) {
         numberOfBabies:        babies,
         numberOfChildren2to6:  children2to6,
         numberOfChildren6to12: children6to12,
-        childPrice2to6:        Number(body.childPrice2to6)  || 0,
-        childPrice6to12:       Number(body.childPrice6to12) || 0,
+        childPrice2to6,
+        childPrice6to12,
       });
     } catch (emailErr) {
       console.error("Email hiba (foglalás mentve):", emailErr);
