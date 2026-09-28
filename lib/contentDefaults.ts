@@ -11,9 +11,9 @@ export const HERO_DEFAULTS = {
     { icon: "Home",  label: "Csak ti vagytok" },
   ] as { icon: string; label: string }[],
   slides: [
-    { src: "/images/haz/IMG_8519 kicsi.jpg",     alt: "Milán Kuckó – vendégház kívülről" },
-    { src: "/images/jacuzzi/jacuzzikivilag.jpg", alt: "Privát jacuzzi"                   },
-    { src: "/images/kert/kert.jpg",              alt: "Hatalmas privát kert"             },
+    { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/665c23c9011f9664d8da2570.jpg",     alt: "Milán Kuckó – vendégház kívülről" },
+    { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/3d02987efa420e11ea230944.jpg", alt: "Privát jacuzzi"                   },
+    { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/6461d103f066a7d7453a8f00.jpg",              alt: "Hatalmas privát kert"             },
   ] as { src: string; alt: string }[],
 };
 
@@ -22,8 +22,8 @@ export const ABOUT_DEFAULTS = {
   heading2:     "ahol az idő megáll.",
   description1: "A Milán Kuckó egy romantikus, gondosan berendezett vendégház Miskolctapolca csendes zsákutcájában – maximum 4 fő részére. Hatalmas kert, privát jacuzzi, kandalló és ajándék bor vár minden érkezőt.",
   description2: "Csak ti vagytok az egész „birtokon” – nincs más vendég, nincs zaj. Ugyanakkor Magyarország egyik legkedveltebb üdülőhelyén, a Bükk lábán rengeteg program vár a közelben.",
-  mainImage:    { src: "/images/haz/Milán Kuckó vendégház kis.jpg", alt: "Milán Kuckó – vendégház kívülről" },
-  floatImage:   { src: "/images/belso/fürdő.jpg", alt: "Jacuzzi este" },
+  mainImage:    { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/53432e3f48ec9f9dfeb62c66.jpg", alt: "Milán Kuckó – vendégház kívülről" },
+  floatImage:   { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/6af320e1373873e865bc6a13.jpg", alt: "Jacuzzi este" },
   values: [
     { icon: "MapPin", title: "Zsákutcai csend", text: "Miskolctapolca csendes sarkában, zsákutcában – mégis mindenhez közel. Az Ellipsum, Barlangfürdő csak 1 km-re!" },
     { icon: "Users",  title: "Csak ti vagytok", text: "Az egész kuckót kizárólag nektek tartjuk fenn. Nincs más vendég – teljes privát szféra, igazi intimszféra." },

@@ -10,12 +10,12 @@ import Link from "next/link";
 export interface FeaturedImage { src: string; alt: string; }
 
 const DEFAULT_FEATURED: FeaturedImage[] = [
-  { src: "/images/haz/IMG_8537 kicsi.jpg",  alt: "Kuck\u00F3 k\u00FCls\u0151" },
-  { src: "/images/jacuzzi/jacuzzi.jpg",      alt: "Jacuzzi"                   },
-  { src: "/images/belso/nappali.jpg",        alt: "Nappali"                   },
-  { src: "/images/belso/haloszoba.jpg",      alt: "H\u00E1l\u00F3szoba"       },
-  { src: "/images/belso/konyha.jpg",         alt: "Konyha"                    },
-  { src: "/images/belso/f\u00FCrd\u0151.jpg", alt: "F\u00FCrd\u0151"          },
+  { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/84109780a14e15320d471707.jpg",  alt: "Kuck\u00F3 k\u00FCls\u0151" },
+  { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/1d8393e59f7cf1e1360a0b52.jpg",      alt: "Jacuzzi"                   },
+  { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/b34a71d4f4629640ac9f3f64.jpg",        alt: "Nappali"                   },
+  { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/fbc5be93c7acfd4a253099bd.jpg",      alt: "H\u00E1l\u00F3szoba"       },
+  { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/396b5f78cffb11612963a3a3.jpg",         alt: "Konyha"                    },
+  { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/6af320e1373873e865bc6a13.jpg", alt: "F\u00FCrd\u0151"          },
 ];
 
 export default function GallerySection({ featured = DEFAULT_FEATURED }: { featured?: FeaturedImage[] }) {
