@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { differenceInCalendarDays, format } from "date-fns";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
-
-async function isAuthed(): Promise<boolean> {
-  const store         = await cookies();
-  const token         = store.get("admin_token")?.value;
-  const expectedToken = process.env.ADMIN_SESSION_TOKEN;
-  return !!token && !!expectedToken && token === expectedToken;
-}
+import { isAdminAuthed } from "@/lib/adminAuth";
 
 // ─── GET – egy foglalás adatai ───────────────────────────────
 export async function GET(
@@ -16,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  if (!(await isAuthed())) {
+  if (!(await isAdminAuthed())) {
     return NextResponse.json({ success: false, error: "Nincs jogosultság" }, { status: 401 });
   }
   try {
@@ -36,7 +29,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  if (!(await isAuthed())) {
+  if (!(await isAdminAuthed())) {
     return NextResponse.json({ success: false, error: "Nincs jogosultság" }, { status: 401 });
   }
   try {
@@ -152,7 +145,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  if (!(await isAuthed())) {
+  if (!(await isAdminAuthed())) {
     return NextResponse.json({ success: false, error: "Nincs jogosultság" }, { status: 401 });
   }
   try {

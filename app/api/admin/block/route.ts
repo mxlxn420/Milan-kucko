@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   const blocked = await prisma.blockedPeriod.findMany({ orderBy: { dateFrom: "asc" } });
   return NextResponse.json({
     success: true,
@@ -14,6 +18,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const body = await req.json();
     const { dateFrom, dateTo } = body;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/adminAuth";
 
 const DEFAULT_FEATURED = [
   { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/84109780a14e15320d471707.jpg",   alt: "Kuck\u00F3 k\u00FCls\u0151"    },
@@ -11,6 +12,9 @@ const DEFAULT_FEATURED = [
 ];
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const row = await prisma.galleryContent.findUnique({ where: { id: "singleton" } });
     return NextResponse.json({
@@ -26,6 +30,9 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const body = await req.json();
     const { featured, categories } = body;

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { HERO_DEFAULTS } from "@/lib/contentDefaults";
+import { requireAdmin } from "@/lib/adminAuth";
 
 const DEFAULTS = { id: "singleton", ...HERO_DEFAULTS };
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const hero = await prisma.heroContent.findUnique({ where: { id: "singleton" } });
     return NextResponse.json({ success: true, data: hero ?? DEFAULTS });
@@ -14,6 +18,9 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const body = await req.json();
     const { subtitle, titleBefore, titleEmphasis, titleAfter, description, highlights, slides } = body;

@@ -1,14 +1,7 @@
 import { NextResponse }  from "next/server";
-import { cookies }       from "next/headers";
 import { createClient }  from "@supabase/supabase-js";
 import { randomBytes }   from "crypto";
-
-async function isAuthed() {
-  const store         = await cookies();
-  const token         = store.get("admin_token")?.value;
-  const expectedToken = process.env.ADMIN_SESSION_TOKEN;
-  return !!token && !!expectedToken && token === expectedToken;
-}
+import { isAdminAuthed } from "@/lib/adminAuth";
 
 function detectImageType(buf: Buffer): string | null {
   if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) return "image/jpeg";
@@ -32,7 +25,7 @@ function getSupabase() {
 }
 
 export async function POST(req: Request) {
-  if (!(await isAuthed())) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminAuthed())) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const bucket = searchParams.get("bucket") ?? "extra-services";

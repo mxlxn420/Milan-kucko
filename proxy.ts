@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ADMIN_COOKIE, isValidAdminToken } from "@/lib/adminAuth";
 
 export function proxy(req: NextRequest) {
-  const token         = req.cookies.get("admin_token")?.value;
-  const expectedToken = process.env.ADMIN_SESSION_TOKEN;
-
-  if (!token || !expectedToken || token !== expectedToken) {
+  if (!isValidAdminToken(req.cookies.get(ADMIN_COOKIE)?.value)) {
     return NextResponse.json(
       { success: false, error: "Nincs jogosultság" },
       { status: 401 }

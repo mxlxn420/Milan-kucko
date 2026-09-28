@@ -1,14 +1,7 @@
 import { NextResponse }  from "next/server";
-import { cookies }       from "next/headers";
 import { prisma }        from "@/lib/prisma";
 import { createClient }  from "@supabase/supabase-js";
-
-async function isAuthed() {
-  const store         = await cookies();
-  const token         = store.get("admin_token")?.value;
-  const expectedToken = process.env.ADMIN_SESSION_TOKEN;
-  return !!token && !!expectedToken && token === expectedToken;
-}
+import { isAdminAuthed } from "@/lib/adminAuth";
 
 const BUCKET = "extra-services";
 
@@ -20,7 +13,7 @@ function getSupabase() {
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed())) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminAuthed())) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
   const { name, description, pricingType, price, imageUrl, isActive } = await req.json();
@@ -43,7 +36,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed())) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminAuthed())) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
 

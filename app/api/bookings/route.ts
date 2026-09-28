@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { differenceInCalendarDays } from "date-fns";
-import { cookies } from "next/headers";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { getRuleForNight, getNightRateFromRule, TOURIST_TAX, CLEANING_FEE } from "@/lib/utils";
+import { isAdminAuthed } from "@/lib/adminAuth";
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
@@ -17,16 +17,9 @@ async function getPrisma() {
   return prisma;
 }
 
-async function isAuthed(): Promise<boolean> {
-  const store         = await cookies();
-  const token         = store.get("admin_token")?.value;
-  const expectedToken = process.env.ADMIN_SESSION_TOKEN;
-  return !!token && !!expectedToken && token === expectedToken;
-}
-
 // ─── GET ────────────────────────────────────────────────────
 export async function GET() {
-  if (!(await isAuthed())) {
+  if (!(await isAdminAuthed())) {
     return NextResponse.json({ success: false, error: "Nincs jogosultság" }, { status: 401 });
   }
   try {

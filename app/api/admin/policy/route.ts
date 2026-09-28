@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const policies = await prisma.bookingPolicy.findMany({
       orderBy: { createdAt: "asc" },
@@ -13,6 +17,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const { name, depositPercent, freeCancelDays } = await req.json();
     if (!name) return NextResponse.json({ success: false, error: "Név megadása kötelező" }, { status: 400 });
