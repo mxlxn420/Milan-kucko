@@ -145,10 +145,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Ütközés ellenőrzés
+    // Ütközés ellenőrzés (a BLOCKED státuszú foglalás is foglaltnak számít, mint az /api/availability-ben)
     const conflict = await prisma.booking.findFirst({
       where: {
-        status: { in: ["PENDING", "CONFIRMED", "PAID"] },
+        status: { in: ["PENDING", "CONFIRMED", "PAID", "BLOCKED"] },
         AND: [
           { checkIn: { lt: checkOutDate } },
           { checkOut: { gt: checkInDate } },

@@ -92,6 +92,17 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: "Az időszak már foglalt." }, { status: 409 });
     }
 
+    // Lezárt (manuális vagy iCal-ból importált) időszakok
+    const blockedConflict = await prisma.blockedPeriod.findFirst({
+      where: {
+        dateFrom: { lt: co },
+        dateTo:   { gt: ci },
+      },
+    });
+    if (blockedConflict) {
+      return NextResponse.json({ success: false, error: "Az időszak le van zárva." }, { status: 409 });
+    }
+
     const adults       = Number(body.numberOfAdults)       || 0;
     const teens        = Number(body.numberOfTeens)         || 0;
     const babies       = Number(body.numberOfBabies)        || 0;
