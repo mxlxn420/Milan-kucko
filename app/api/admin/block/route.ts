@@ -37,8 +37,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Érvénytelen dátum" }, { status: 400 });
     }
 
-    if (to <= from) {
-      return NextResponse.json({ success: false, error: "A záró dátumnak a kezdő dátum után kell lennie" }, { status: 400 });
+    // A dateFrom…dateTo mindkét vége zárt nap, így egyetlen nap is lezárható (to == from)
+    if (to < from) {
+      return NextResponse.json({ success: false, error: "A záró dátum nem lehet a kezdő dátum előtt" }, { status: 400 });
     }
 
     const blocked = await prisma.blockedPeriod.create({

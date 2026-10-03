@@ -6,7 +6,7 @@ import { hu }        from "date-fns/locale";
 import { format }    from "date-fns";
 import { motion }    from "framer-motion";
 import { Plus, Trash2, X, RefreshCw } from "lucide-react";
-import { formatDateHu }    from "@/lib/utils";
+import { formatDateHu, closedDayKeys } from "@/lib/utils";
 import "react-day-picker/dist/style.css";
 
 interface BookingItem {
@@ -58,20 +58,18 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
     return days;
   });
 
-  // Blokkolt napok
-  const blockedDays = blocked.flatMap(({ dateFrom, dateTo }) => {
-    const days = [];
-    const cur  = new Date(dateFrom);
-    const end  = new Date(dateTo);
-    while (cur <= end) {
-      days.push(new Date(cur));
-      cur.setDate(cur.getDate() + 1);
-    }
-    return days;
-  });
+  // Blokkolt napok (mindkét vég zárt nap; napkulcsokon lépkedünk, így az
+  // óraátállítás nem csúsztatja el)
+  const blockedDays = blocked.flatMap(({ dateFrom, dateTo }) =>
+    closedDayKeys(dateFrom, dateTo).map((k) => {
+      const [y, m, d] = k.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    })
+  );
 
   const handleBlock = async () => {
-    if (!range.from || !range.to) return;
+    if (!range.from) return;
+    const to = range.to ?? range.from; // egy kattintás = egyetlen nap zárása
     setLoading(true);
     try {
       const res = await fetch("/api/admin/block", {
@@ -79,7 +77,7 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
           dateFrom: format(range.from, "yyyy-MM-dd"),
-          dateTo:   format(range.to,   "yyyy-MM-dd"),
+          dateTo:   format(to,         "yyyy-MM-dd"),
           reason:   reason || null,
         }),
       });

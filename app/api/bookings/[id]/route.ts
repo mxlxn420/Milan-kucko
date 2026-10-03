@@ -92,11 +92,13 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: "Az időszak már foglalt." }, { status: 409 });
     }
 
-    // Lezárt (manuális vagy iCal-ból importált) időszakok
+    // Lezárt (manuális vagy iCal-ból importált) időszakok —
+    // a dateTo is zárt nap (arra az éjszakára sem lehet foglalni). A ±12 óra a
+    // régi, 22:00 UTC-vel mentett rekordokat is helyesen kezeli.
     const blockedConflict = await prisma.blockedPeriod.findFirst({
       where: {
-        dateFrom: { lt: co },
-        dateTo:   { gt: ci },
+        dateFrom: { lt: new Date(co.getTime() - 12 * 3600 * 1000) },
+        dateTo:   { gt: new Date(ci.getTime() - 12 * 3600 * 1000) },
       },
     });
     if (blockedConflict) {
