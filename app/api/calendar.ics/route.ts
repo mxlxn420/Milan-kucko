@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { blockedDayKey, addDaysToKey } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -54,8 +55,9 @@ export async function GET() {
       "BEGIN:VEVENT",
       `UID:blocked-${p.id}@milankucko.hu`,
       `DTSTAMP:${now}`,
-      `DTSTART;VALUE=DATE:${formatIcalDate(p.dateFrom)}`,
-      `DTEND;VALUE=DATE:${formatIcalDate(p.dateTo)}`,
+      `DTSTART;VALUE=DATE:${blockedDayKey(p.dateFrom).replace(/-/g, "")}`,
+      // dateTo az utolsó zárt nap, az iCal DTEND kizáró → +1 nap
+      `DTEND;VALUE=DATE:${addDaysToKey(blockedDayKey(p.dateTo), 1).replace(/-/g, "")}`,
       `SUMMARY:${escapeIcal("Foglalt")}`,
       "END:VEVENT"
     );

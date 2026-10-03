@@ -156,11 +156,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Admin által lezárt (vagy iCal-ból importált) időszakok
+    // Admin által lezárt (vagy iCal-ból importált) időszakok —
+    // a dateTo is zárt nap (arra az éjszakára sem lehet foglalni). A ±12 óra a
+    // régi, 22:00 UTC-vel mentett rekordokat is helyesen kezeli.
     const blockedConflict = await prisma.blockedPeriod.findFirst({
       where: {
-        dateFrom: { lt: checkOutDate },
-        dateTo:   { gt: checkInDate  },
+        dateFrom: { lt: new Date(checkOutDate.getTime() - 12 * 3600 * 1000) },
+        dateTo:   { gt: new Date(checkInDate.getTime() - 12 * 3600 * 1000) },
       },
     });
 

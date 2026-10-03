@@ -9,7 +9,7 @@ import {
   Users, Baby, ArrowRight, AlertCircle,
   ChevronDown, ChevronUp, Loader2,
 } from "lucide-react";
-import { formatDateHu, formatCurrency, MAX_GUESTS } from "@/lib/utils";
+import { formatDateHu, formatCurrency, MAX_GUESTS, closedDayKeys } from "@/lib/utils";
 import { useBookingStore } from "@/store/bookingStore";
 import type { BookingData } from "./BookingPage";
 import "react-day-picker/dist/style.css";
@@ -113,6 +113,17 @@ function isRangeOverlapping(from: Date, to: Date, bookedRanges: BookedRange[]): 
   return bookedRanges.some((r) => f < startOfDay(r.to) && t > startOfDay(r.from));
 }
 
+// Lezárt napok: azokra az éjszakákra nem lehet foglalni (from ≤ éjszaka < to)
+function isRangeHittingClosed(from: Date, to: Date, closedDays: Set<string>): boolean {
+  const cur = startOfDay(from);
+  const end = startOfDay(to);
+  while (cur < end) {
+    if (closedDays.has(format(cur, "yyyy-MM-dd"))) return true;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return false;
+}
+
 function GuestCounter({
   label, sublabel, value, min = 0, atMax = false, onChange,
 }: {
@@ -172,6 +183,7 @@ export default function BookingCalendar({ onNext }: Props) {
   const [rules, setRules] = useState<PricingRule[]>([]);
   const [loadingRules, setLoadingRules] = useState(true);
   const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
+  const [closedDays, setClosedDays] = useState<Set<string>>(new Set());
   const [discount, setDiscount] = useState<{ name: string; discountPercent: number } | null>(null);
 
   useEffect(() => {
@@ -206,14 +218,15 @@ export default function BookingCalendar({ onNext }: Props) {
       .then((r) => r.json())
       .then((data) => {
         if (data.success) {
-          const ranges = [
-            ...data.data.bookings,
-            ...data.data.blocked,
-          ].map((b: any) => ({
+          setBookedRanges(data.data.bookings.map((b: any) => ({
             from: new Date(b.checkIn),
             to: new Date(b.checkOut),
-          }));
-          setBookedRanges(ranges);
+          })));
+          // Lezárt időszakok: mindkét végét beleértve zárt napok (mint az admin naptárban)
+          setClosedDays(new Set(
+            data.data.blocked.flatMap((b: { checkIn: string; checkOut: string }) =>
+              closedDayKeys(b.checkIn, b.checkOut))
+          ));
         }
       })
       .catch(console.error);
@@ -278,6 +291,11 @@ export default function BookingCalendar({ onNext }: Props) {
         setRange(undefined);
         return;
       }
+      if (isRangeHittingClosed(r.from, r.to, closedDays)) {
+        setError("Ebben az időszakban zárva vagyunk! Kérjük válasszon másik dátumot.");
+        setRange(undefined);
+        return;
+      }
     }
     setRange(r);
   };
@@ -302,6 +320,10 @@ export default function BookingCalendar({ onNext }: Props) {
     }
     if (isRangeOverlapping(checkIn, checkOut, bookedRanges)) {
       setError("Ez az időszak már foglalt! Kérjük válasszon másik dátumot.");
+      return;
+    }
+    if (isRangeHittingClosed(checkIn, checkOut, closedDays)) {
+      setError("Ebben az időszakban zárva vagyunk! Kérjük válasszon másik dátumot.");
       return;
     }
     onNext({
@@ -350,6 +372,7 @@ export default function BookingCalendar({ onNext }: Props) {
             const advance = getApplicableRule(d, rules)?.minAdvanceDays ?? 2;
             const earliest = startOfDay(addDays(new Date(), advance));
             if (d < earliest || d > latest) return true;
+            if (closedDays.has(format(d, "yyyy-MM-dd"))) return true;
             return bookedRanges.some((r) => d > startOfDay(r.from) && d < startOfDay(r.to));
           }}
           modifiers={{
@@ -372,8 +395,18 @@ export default function BookingCalendar({ onNext }: Props) {
               const earliest = startOfDay(addDays(new Date(), advance));
               return d >= startOfDay(new Date()) && d < earliest;
             },
+            // Utolsó, hogy felülírja a foglalások félnapos színezését
+            closed: (day) => closedDays.has(format(day, "yyyy-MM-dd")),
           }}
           modifiersStyles={{
+            closed: {
+              backgroundColor: "#f5e6d8",
+              backgroundImage: "none",
+              color: "#a86435",
+              textDecoration: "line-through",
+              cursor: "not-allowed",
+              opacity: 1,
+            },
             booked: {
               backgroundColor: "#f5e6d8",
               color: "#a86435",

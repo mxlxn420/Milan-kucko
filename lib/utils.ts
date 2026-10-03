@@ -13,6 +13,36 @@ function toDateStr(d: Date | string): string {
   return format(typeof d === "string" ? new Date(d) : d, "yyyy-MM-dd");
 }
 
+// ── Lezárt napok (BlockedPeriod) ─────────────────────────────────
+// A BlockedPeriod dateFrom…dateTo MINDKÉT végét beleértve zárt napokat jelent
+// (21–22. zárás = 21. és 22. is zárva, azokra az éjszakákra nem lehet foglalni).
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Tárolt dátumból (UTC éjfél vagy 22:00 UTC) időzónától független yyyy-MM-dd nap. */
+export function blockedDayKey(d: Date | string): string {
+  const t = (typeof d === "string" ? new Date(d) : d).getTime();
+  return new Date(t + 12 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+/** yyyy-MM-dd napkulcs eltolása n nappal (UTC-ben, óraátállítástól függetlenül). */
+export function addDaysToKey(key: string, n: number): string {
+  return new Date(Date.parse(`${key}T00:00:00Z`) + n * DAY_MS).toISOString().slice(0, 10);
+}
+
+/** Egy zárt időszak összes napja yyyy-MM-dd formában, mindkét végét beleértve. */
+export function closedDayKeys(dateFrom: Date | string, dateTo: Date | string): string[] {
+  const keys: string[] = [];
+  const last = blockedDayKey(dateTo);
+  for (let k = blockedDayKey(dateFrom); k <= last; k = addDaysToKey(k, 1)) keys.push(k);
+  return keys;
+}
+
+/** yyyy-MM-dd napkulcsból UTC éjfél Date (adatbázisba / összehasonlításhoz). */
+export function keyToUtcDate(key: string): Date {
+  return new Date(`${key}T00:00:00Z`);
+}
+
 export function getApplicablePricingRule(
   checkIn: Date,
   checkOut: Date,

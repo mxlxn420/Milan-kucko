@@ -27,7 +27,7 @@ function parseIcal(text: string): { start: Date; end: Date; summary: string }[] 
     if (!startMatch || !endMatch) continue;
 
     const start = parseIcalDate(startMatch[1]);
-    // iCal-ban a DTEND kizáró (a kivétel napja = checkout) — azt is blokkoljuk
+    // iCal-ban a DTEND kizáró (a távozás napja = checkout, az már szabad)
     const end   = parseIcalDate(endMatch[1]);
 
     if (end <= start) continue; // üres esemény kihagyva
@@ -71,9 +71,11 @@ export async function syncIcalFeeds(): Promise<SyncResult[]> {
       // Új rekordok létrehozása
       if (events.length > 0) {
         await prisma.blockedPeriod.createMany({
+          // A BlockedPeriod dateTo-ja az utolsó ZÁRT nap (mindkét vég beleértve),
+          // az iCal DTEND viszont kizáró (távozási nap) → egy nappal korábbi
           data: events.map((e) => ({
             dateFrom: e.start,
-            dateTo:   e.end,
+            dateTo:   new Date(e.end.getTime() - 24 * 60 * 60 * 1000),
             reason:   `[${label}] ${e.summary}`,
           })),
         });
