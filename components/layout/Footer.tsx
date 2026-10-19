@@ -116,6 +116,16 @@ export default function Footer() {
       <div className="border-t border-cream/10">
         <div className="container-custom py-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-cream/40">
           <p>© {new Date().getFullYear()} Milán Kuckó – Minden jog fenntartva.</p>
+          <p>
+            Készítette:{" "}
+            <a href="https://martismilan.hu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cream/60 hover:text-cream transition-colors"
+            >
+              Martis Milán
+            </a>
+          </p>
           <div className="flex gap-6">
             <Link href="/adatvedelem" className="hover:text-cream/70 transition-colors">Adatvédelem</Link>
             <Link href="/aszf" className="hover:text-cream/70 transition-colors">ÁSZF</Link>
