@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/adminAuth";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 export async function PATCH(
   req: NextRequest,
@@ -64,6 +65,7 @@ export async function PATCH(
     });
 
 
+    revalidatePublicPages();
     return NextResponse.json({
       success: true,
       data: {
@@ -98,6 +100,7 @@ export async function DELETE(
   const { id } = await params;
   try {
     await prisma.pricingRule.delete({ where: { id } });
+    revalidatePublicPages();
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json(

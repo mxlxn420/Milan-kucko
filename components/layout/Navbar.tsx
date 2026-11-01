@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Menu, X, Calendar } from "lucide-react";
 
 const NAV_LINKS = [
@@ -40,7 +40,7 @@ export default function Navbar() {
 
   return (
     <>
-      <motion.header
+      <m.header
         className="fixed top-0 left-0 right-0 z-50 border-b"
         animate={isScrolled || !isHeroPage
           ? { backgroundColor: "rgba(26,58,42,0.97)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }
@@ -93,31 +93,31 @@ export default function Navbar() {
           >
             <AnimatePresence mode="wait" initial={false}>
               {mobileOpen ? (
-                <motion.span key="x"
+                <m.span key="x"
                   initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }}
                   exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}
-                ><X size={22} /></motion.span>
+                ><X size={22} /></m.span>
               ) : (
-                <motion.span key="menu"
+                <m.span key="menu"
                   initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }}
                   exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}
-                ><Menu size={22} /></motion.span>
+                ><Menu size={22} /></m.span>
               )}
             </AnimatePresence>
           </button>
         </div>
-      </motion.header>
+      </m.header>
 
       {/* Mobil overlay */}
       <AnimatePresence>
         {mobileOpen && (
           <>
-            <motion.div
+            <m.div
               className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setMobileOpen(false)}
             />
-            <motion.div
+            <m.div
               className="fixed top-0 right-0 bottom-0 z-50 w-[280px] bg-forest-900 lg:hidden flex flex-col"
               initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
@@ -130,7 +130,7 @@ export default function Navbar() {
               </div>
               <nav className="flex-1 flex flex-col justify-center px-6 gap-1">
                 {NAV_LINKS.map((link, i) => (
-                  <motion.div key={link.href}
+                  <m.div key={link.href}
                     initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.06, duration: 0.35 }}
                   >
@@ -140,7 +140,7 @@ export default function Navbar() {
                     >
                       {link.label}
                     </Link>
-                  </motion.div>
+                  </m.div>
                 ))}
               </nav>
               <div className="px-6 pb-8">
@@ -151,7 +151,7 @@ export default function Navbar() {
                   Foglalás indítása
                 </Link>
               </div>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>

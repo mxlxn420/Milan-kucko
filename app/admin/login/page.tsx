@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Lock, Eye, EyeOff } from "lucide-react";
 
 export default function AdminLogin() {
@@ -40,7 +40,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-forest-900 flex items-center justify-center p-4 -m-4 md:-m-8">
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-3xl shadow-luxury p-10 w-full max-w-md"
@@ -86,7 +86,7 @@ export default function AdminLogin() {
             {loading ? "Belépés..." : "Belépés"}
           </button>
         </form>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

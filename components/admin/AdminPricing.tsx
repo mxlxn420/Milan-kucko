@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Star, Pencil, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
@@ -301,7 +301,7 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
         </div>
       ) : (
         seasonRules.map((rule) => (
-          <motion.div key={rule.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <m.div key={rule.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <AnimatePresence mode="wait">
               {editingId === rule.id && editRule ? (
                 <SeasonForm
@@ -322,7 +322,7 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
                   policies={policies}
                 />
               ) : (
-                <motion.div
+                <m.div
                   key="card"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -387,7 +387,7 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
                   {/* Lenyitható részletek */}
                   <AnimatePresence>
                     {openCards.has(rule.id) && (
-                      <motion.div
+                      <m.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -438,13 +438,13 @@ export default function AdminPricing({ rules: initialRules, policies }: Props) {
                             <Trash2 size={12} /> Törlés
                           </button>
                         </div>
-                      </motion.div>
+                      </m.div>
                     )}
                   </AnimatePresence>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
-          </motion.div>
+          </m.div>
         ))
       )}
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { CheckCircle, Calendar, Users, ArrowLeft } from "lucide-react";
 import { formatDateHu, formatCurrency } from "@/lib/utils";
 import type { BookingData } from "./BookingPage";
@@ -13,21 +13,21 @@ interface Props {
 
 export default function BookingSuccess({ bookingData, bookingId }: Props) {
   return (
-    <motion.div
+    <m.div
       className="max-w-xl mx-auto text-center"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
       {/* Ikon */}
-      <motion.div
+      <m.div
         className="w-20 h-20 rounded-full bg-forest-900 flex items-center justify-center mx-auto mb-6"
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
       >
         <CheckCircle size={36} className="text-cream" />
-      </motion.div>
+      </m.div>
 
       <h2 className="font-serif text-display-md font-light text-forest-900 mb-3">
         Foglalás elküldve!
@@ -80,6 +80,6 @@ export default function BookingSuccess({ bookingData, bookingId }: Props) {
       <Link href="/" className="btn-secondary inline-flex items-center gap-2">
         <ArrowLeft size={15} /> Vissza a főoldalra
       </Link>
-    </motion.div>
+    </m.div>
   );
 }

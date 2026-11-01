@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ABOUT_DEFAULTS } from "@/lib/contentDefaults";
 import { requireAdmin } from "@/lib/adminAuth";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 const DEFAULTS = { id: "singleton", ...ABOUT_DEFAULTS };
 
@@ -35,6 +36,7 @@ export async function PATCH(req: NextRequest) {
       create: { id: "singleton", heading1, heading2, description1, description2, mainImage, floatImage, values, nearby },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, data: about });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error?.message }, { status: 500 });

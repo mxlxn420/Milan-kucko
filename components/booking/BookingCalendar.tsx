@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { DayPicker, DateRange } from "react-day-picker";
 import { differenceInCalendarDays, getDay, startOfDay, addDays, format } from "date-fns";
 import { hu } from "date-fns/locale";
@@ -493,7 +493,7 @@ export default function BookingCalendar({ onNext }: Props) {
           </button>
 
           {showChildren && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               className="border-t border-stone-100 pt-2 overflow-hidden"
@@ -535,7 +535,7 @@ export default function BookingCalendar({ onNext }: Props) {
                 atMax={totalGuests >= MAX_GUESTS}
                 onChange={setTeens}
               />
-            </motion.div>
+            </m.div>
           )}
 
           <div className="mt-3 pt-3 border-t border-stone-100 space-y-1">
@@ -687,14 +687,14 @@ export default function BookingCalendar({ onNext }: Props) {
         </div>
 
         {error && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-2 bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100"
           >
             <AlertCircle size={15} className="shrink-0" />
             {error}
-          </motion.div>
+          </m.div>
         )}
 
         <button

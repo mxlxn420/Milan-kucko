@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { m, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import BookingWidget from "@/components/booking/BookingWidget";
 import { ICON_MAP } from "@/lib/icons";
@@ -31,6 +31,10 @@ interface Props {
   data: HeroData;
 }
 
+// .hero-in CSS-animáció paraméterei: eltolás (px), időtartam és késleltetés (s)
+const heroIn = (y: number, duration: number, delay: number) =>
+  ({ "--hero-y": `${y}px`, "--hero-dur": `${duration}s`, "--hero-delay": `${delay}s` }) as React.CSSProperties;
+
 export default function HeroSection({ data }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
@@ -54,7 +58,7 @@ export default function HeroSection({ data }: Props) {
 
       {/* Slideshow */}
       <AnimatePresence initial={false}>
-        <motion.div
+        <m.div
           key={current}
           className="absolute inset-0"
           initial={{ opacity: 0, scale: 1.05 }}
@@ -68,17 +72,17 @@ export default function HeroSection({ data }: Props) {
               alt={slides[current].alt}
               fill
               priority
-              quality={85}
+              quality={75}
               sizes="100vw"
               className="object-cover object-center"
             />
           )}
           <div className="absolute inset-0 bg-hero-overlay" />
-        </motion.div>
+        </m.div>
       </AnimatePresence>
 
       {/* Tartalom – a szekció inkább megnő, mint hogy a navbar alá csússzon vagy levágódjon */}
-      <motion.div
+      <m.div
         className="relative z-10 flex-1 flex flex-col justify-start lg:justify-center pt-[calc(var(--navbar-h)+1.5rem)] pb-28 short:pb-24"
         style={{ y: textY, opacity }}
       >
@@ -86,40 +90,37 @@ export default function HeroSection({ data }: Props) {
           {/* text-shadow az egész szövegblokkra öröklődik */}
           <div className="max-w-4xl [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]">
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.1 }}
-              className="flex items-center gap-2.5 mb-6 short:mb-3"
+            {/* Belépő animációk CSS-sel (.hero-in), így a szöveg már a HTML-lel megjelenik, nem vár a JS-re */}
+            <div
+              className="hero-in flex items-center gap-2.5 mb-6 short:mb-3"
+              style={heroIn(20, 0.7, 0.1)}
             >
               <span className="h-px w-8 bg-white/50" />
               <span className="text-white text-xs font-medium tracking-[0.25em] uppercase">
                 {data.subtitle}
               </span>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.2 }}
-              className="font-serif text-display-hero font-light text-white mb-6 short:mb-3"
+            <h1
+              className="hero-in font-serif text-display-hero font-light text-white mb-6 short:mb-3"
+              style={heroIn(40, 0.9, 0.2)}
             >
               {data.titleBefore}
               <em className="italic text-white">{data.titleEmphasis}</em>
               <br />{data.titleAfter}
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.35 }}
-              className="text-white/90 text-lg short:text-base font-light leading-relaxed mb-8 short:mb-4 max-w-xl"
+            <p
+              className="hero-in text-white/90 text-lg short:text-base font-light leading-relaxed mb-8 short:mb-4 max-w-xl"
+              style={heroIn(30, 0.8, 0.35)}
             >
               {data.description}
-            </motion.p>
+            </p>
 
             {data.highlights.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.5 }}
-                className="flex flex-wrap gap-3 short:gap-2 mb-10 short:mb-2"
+              <div
+                className="hero-in flex flex-wrap gap-3 short:gap-2 mb-10 short:mb-2"
+                style={heroIn(20, 0.7, 0.5)}
               >
                 {data.highlights.map(({ icon, label }) => {
                   const Icon = ICON_MAP[icon];
@@ -130,21 +131,20 @@ export default function HeroSection({ data }: Props) {
                     </div>
                   );
                 })}
-              </motion.div>
+              </div>
             )}
 
           </div>
         </div>
 
         {/* Booking widget */}
-        <motion.div
-          className="container-custom w-full"
-          initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.6 }}
+        <div
+          className="hero-in container-custom w-full"
+          style={heroIn(50, 0.9, 0.6)}
         >
           <BookingWidget />
-        </motion.div>
-      </motion.div>
+        </div>
+      </m.div>
 
       {/* Slideshow pontok + Görgessen – EGYÜTT ALUL */}
       <div className="absolute bottom-6 short:bottom-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3">
@@ -167,9 +167,9 @@ export default function HeroSection({ data }: Props) {
         {/* Görgessen */}
         <div className="flex flex-col items-center gap-1 text-white/70 [text-shadow:0_1px_6px_rgba(0,0,0,0.6)]">
           <span className="text-[10px] tracking-[0.25em] uppercase">Görgessen</span>
-          <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1.8 }}>
+          <m.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1.8 }}>
             <ChevronDown size={18} />
-          </motion.div>
+          </m.div>
         </div>
 
       </div>

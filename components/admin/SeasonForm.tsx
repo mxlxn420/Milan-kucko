@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Save, Plus, X, Calendar, Star } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { format }    from "date-fns";
@@ -63,7 +63,7 @@ export default function SeasonForm({
     : existingRanges;
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
@@ -138,7 +138,7 @@ export default function SeasonForm({
 
           <AnimatePresence>
             {datePanel === `${panelPrefix}-from` && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
@@ -173,7 +173,7 @@ export default function SeasonForm({
                     disabled: { opacity: 0.3, cursor: "not-allowed" },
                   }}
                 />
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>
@@ -198,7 +198,7 @@ export default function SeasonForm({
 
           <AnimatePresence>
             {datePanel === `${panelPrefix}-to` && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
@@ -234,7 +234,7 @@ export default function SeasonForm({
                     disabled: { opacity: 0.3, cursor: "not-allowed" },
                   }}
                 />
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>
@@ -443,7 +443,7 @@ export default function SeasonForm({
 
         {/* Átfedés hiba */}
         {overlapError && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             className="md:col-span-2 flex items-start gap-2 bg-red-500/20 border border-red-400/30 text-red-200 text-sm px-4 py-3 rounded-xl"
@@ -453,7 +453,7 @@ export default function SeasonForm({
               Ez az időszak átfedi a(z) <strong>"{overlapError}"</strong> szezont!
               Jelöld be a <strong>Kiemelt</strong> opciót ha felül szeretnéd írni.
             </span>
-          </motion.div>
+          </m.div>
         )}
 
       </div>
@@ -475,6 +475,6 @@ export default function SeasonForm({
           {isSaving ? "Mentés..." : isNew ? "Szezon hozzáadása" : "Változások mentése"}
         </button>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

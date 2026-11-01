@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { m, useInView } from "framer-motion";
 
 interface Props {
   children: React.ReactNode;
@@ -32,7 +32,7 @@ export default function AnimatedSection({
                             { opacity: 1 };
 
   return (
-    <motion.div
+    <m.div
       ref={ref}
       className={className}
       initial={initial}
@@ -40,6 +40,6 @@ export default function AnimatedSection({
       transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

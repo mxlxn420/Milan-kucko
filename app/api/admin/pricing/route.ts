@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/adminAuth";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 export async function POST(req: NextRequest) {
   const denied = await requireAdmin();
@@ -76,6 +77,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({
       success: true,
       data: {

@@ -1,6 +1,8 @@
 import { prisma }        from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
+// Statikus, CDN-ről kiszolgált oldal: admin mentéskor revalidatePath frissíti,
+// óránként pedig magától is (a lejárt árszezonok miatt).
+export const revalidate = 3600;
 import HeroSection      from "@/components/sections/HeroSection";
 import AboutSection     from "@/components/sections/AboutSection";
 import AmenitiesSection from "@/components/sections/AmenitiesSection";
@@ -10,6 +12,24 @@ import ReviewsSection   from "@/components/sections/ReviewsSection";
 import FaqSection       from "@/components/sections/FaqSection";
 import ContactSection   from "@/components/sections/ContactSection";
 import { HERO_DEFAULTS, ABOUT_DEFAULTS, AMENITIES_DEFAULTS } from "@/lib/contentDefaults";
+import { FAQS }                 from "@/lib/faqs";
+import { pageMetadata, jsonLd } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title:       "Milán Kuckó | Prémium pihenés Miskolctapolcán",
+  description: "Romantikus vendégház privát jacuzzival és kandallóval Miskolctapolcán. Foglaljon közvetlenül – nincsenek extra díjak!",
+  path:        "/",
+});
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type":    "FAQPage",
+  mainEntity: FAQS.map(({ q, a }) => ({
+    "@type":        "Question",
+    name:           q,
+    acceptedAnswer: { "@type": "Answer", text: a },
+  })),
+};
 
 export default async function HomePage() {
   const [heroRow, aboutRow, amenitiesRow, galleryRow] = await Promise.all([
@@ -51,6 +71,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(faqJsonLd)} />
       <HeroSection data={heroData} />
       <AboutSection data={aboutData} />
       <AmenitiesSection data={amenitiesData} />

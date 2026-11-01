@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 import { Star } from "lucide-react";
 import { ICON_MAP } from "@/lib/icons";
@@ -37,7 +37,7 @@ export default function AmenitiesSection({ data }: { data: AmenitiesData }) {
           {data.items.map(({ icon, label, desc }, i) => {
             const Icon = ICON_MAP[icon] ?? Star;
             return (
-              <motion.div
+              <m.div
                 key={label + i}
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -51,7 +51,7 @@ export default function AmenitiesSection({ data }: { data: AmenitiesData }) {
                 </div>
                 <p className="text-cream font-medium text-sm mb-1">{label}</p>
                 <p className="text-cream/50 text-xs">{desc}</p>
-              </motion.div>
+              </m.div>
             );
           })}
         </div>

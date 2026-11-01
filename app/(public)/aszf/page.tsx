@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "ÁSZF – Milán Kuckó",
+export const metadata = pageMetadata({
+  title:       "ÁSZF",
   description: "Általános Szerződési Feltételek – Milán Kuckó vendégház, Miskolctapolca",
-};
+  path:        "/aszf",
+});
 
 export default function AszfPage() {
   return (

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 export interface GalleryImage {
@@ -525,7 +525,7 @@ export default function GaleriaPage({
               {/* Képrács – egyforma rács */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {cat.images.map((img, i) => (
-                  <motion.div
+                  <m.div
                     key={img.src}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -546,7 +546,7 @@ export default function GaleriaPage({
                         {img.alt}
                       </span>
                     </div>
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
             </section>
@@ -557,7 +557,7 @@ export default function GaleriaPage({
       {/* Lightbox */}
       <AnimatePresence>
         {lightbox !== null && (
-          <motion.div
+          <m.div
             className="fixed inset-0 z-50 bg-black/97 flex items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -611,7 +611,7 @@ export default function GaleriaPage({
             </button>
 
             {/* Kép */}
-            <motion.div
+            <m.div
               key={lightbox}
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -634,8 +634,8 @@ export default function GaleriaPage({
                   {lightbox + 1} / {ALL_IMAGES.length}
                 </p>
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

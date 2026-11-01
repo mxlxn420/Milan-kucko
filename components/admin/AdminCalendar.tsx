@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { DayPicker } from "react-day-picker";
 import { hu }        from "date-fns/locale";
 import { format }    from "date-fns";
-import { motion }    from "framer-motion";
+import { m }         from "framer-motion";
 import { Plus, Trash2, X, RefreshCw } from "lucide-react";
 import { formatDateHu, closedDayKeys } from "@/lib/utils";
 import "react-day-picker/dist/style.css";
@@ -188,7 +188,7 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
 
         {/* Blokkolás form */}
         {showForm && range.from && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white rounded-2xl shadow-card p-5"
@@ -219,7 +219,7 @@ export default function AdminCalendar({ bookings, blocked: initialBlocked }: Pro
               <Plus size={14} />
               {loading ? "Mentés..." : "Zárás"}
             </button>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Blokkolt időszakok listája */}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/adminAuth";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 const DEFAULT_FEATURED = [
   { src: "https://vofoqouomsbcnmqcecpp.supabase.co/storage/v1/object/public/gallery/84109780a14e15320d471707.jpg",   alt: "Kuck\u00F3 k\u00FCls\u0151"    },
@@ -68,6 +69,7 @@ export async function PATCH(req: NextRequest) {
       create: { id: "singleton", featured, categories },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, data: row });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error?.message }, { status: 500 });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { HERO_DEFAULTS } from "@/lib/contentDefaults";
 import { requireAdmin } from "@/lib/adminAuth";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 const DEFAULTS = { id: "singleton", ...HERO_DEFAULTS };
 
@@ -35,6 +36,7 @@ export async function PATCH(req: NextRequest) {
       create: { id: "singleton", subtitle, titleBefore, titleEmphasis, titleAfter, description, highlights, slides },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, data: hero });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error?.message }, { status: 500 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Pencil, Save, X, Tag, CalendarDays, Calendar } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { format, parseISO } from "date-fns";
@@ -143,7 +143,7 @@ export default function AdminDiscounts({ discounts: initial }: Props) {
 
       <AnimatePresence>
         {showNew && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -159,7 +159,7 @@ export default function AdminDiscounts({ discounts: initial }: Props) {
                 <Save size={13} /> {creating ? "Mentés..." : "Mentés"}
               </button>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -169,10 +169,10 @@ export default function AdminDiscounts({ discounts: initial }: Props) {
         </div>
       ) : (
         discounts.map((d) => (
-          <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <m.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <AnimatePresence mode="wait">
               {editingId === d.id && editForm ? (
-                <motion.div
+                <m.div
                   key="edit"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -189,9 +189,9 @@ export default function AdminDiscounts({ discounts: initial }: Props) {
                       <Save size={13} /> {saving === d.id ? "Mentés..." : "Mentés"}
                     </button>
                   </div>
-                </motion.div>
+                </m.div>
               ) : (
-                <motion.div
+                <m.div
                   key="card"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -249,10 +249,10 @@ export default function AdminDiscounts({ discounts: initial }: Props) {
                       </p>
                     )}
                   </div>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
-          </motion.div>
+          </m.div>
         ))
       )}
     </div>
@@ -299,7 +299,7 @@ function DatePickerField({
           <>
             {/* háttér overlay a bezáráshoz */}
             <div className="fixed inset-0" style={{ zIndex: 9998 }} onClick={() => setOpen(false)} />
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
@@ -331,7 +331,7 @@ function DatePickerField({
                   Törlés
                 </button>
               )}
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>

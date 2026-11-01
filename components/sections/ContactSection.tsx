@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { MapPin, Phone, Mail, Send } from "lucide-react";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
@@ -118,7 +118,7 @@ export default function ContactSection() {
 
           <AnimatedSection direction="right" delay={0.1}>
             {sent ? (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-forest-900 rounded-3xl p-10 text-center text-cream"
@@ -128,7 +128,7 @@ export default function ContactSection() {
                 </div>
                 <h3 className="font-serif text-2xl mb-3">Üzenet elküldve!</h3>
                 <p className="text-cream/60">Hamarosan felvesszük Önnel a kapcsolatot.</p>
-              </motion.div>
+              </m.div>
             ) : (
               <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-8 shadow-card space-y-5">
                 <div className="grid grid-cols-2 gap-4">
@@ -169,7 +169,7 @@ export default function ContactSection() {
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <motion.span
+                      <m.span
                         animate={{ rotate: 360 }}
                         transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
                         className="block w-4 h-4 border-2 border-white/30 border-t-white rounded-full"

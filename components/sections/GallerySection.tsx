@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 import Link from "next/link";
@@ -38,7 +38,7 @@ export default function GallerySection({ featured = DEFAULT_FEATURED }: { featur
         {/* Masonry rács – első kép mindig nagy */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 auto-rows-[220px]">
           {featured.map(({ src, alt }, i) => (
-            <motion.div
+            <m.div
               key={i}
               className={`relative overflow-hidden rounded-2xl cursor-pointer group ${i === 0 ? "col-span-2 row-span-2" : ""}`}
               initial={{ opacity: 0, scale: 0.96 }}
@@ -53,7 +53,7 @@ export default function GallerySection({ featured = DEFAULT_FEATURED }: { featur
                   {"Megn\u00E9zem"}
                 </span>
               </div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
 
@@ -67,7 +67,7 @@ export default function GallerySection({ featured = DEFAULT_FEATURED }: { featur
 
       {/* Lightbox */}
       {lightbox !== null && (
-        <motion.div
+        <m.div
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           onClick={() => setLightbox(null)}
@@ -87,7 +87,7 @@ export default function GallerySection({ featured = DEFAULT_FEATURED }: { featur
           <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-sm">
             {lightbox + 1} / {featured.length}
           </p>
-        </motion.div>
+        </m.div>
       )}
     </section>
   );

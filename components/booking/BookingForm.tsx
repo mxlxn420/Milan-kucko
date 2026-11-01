@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import Image from "next/image";
 import {
   ArrowLeft, ArrowRight, User, Mail, Phone, MessageSquare, MapPin,
@@ -475,7 +475,7 @@ export default function BookingForm({ bookingData, onBack, onSuccess }: Props) {
             <button type="submit" disabled={loading} className="btn-primary flex-1 justify-center">
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <motion.span
+                  <m.span
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
                     className="block w-4 h-4 border-2 border-white/30 border-t-white rounded-full"

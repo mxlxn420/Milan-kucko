@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Adatvédelmi tájékoztató – Milán Kuckó",
+export const metadata = pageMetadata({
+  title:       "Adatvédelmi tájékoztató",
   description: "Adatvédelmi tájékoztató – Milán Kuckó vendégház, Miskolctapolca",
-};
+  path:        "/adatvedelem",
+});
 
 export default function AdatvedelemPage() {
   return (

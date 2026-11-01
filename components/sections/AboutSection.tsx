@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 import { useState } from "react";
 import { Star, ChevronDown } from "lucide-react";
@@ -40,7 +40,7 @@ export default function AboutSection({ data }: { data: AboutData }) {
               />
             </div>
             {/* Lebegő kép */}
-            <motion.div
+            <m.div
               className="absolute -bottom-8 -right-4 w-44 h-52 rounded-2xl overflow-hidden shadow-luxury border-4 border-cream"
               initial={{ opacity: 0, scale: 0.8, rotate: 3 }}
               whileInView={{ opacity: 1, scale: 1, rotate: 3 }}
@@ -53,9 +53,9 @@ export default function AboutSection({ data }: { data: AboutData }) {
                 fill sizes="176px"
                 className="object-cover"
               />
-            </motion.div>
+            </m.div>
             {/* Értékelés badge */}
-            <motion.div
+            <m.div
               className="absolute -top-4 -left-4 bg-white rounded-2xl shadow-card px-5 py-4"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -71,7 +71,7 @@ export default function AboutSection({ data }: { data: AboutData }) {
               </div>
               <p className="text-xs font-medium text-stone-700"><strong>5.0 / 5.0</strong> – Kiváló</p>
               <p className="text-[10px] text-stone-400">Google értékelés</p>
-            </motion.div>
+            </m.div>
           </AnimatedSection>
 
           {/* Szöveg */}
@@ -82,22 +82,22 @@ export default function AboutSection({ data }: { data: AboutData }) {
               <em className="italic">{data.heading2}</em>
             </h2>
             <p className="text-stone-600 leading-relaxed mb-4">{data.description1}</p>
-            <motion.div
+            <m.div
               initial={false}
               animate={{ height: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
               style={{ overflow: "hidden" }}
             >
               <p className="text-stone-600 leading-relaxed mb-4">{data.description2}</p>
-            </motion.div>
+            </m.div>
             <button
               onClick={() => setExpanded(e => !e)}
               className="flex items-center gap-1.5 text-sm font-medium text-forest-700 hover:text-forest-900 transition-colors mb-8"
             >
               {expanded ? "Kevesebb" : "Bővebben"}
-              <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
+              <m.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
                 <ChevronDown size={15} />
-              </motion.span>
+              </m.span>
             </button>
 
             {/* Értékek */}
@@ -105,7 +105,7 @@ export default function AboutSection({ data }: { data: AboutData }) {
               {data.values.map(({ icon, title, text }, i) => {
                 const Icon = ICON_MAP[icon] ?? Star;
                 return (
-                  <motion.div
+                  <m.div
                     key={title + i}
                     className="flex items-start gap-4"
                     initial={{ opacity: 0, x: 20 }}
@@ -120,7 +120,7 @@ export default function AboutSection({ data }: { data: AboutData }) {
                       <p className="font-medium text-stone-800 mb-0.5">{title}</p>
                       <p className="text-sm text-stone-500 leading-relaxed">{text}</p>
                     </div>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>

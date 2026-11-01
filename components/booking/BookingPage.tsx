@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { useBookingStore } from "@/store/bookingStore";
 import BookingCalendar from "@/components/booking/BookingCalendar";
 import BookingForm     from "@/components/booking/BookingForm";
@@ -91,7 +91,7 @@ export default function BookingPage() {
         {/* Tartalom */}
         <AnimatePresence mode="wait">
           {step === "calendar" && (
-            <motion.div
+            <m.div
               key="calendar"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -105,11 +105,11 @@ export default function BookingPage() {
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               />
-            </motion.div>
+            </m.div>
           )}
 
           {step === "form" && bookingData && (
-            <motion.div
+            <m.div
               key="form"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -127,11 +127,11 @@ export default function BookingPage() {
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               />
-            </motion.div>
+            </m.div>
           )}
 
           {step === "success" && bookingData && (
-            <motion.div
+            <m.div
               key="success"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -141,7 +141,7 @@ export default function BookingPage() {
                 bookingData={bookingData}
                 bookingId={bookingId ?? ""}
               />
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 

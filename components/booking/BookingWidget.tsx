@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Calendar, Users, ArrowRight, ChevronDown } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { hu }     from "date-fns/locale";
@@ -242,14 +242,14 @@ export default function BookingWidget() {
 
         {/* CTA */}
         <div className="flex items-center px-4 py-4 short:py-3">
-          <motion.button
+          <m.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={handleBooking}
             className="w-full flex items-center justify-center gap-2 px-6 py-3.5 short:py-3 bg-forest-900 text-cream text-xs font-medium tracking-[0.15em] uppercase rounded-xl hover:bg-forest-700 transition-colors whitespace-nowrap"
           >
             Foglalás <ArrowRight size={14} />
-          </motion.button>
+          </m.button>
         </div>
 
       </div>
@@ -262,7 +262,7 @@ export default function BookingWidget() {
           )}
           <AnimatePresence>
             {(panel === "checkin" || panel === "checkout") && (
-              <motion.div
+              <m.div
                 key="calendar"
                 {...panelMotion}
                 style={panelStyle}
@@ -289,11 +289,11 @@ export default function BookingWidget() {
                     locale={hu}
                   />
                 </div>
-              </motion.div>
+              </m.div>
             )}
 
             {panel === "guests" && (
-              <motion.div
+              <m.div
                 key="guests"
                 {...panelMotion}
                 style={{ ...panelStyle, width: GUESTS_W }}
@@ -346,7 +346,7 @@ export default function BookingWidget() {
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </>,

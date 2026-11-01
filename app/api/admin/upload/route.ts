@@ -1,6 +1,7 @@
 import { NextResponse }  from "next/server";
 import { createClient }  from "@supabase/supabase-js";
 import { randomBytes }   from "crypto";
+import sharp             from "sharp";
 import { isAdminAuthed } from "@/lib/adminAuth";
 
 function detectImageType(buf: Buffer): string | null {
@@ -16,6 +17,18 @@ function detectImageType(buf: Buffer): string | null {
 const ALLOWED_TYPES  = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_SIZE_MB    = 20;
 const ALLOWED_BUCKETS = ["extra-services", "hero", "about", "gallery"];
+const MAX_DIMENSION  = 2560;
+
+// Feltöltéskor kicsinyítjük a képet (max. 2560 px), hogy ne több MB-os eredetiből
+// kelljen a Next képoptimalizálónak dolgoznia. A formátum megmarad (PNG átlátszóság miatt).
+async function shrinkImage(buf: Buffer, type: string): Promise<Buffer> {
+  const img = sharp(buf)
+    .rotate()
+    .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: "inside", withoutEnlargement: true });
+  if (type === "image/png")  return img.png({ compressionLevel: 9 }).toBuffer();
+  if (type === "image/webp") return img.webp({ quality: 85 }).toBuffer();
+  return img.jpeg({ quality: 85, mozjpeg: true }).toBuffer();
+}
 
 function getSupabase() {
   const url = process.env.SUPABASE_URL;
@@ -49,12 +62,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: "Érvénytelen képfájl (nem JPG, PNG vagy WebP)" }, { status: 400 });
   }
 
+  let upload: Buffer;
+  try {
+    upload = await shrinkImage(buffer, actualType);
+  } catch {
+    return NextResponse.json({ success: false, error: "A képet nem sikerült feldolgozni" }, { status: 400 });
+  }
+
   const ext      = actualType === "image/png" ? "png" : actualType === "image/webp" ? "webp" : "jpg";
   const filename = `${randomBytes(12).toString("hex")}.${ext}`;
 
   const supabase = getSupabase();
-  const { error } = await supabase.storage.from(bucket).upload(filename, buffer, {
-    contentType: file.type,
+  const { error } = await supabase.storage.from(bucket).upload(filename, upload, {
+    contentType: actualType,
     upsert:      false,
   });
 
