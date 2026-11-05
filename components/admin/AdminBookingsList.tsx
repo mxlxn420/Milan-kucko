@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { format, differenceInCalendarDays, getDay } from "date-fns";
 import { formatDateHu, formatCurrency, getApplicablePricingRule, getAdminNightBreakdown, getRuleForNight, getNightRateFromRule, CLEANING_FEE, TOURIST_TAX } from "@/lib/utils";
-import { Check, X, CreditCard, ChevronRight, Pencil, Trash2, RefreshCw, Plus, Minus, Moon, CalendarCheck } from "lucide-react";
+import Link from "next/link";
+import { Check, X, CreditCard, ChevronRight, Pencil, Trash2, RefreshCw, Plus, Minus, Moon, CalendarCheck, ArrowUp, ArrowDown } from "lucide-react";
+import { bookingListHref, toggleSort, type BookingListParams, type BookingSort } from "@/lib/bookingListParams";
 import type { Booking, BookingStatus, PricingRule } from "@/types";
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; color: string }> = {
@@ -44,6 +46,10 @@ interface EditForm {
 
 interface Props {
   bookings: Booking[];
+  /** Ha meg van adva, az Érkezés/Távozás fejléc rendező linkké válik (Foglalások oldal). */
+  sortParams?: BookingListParams;
+  /** Üres lista szövege; alapból "Még nincsenek foglalások." */
+  emptyMessage?: string;
 }
 
 function toDateInput(date: Date | string): string {
@@ -96,7 +102,7 @@ function calcPriceBreakdown(
   return { basePrice, childPrice2to6, childPrice6to12, guestSurcharge, cleaningFee, touristTax, totalPrice, depositAmount };
 }
 
-export default function AdminBookingsList({ bookings }: Props) {
+export default function AdminBookingsList({ bookings, sortParams, emptyMessage }: Props) {
   type ExtraSvc = NonNullable<Booking["extraServices"]>[number];
 
   const [list, setList]               = useState<Booking[]>(bookings);
@@ -123,6 +129,14 @@ export default function AdminBookingsList({ bookings }: Props) {
   const [rules, setRules]                   = useState<PricingRule[]>([]);
   const [resendStatus, setResendStatus]           = useState<null | "loading" | "ok" | "error">(null);
   const [resendDepositStatus, setResendDepositStatus] = useState<null | "loading" | "ok" | "error">(null);
+
+  // Szűrés/lapozás után új adat jön a szervertől: a belső állapot kövesse
+  // (render közbeni állapotigazítás, ld. react.dev "adjusting state when a prop changes")
+  const [prevBookings, setPrevBookings] = useState(bookings);
+  if (bookings !== prevBookings) {
+    setPrevBookings(bookings);
+    setList(bookings);
+  }
 
   useEffect(() => {
     fetch("/api/pricing")
@@ -346,7 +360,7 @@ export default function AdminBookingsList({ bookings }: Props) {
   if (!list.length) {
     return (
       <div className="bg-white rounded-2xl shadow-card p-12 text-center text-stone-400">
-        Még nincsenek foglalások.
+        {emptyMessage ?? "Még nincsenek foglalások."}
       </div>
     );
   }
@@ -387,9 +401,29 @@ export default function AdminBookingsList({ bookings }: Props) {
           <table className="w-full text-sm">
             <thead className="bg-stone-50 border-b border-stone-100">
               <tr>
-                {["Azonosító", "Vendég", "Érkezés", "Távozás", "Fő", "Összeg", "Státusz", ""].map((h) => (
-                  <th key={h} className="px-5 py-3.5 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">{h}</th>
-                ))}
+                {["Azonosító", "Vendég", "Érkezés", "Távozás", "Fő", "Összeg", "Státusz", ""].map((h) => {
+                  const col: BookingSort | null = h === "Érkezés" ? "checkIn" : h === "Távozás" ? "checkOut" : null;
+                  if (!sortParams || !col) {
+                    return <th key={h} className="px-5 py-3.5 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">{h}</th>;
+                  }
+                  const active = sortParams.sort === col;
+                  return (
+                    <th
+                      key={h}
+                      aria-sort={active ? (sortParams.dir === "asc" ? "ascending" : "descending") : "none"}
+                      className="px-5 py-3.5 text-left text-xs font-medium uppercase tracking-wider"
+                    >
+                      <Link
+                        href={bookingListHref(toggleSort(sortParams, col))}
+                        scroll={false}
+                        className={`inline-flex items-center gap-1 hover:text-stone-800 transition-colors ${active ? "text-stone-800" : "text-stone-500"}`}
+                      >
+                        {h}
+                        {active && (sortParams.dir === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}
+                      </Link>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
